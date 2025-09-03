@@ -2,7 +2,7 @@
 import React from 'react';
 import { Box, TextField } from '@mui/material';
 import { Paper, Typography } from '@mui/material';
-import Grid from '@mui/material/Grid';
+import GridLegacy from "@mui/material/GridLegacy";
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
 import { useContentSettings } from '@/app/(DashboardLayout)/components/content/ContentSettingsContext';
@@ -14,9 +14,9 @@ const ClientManager = () => {
   return (
     <PageContainer title="Gestor de Clientes" description="Gestiona los clientes y sus características">
       <DashboardCard title="Gestor de Clientes">
-        <Grid container spacing={3}>
+        <GridLegacy container spacing={3}>
           {client ? (
-            <Grid xs={12} sm={6} md={4} key={client.id}>
+             <GridLegacy xs={12} sm={6} md={4} key={client.id}>
               <Paper elevation={3} sx={{ p: 2 }}>
                 <Typography variant="h6" gutterBottom>
                   {client.name}
@@ -44,14 +44,16 @@ const ClientManager = () => {
                   onChange={(e) => updateClientField(client.id, 'estilo', e.target.value)}
                 />
               </Paper>
-            </Grid>
+            </GridLegacy>
           ) : (
             <Typography>Selecciona un cliente para ver su configuración.</Typography>
           )}
-        </Grid>
+        </GridLegacy>
       </DashboardCard>
     </PageContainer>
   );
 };
 
 export default ClientManager;
+
+
