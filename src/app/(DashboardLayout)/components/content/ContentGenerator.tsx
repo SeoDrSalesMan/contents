@@ -5,7 +5,7 @@ import { ContentSettingsProvider } from "./ContentSettingsContext";
 
 const theme = createTheme({ palette: { mode: "light" } });
 
-export default function ContentGenerator({ children }: { children: React.ReactNode }): JSX.Element {
+export default function ContentGenerator({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
