@@ -63,6 +63,7 @@ export default function StrategyGenerator() {
   const [kw, setKw] = useState<string>("");
   const [ideasCount, setIdeasCount] = useState<number>(defaultIdeas);
   const [canales, setCanales] = useState<string[]>([]);
+  const [tipos, setTipos] = useState<string[]>([]);
   const [newStrategies, setNewStrategies] = useState<ContentItem[]>([]);
   const [selectedStrategies, setSelectedStrategies] = useState<number[]>([]);
 
@@ -151,6 +152,7 @@ export default function StrategyGenerator() {
       keyword1: kwArray,
       numeroIdeas: Number(ideasCount) || 0,
       canales: canales.join(", "),
+      tipos: tipos.join(", "),
       cliente: client.name,
       instruccionesGlobales: globalInstructions,
       alcance: client.alcance || "",
@@ -227,6 +229,28 @@ export default function StrategyGenerator() {
             label="Keyword 1 (separa por comas si son varias)"
             value={kw} onChange={e=>setKw(e.target.value)} required
           />
+
+          <FormControl component="fieldset" variant="standard">
+            <Typography component="legend">Tipo</Typography>
+            <FormGroup row>
+              <FormControlLabel
+                control={<Checkbox checked={tipos.includes("Educar")} onChange={e => setTipos(c => (e.target as HTMLInputElement).checked ? [...c, "Educar"] : c.filter(i => i !== "Educar"))} name="Educar" />}
+                label="Educar"
+              />
+              <FormControlLabel
+                control={<Checkbox checked={tipos.includes("Inspirar")} onChange={e => setTipos(c => (e.target as HTMLInputElement).checked ? [...c, "Inspirar"] : c.filter(i => i !== "Inspirar"))} name="Inspirar" />}
+                label="Inspirar"
+              />
+              <FormControlLabel
+                control={<Checkbox checked={tipos.includes("Entretener")} onChange={e => setTipos(c => (e.target as HTMLInputElement).checked ? [...c, "Entretener"] : c.filter(i => i !== "Entretener"))} name="Entretener" />}
+                label="Entretener"
+              />
+              <FormControlLabel
+                control={<Checkbox checked={tipos.includes("Promocionar")} onChange={e => setTipos(c => (e.target as HTMLInputElement).checked ? [...c, "Promocionar"] : c.filter(i => i !== "Promocionar"))} name="Promocionar" />}
+                label="Promocionar"
+              />
+            </FormGroup>
+          </FormControl>
 
           <TextField
             label="Número de ideas a generar" type="number"
