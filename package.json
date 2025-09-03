@@ -32,6 +32,11 @@
   },
   "devDependencies": {
     "@types/lodash": "4.14.196",
-    "@types/react-syntax-highlighter": "^15.5.13"
+    "@types/react-syntax-highlighter": "^15.5.13",
+    "typescript": "^5.4.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@types/node": "^20.14.0"
+
   }
 }
