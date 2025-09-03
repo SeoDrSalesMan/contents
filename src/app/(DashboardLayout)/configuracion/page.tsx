@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
-import { Box, Typography, TextField, Paper, Grid } from '@mui/material';
+import { Box, TextField } from '@mui/material';
+import { Grid, Paper, Typography } from '@mui/material';
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
 import { useContentSettings } from '@/app/(DashboardLayout)/components/content/ContentSettingsContext';
@@ -14,7 +15,7 @@ const ClientManager = () => {
       <DashboardCard title="Gestor de Clientes">
         <Grid container spacing={3}>
           {client ? (
-            <Grid item xs={12} sm={6} md={4} key={client.id}>
+            <Grid xs={12} sm={6} md={4} key={client.id}>
               <Paper elevation={3} sx={{ p: 2 }}>
                 <Typography variant="h6" gutterBottom>
                   {client.name}
