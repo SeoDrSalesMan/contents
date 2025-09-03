@@ -1,5 +1,8 @@
-import { useMediaQuery, Box, Drawer } from "@mui/material";
+import { useMediaQuery, Box, Drawer, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import SidebarItems from "./SidebarItems";
+import { useContentSettings } from "../../components/content/ContentSettingsContext";
+import { Logo } from "react-mui-sidebar";
+import Link from "next/link";
 
 
 
@@ -14,6 +17,7 @@ const MSidebar = ({
   onSidebarClose,
   isSidebarOpen,
 }: ItemType) => {
+  const { clients, selectedClientId, setSelectedClientId } = useContentSettings();
   const lgUp = useMediaQuery((theme: any) => theme.breakpoints.up("lg"));
 
   const sidebarWidth = "270px";
@@ -64,6 +68,30 @@ const MSidebar = ({
               height: "100%",
             }}
           >
+            <Box sx={{ p: 2 }}>
+              <Logo img='/images/logos/dark-logo.png' component={Link} to="/" >Modernize</Logo>
+            </Box>
+            <Box sx={{ p: 2 }}>
+              <FormControl fullWidth>
+                <InputLabel id="cliente-sidebar-sel-label">Cliente</InputLabel>
+                <Select
+                  labelId="cliente-sidebar-sel-label"
+                  id="cliente-sidebar-sel"
+                  value={selectedClientId}
+                  label="Cliente"
+                  onChange={(e) => setSelectedClientId(e.target.value)}
+                >
+                  <MenuItem value="">
+                    <em>Seleccionar Cliente</em>
+                  </MenuItem>
+                  {clients.map((client) => (
+                    <MenuItem key={client.id} value={client.id}>
+                      {client.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
 
             <Box>
               {/* ------------------------------------------- */}
@@ -97,6 +125,30 @@ const MSidebar = ({
       {/* Sidebar Box */}
       {/* ------------------------------------------- */}
       <Box>
+        <Box sx={{ p: 2 }}>
+          <Logo img='/images/logos/dark-logo.png' component={Link} to="/" >Modernize</Logo>
+        </Box>
+        <Box sx={{ p: 2 }}>
+          <FormControl fullWidth>
+            <InputLabel id="cliente-sidebar-sel-label-mobile">Cliente</InputLabel>
+            <Select
+              labelId="cliente-sidebar-sel-label-mobile"
+              id="cliente-sidebar-sel-mobile"
+              value={selectedClientId}
+              label="Cliente"
+              onChange={(e) => setSelectedClientId(e.target.value)}
+            >
+              <MenuItem value="">
+                <em>Seleccionar Cliente</em>
+              </MenuItem>
+              {clients.map((client) => (
+                <MenuItem key={client.id} value={client.id}>
+                  {client.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
         {/* ------------------------------------------- */}
         {/* Sidebar Items */}
         {/* ------------------------------------------- */}
@@ -110,8 +162,3 @@ const MSidebar = ({
 };
 
 export default MSidebar;
-
-
-
-
-

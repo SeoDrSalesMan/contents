@@ -8,11 +8,12 @@ import { Tone, useContentSettings } from "./ContentSettingsContext";
 
 export default function ArticleCreator(): JSX.Element {
   const {
-    clients, selectedClientId, setSelectedClientId,
-    defaultTone, defaultLength, globalInstructions
+    clients, selectedClientId,
+    defaultTone, defaultLength, globalInstructions, addArticle, updateArticle
   } = useContentSettings();
 
   const client = useMemo(() => clients.find(c => c.id === selectedClientId) || null, [clients, selectedClientId]);
+  const articles = useMemo(() => client?.articles || [], [client]);
 
   const [title,setTitle] = useState<string>("");
   const [structureRaw,setStructureRaw] = useState<string>("");
@@ -27,7 +28,7 @@ export default function ArticleCreator(): JSX.Element {
   const [conceptTitle,setConceptTitle] = useState<string>("");
   const [objective,setObjective] = useState<string>("");
   const [instructions,setInstructions] = useState<string>("");
-  const [article,setArticle] = useState<string>("");
+  const [newArticle, setNewArticle] = useState<string | null>(null);
 
   useEffect(()=>setTone(defaultTone),[defaultTone]);
   useEffect(()=>setLength(defaultLength),[defaultLength]);
@@ -64,12 +65,19 @@ export default function ArticleCreator(): JSX.Element {
       const res = await fetch(client.webhook, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(payload) });
       if(!res.ok) throw new Error(`Error en webhook de artículo: ${res.status}`);
       const data = await res.json();
-      setArticle(data?.articulo || JSON.stringify(data,null,2));
+      setNewArticle(data?.articulo || JSON.stringify(data,null,2));
     }catch(err){
       console.error(err);
       alert("Error al generar el artículo. Revisa la consola.");
     }
   }
+
+  const handleSave = () => {
+    if (newArticle) {
+      addArticle(selectedClientId, newArticle);
+      setNewArticle(null);
+    }
+  };
 
   return (
     <Box sx={{ maxWidth: 900, mx: "auto" }}>
@@ -80,18 +88,6 @@ export default function ArticleCreator(): JSX.Element {
       </Box>
       <Box component="form" onSubmit={onSubmit}>
         <Stack spacing={2}>
-          <FormControl fullWidth>
-            <InputLabel id="cliente-art">Cliente</InputLabel>
-            <Select<string>
-              labelId="cliente-art" label="Cliente" value={selectedClientId}
-              onChange={e=>setSelectedClientId(e.target.value)}
-            >
-              <MenuItem value="">Selecciona un cliente</MenuItem>
-              {clients.map(c=><MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>)}
-            </Select>
-          </FormControl>
-          <Typography variant="body2" color="text.secondary">{client?.info || ""}</Typography>
-
           <TextField label="Tema o título provisional" value={title} onChange={e=>setTitle(e.target.value)} required />
 
           <TextField
@@ -177,14 +173,27 @@ export default function ArticleCreator(): JSX.Element {
         </Stack>
       </Box>
 
-      {article && (
+      {newArticle && (
         <Box sx={{ mt: 4 }}>
-          <Typography variant="h6" sx={{ mb: 1 }}>Artículo generado</Typography>
-          <Paper variant="outlined" sx={{ p: 2, minHeight: 400, whiteSpace: "pre-wrap" }} contentEditable>
+          <Typography variant="h6" sx={{ mb: 1 }}>Nuevo Artículo</Typography>
+          <Paper variant="outlined" sx={{ p: 2, minHeight: 400, whiteSpace: "pre-wrap" }} contentEditable onBlur={(e) => setNewArticle(e.currentTarget.textContent)}>
+            {newArticle}
+          </Paper>
+          <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
+            <Button variant="contained" onClick={handleSave}>Guardar</Button>
+            <Button variant="outlined" onClick={(e) => onSubmit(e as any)}>Volver a generar</Button>
+          </Stack>
+        </Box>
+      )}
+
+      {articles.map((article, index) => (
+        <Box key={index} sx={{ mt: 4 }}>
+          <Typography variant="h6" sx={{ mb: 1 }}>Artículo Guardado</Typography>
+          <Paper variant="outlined" sx={{ p: 2, minHeight: 400, whiteSpace: "pre-wrap" }} contentEditable onBlur={(e) => updateArticle(selectedClientId, index, e.currentTarget.textContent)}>
             {article}
           </Paper>
         </Box>
-      )}
+      ))}
     </Box>
   );
 }

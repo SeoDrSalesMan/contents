@@ -4,6 +4,7 @@ import {
   IconLayoutDashboard,
   IconLogin,
   IconMoodHappy,
+  IconTent,
   IconTypography,
   IconUserPlus,
 } from "@tabler/icons-react";
@@ -22,12 +23,19 @@ const Menuitems = [
     icon: IconLayoutDashboard,
     href: "/",
   },
+  {
+    id: uniqueId(),
+    title: "Estructuras",
+    icon: IconTent,
+    href: "/estructuras",
+  },
    {
     id: uniqueId(),
     title: "Articulos",
     icon: IconTypography,
     href: "/articulos",
   },
+   
    {
     id: uniqueId(),
     title: "RRSS",
@@ -36,13 +44,13 @@ const Menuitems = [
   },
   {
     navlabel: true,
-    subheader: "CONFIGURACIONES",
+    subheader: "SISTEMA",
   },
   {
     id: uniqueId(),
-    title: "Clientes",
+    title: "Configuracion",
     icon: IconUserPlus,
-    href: "/authentication/register",
+    href: "/configuracion",
   },
   {
     id: uniqueId(),
@@ -58,5 +66,3 @@ const Menuitems = [
 ];
 
 export default Menuitems;
-
-

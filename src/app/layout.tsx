@@ -2,6 +2,7 @@
 import { baselightTheme } from "@/utils/theme/DefaultColors";
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
+import EmotionCacheProvider from "./EmotionCacheProvider";
 import './global.css'
 
 
@@ -12,12 +13,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <meta name="emotion-insertion-point" content="" />
+      </head>
       <body>
-        <ThemeProvider theme={baselightTheme}>
-          {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
-          <CssBaseline />
-          {children}
-        </ThemeProvider>
+        <EmotionCacheProvider>
+          <ThemeProvider theme={baselightTheme}>
+            <CssBaseline />
+            {children}
+          </ThemeProvider>
+        </EmotionCacheProvider>
       </body>
     </html>
   );
