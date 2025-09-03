@@ -1,10 +1,3 @@
-import { NextResponse } from 'next/server';
-
 export async function GET() {
-  return NextResponse.json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    service: 'content-generator',
-    version: '1.0.0'
-  });
+  return new Response('ok', { status: 200 });
 }
