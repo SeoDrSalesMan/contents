@@ -6,7 +6,7 @@ import {
 } from "@mui/material";
 import { Tone, useContentSettings } from "./ContentSettingsContext";
 
-export default function ArticleCreator(): JSX.Element {
+export default function ArticleCreator() {
   const {
     clients, selectedClientId,
     defaultTone, defaultLength, globalInstructions, addArticle, updateArticle
