@@ -1,5 +1,6 @@
 'use client';
-import { Typography, Grid, CardContent } from '@mui/material';
+import { Typography, CardContent } from '@mui/material';
+import Grid from '@mui/material/Grid';
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
 import BlankCard from '@/app/(DashboardLayout)/components/shared/BlankCard';

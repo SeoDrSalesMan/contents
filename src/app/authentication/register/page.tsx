@@ -1,5 +1,6 @@
 "use client";
-import { Grid, Box, Card, Typography, Stack } from "@mui/material";
+import { Box, Card, Typography, Stack } from "@mui/material";
+import Grid from '@mui/material/Grid';
 import Link from "next/link";
 import PageContainer from "@/app/(DashboardLayout)/components/container/PageContainer";
 import Logo from "@/app/(DashboardLayout)/layout/shared/logo/Logo";

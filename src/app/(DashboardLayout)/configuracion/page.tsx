@@ -1,7 +1,8 @@
 'use client';
 import React from 'react';
 import { Box, TextField } from '@mui/material';
-import { Grid, Paper, Typography } from '@mui/material';
+import { Paper, Typography } from '@mui/material';
+import Grid from '@mui/material/Grid';
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
 import { useContentSettings } from '@/app/(DashboardLayout)/components/content/ContentSettingsContext';
