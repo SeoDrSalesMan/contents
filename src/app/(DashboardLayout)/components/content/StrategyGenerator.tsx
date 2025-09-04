@@ -51,7 +51,8 @@ function parseIdeasPayload(data: unknown): ContentItem[] {
       titulo: asS(n.titulo || n.title || ""),
       descripcion: asS(n.descripcion || n.description || ""),
       keyword: asS(n.keyword || n.keywords || n.palabra || ""),
-      intencion: asS(n.intencion || n.intent || ""),
+      volumen: asS(n.volumen || n.volume || ""),
+      tipos: asS(n.tipos || n.types || ""),
       funnel: asS(n.funnel || n.embudo || "")
     };
   });
@@ -179,8 +180,8 @@ export default function StrategyGenerator() {
 
   function exportCSV(): void {
     const rows = [
-      ["Fecha","Canal","Formato","Título","Descripción","Keyword","Intención","Funnel"].map(v=>`"${String(v).replace(/"/g,'""')}"`),
-      ...filteredLatestExecutions.map(it=>[`"${(it.fecha||"").replace(/"/g,'""')}"`,`"${(it.canal||"").replace(/"/g,'""')}"`,`"${(it.formato||"").replace(/"/g,'""')}"`,`"${(it.titulo||"").replace(/"/g,'""')}"`,`"${(it.descripcion||"").replace(/"/g,'""')}"`,`"${(it.keyword||"").replace(/"/g,'""')}"`,`"${(it.intencion||"").replace(/"/g,'""')}"`,`"${(it.funnel||"").replace(/"/g,'""')}"`])
+      ["Fecha","Canal","Formato","Título","Descripción","Keyword","Volumen","Tipos","Funnel"].map(v=>`"${String(v).replace(/"/g,'""')}"`),
+      ...filteredLatestExecutions.map(it=>[`"${(it.fecha||"").replace(/"/g,'""')}"`,`"${(it.canal||"").replace(/"/g,'""')}"`,`"${(it.formato||"").replace(/"/g,'""')}"`,`"${(it.titulo||"").replace(/"/g,'""')}"`,`"${(it.descripcion||"").replace(/"/g,'""')}"`,`"${(it.keyword||"").replace(/"/g,'""')}"`,`"${(it.volumen||"").replace(/"/g,'""')}"`,`"${(it.tipos||"").replace(/"/g,'""')}"`,`"${(it.funnel||"").replace(/"/g,'""')}"`])
     ].map(r=>r.join(";")).join("\n");
     const blob = new Blob(["\uFEFF"+rows], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -410,7 +411,12 @@ export default function StrategyGenerator() {
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" color="text.secondary">
-                        {strategy.intencion || "-"}
+                        {strategy.volumen || "-"}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {strategy.tipos || "-"}
                       </Typography>
                     </TableCell>
                     <TableCell>
@@ -458,7 +464,7 @@ export default function StrategyGenerator() {
               <TableHead>
                 <TableRow>
                   <TableCell>Seleccionar</TableCell>
-                  {["Fecha","Canal","Formato","Título","Descripción","Keyword","Intención","Funnel"].map(h=>(
+                  {["Fecha","Canal","Formato","Título","Descripción","Keyword","Volumen","Tipos","Funnel"].map(h=>(
                     <TableCell key={h}>{h}</TableCell>
                   ))}
                 </TableRow>
@@ -484,7 +490,8 @@ export default function StrategyGenerator() {
                     <TableCell>{it.titulo}</TableCell>
                     <TableCell>{it.descripcion}</TableCell>
                     <TableCell>{it.keyword}</TableCell>
-                    <TableCell>{it.intencion}</TableCell>
+                    <TableCell>{it.volumen}</TableCell>
+                    <TableCell>{it.tipos}</TableCell>
                     <TableCell>{it.funnel}</TableCell>
                   </TableRow>
                 ))}
