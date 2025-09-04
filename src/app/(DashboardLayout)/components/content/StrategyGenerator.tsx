@@ -46,8 +46,6 @@ function parseIdeasPayload(data: unknown): ContentItem[] {
     const fecha = asS(n.fecha || n.date || n.fechaformato || "").slice(0, 10);
     return {
       fecha,
-      canal: asS(n.canal || n.channel || n.source || ""),
-      formato: asS(n.formato || n.format || ""),
       titulo: asS(n.titulo || n.title || ""),
       descripcion: asS(n.descripcion || n.description || ""),
       keyword: asS(n.keyword || n.keywords || n.palabra || ""),
@@ -85,8 +83,6 @@ export default function StrategyGenerator() {
     return latestExecutions.filter(it => {
       if (filters.from && it.fecha && it.fecha < filters.from) return false;
       if (filters.to && it.fecha && it.fecha > filters.to) return false;
-      if (filters.channel && it.canal !== filters.channel) return false;
-      if (filters.format && it.formato !== filters.format) return false;
       if (filters.funnel && it.funnel !== filters.funnel) return false;
       return true;
     });
@@ -96,8 +92,6 @@ export default function StrategyGenerator() {
     return items.filter(it => {
       if (filters.from && it.fecha && it.fecha < filters.from) return false;
       if (filters.to && it.fecha && it.fecha > filters.to) return false;
-      if (filters.channel && it.canal !== filters.channel) return false;
-      if (filters.format && it.formato !== filters.format) return false;
       if (filters.funnel && it.funnel !== filters.funnel) return false;
       return true;
     });
@@ -210,7 +204,6 @@ export default function StrategyGenerator() {
     const params = new URLSearchParams({
       title: strategy.titulo || "",
       keyword: strategy.keyword || "",
-      channel: strategy.canal || "",
       description: strategy.descripcion || "",
       clientId: client.id,
       fromStrategy: "true"
