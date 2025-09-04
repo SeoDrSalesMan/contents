@@ -40,7 +40,7 @@ function parseIdeasPayload(data: unknown): ContentItem[] {
   else items = [data];
 
   return items.map((it: any): ContentItem => {
-    if (!it || typeof it !== "object") return { fecha: "", canal: "", formato: "", titulo: String(it ?? ""), descripcion: "", keyword: "", intencion: "", funnel: "" };
+    if (!it || typeof it !== "object") return { fecha: "", canal: "", formato: "", titulo: String(it ?? ""), descripcion: "", keyword: "", funnel: "" };
     const n: Record<string, any> = {}; Object.keys(it).forEach(k => (n[normKey(k)] = (it as any)[k]));
     const asS = (v: any) => v == null ? "" : Array.isArray(v) ? v.join(", ") : String(v);
     const fecha = asS(n.fecha || n.date || n.fechaformato || "").slice(0, 10);
