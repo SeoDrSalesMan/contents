@@ -138,8 +138,8 @@ export default function StrategyGenerator() {
     return `https://content-generator.nv0ey8.easypanel.host/workflow/${client.workflowId}/executions/${id}`;
   };
 
-  const channels = useMemo<string[]>(() => Array.from(new Set(items.map(i => i.canal).filter(Boolean))), [items]);
-  const formats = useMemo<string[]>(() => Array.from(new Set(items.map(i => i.formato).filter(Boolean))), [items]);
+  const channels = useMemo<string[]>(() => Array.from(new Set(items.map(i => i.canal).filter((c): c is string => Boolean(c)))), [items]);
+  const formats = useMemo<string[]>(() => Array.from(new Set(items.map(i => i.formato).filter((f): f is string => Boolean(f)))), [items]);
   const funnels = useMemo<string[]>(() => Array.from(new Set(items.map(i => i.funnel).filter(Boolean))), [items]);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {

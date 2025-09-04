@@ -3,8 +3,8 @@ import React, { createContext, useContext, useMemo, useState, useEffect } from "
 
 export interface ContentItem {
   fecha: string;
-  canal: string;
-  formato: string;
+  canal?: string;
+  formato?: string;
   titulo: string;
   descripcion: string;
   keyword: string;
@@ -85,11 +85,11 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
         return {
           ...client,
           strategies: [
-            { fecha: "2025-09-01", canal: "Blog", formato: "Artículo informativo", titulo: "¿Cómo elegir el mejor abogado para tu caso?", descripcion: "Guía completa para seleccionar asesoría legal especializada en derecho civil y mercantil", keyword: "abogado, asesoría legal", volumen: "Alto", tipos: "Educar, Entretener", funnel: "TOFU" },
-            { fecha: "2025-09-01", canal: "LinkedIn", formato: "Post profesional", titulo: "Nuevas regulaciones mercantiles 2025", descripcion: "Análisis de los cambios normativos que afectarán a las empresas españolas", keyword: "derecho mercantil, regulaciones", volumen: "Medio", tipos: "Entretener, Promocionar", funnel: "MOFU" },
-            { fecha: "2025-09-01", canal: "Facebook", formato: "Video explicativo", titulo: "5 errores legales que cometen las startups", descripcion: "Video educativo sobre los principales errores legales en empresas emergentes", keyword: "startups, errores legales", volumen: "Alto", tipos: "Educar, Promocionar", funnel: "TOFU" },
-            { fecha: "2025-09-01", canal: "Blog", formato: "Guía práctica", titulo: "Contratos digitales: todo lo que necesitas saber", descripcion: "Manual completo sobre la validez y requisitos de los contratos en el ámbito digital", keyword: "contratos digitales, derecho digital", volumen: "Medio", tipos: "Entretener, Inspirar", funnel: "MOFU" },
-            { fecha: "2025-09-01", canal: "Instagram", formato: "Carousel", titulo: "Derechos del consumidor en España", descripcion: "Infografía con los principales derechos que todo consumidor debe conocer", keyword: "derechos consumidor, protección", volumen: "Alto", tipos: "Entretener, Inspirar", funnel: "TOFU" }
+            { fecha: "2025-09-01", titulo: "¿Cómo elegir el mejor abogado para tu caso?", descripcion: "Guía completa para seleccionar asesoría legal especializada en derecho civil y mercantil", keyword: "abogado, asesoría legal", volumen: "Alto", tipos: "Educar, Entretener", funnel: "TOFU" },
+            { fecha: "2025-09-01", titulo: "Nuevas regulaciones mercantiles 2025", descripcion: "Análisis de los cambios normativos que afectarán a las empresas españolas", keyword: "derecho mercantil, regulaciones", volumen: "Medio", tipos: "Entretener, Promocionar", funnel: "MOFU" },
+            { fecha: "2025-09-01", titulo: "5 errores legales que cometen las startups", descripcion: "Video educativo sobre los principales errores legales en empresas emergentes", keyword: "startups, errores legales", volumen: "Alto", tipos: "Educar, Promocionar", funnel: "TOFU" },
+            { fecha: "2025-09-01", titulo: "Contratos digitales: todo lo que necesitas saber", descripcion: "Manual completo sobre la validez y requisitos de los contratos en el ámbito digital", keyword: "contratos digitales, derecho digital", volumen: "Medio", tipos: "Entretener, Inspirar", funnel: "MOFU" },
+            { fecha: "2025-09-01", titulo: "Derechos del consumidor en España", descripcion: "Infografía con los principales derechos que todo consumidor debe conocer", keyword: "derechos consumidor, protección", volumen: "Alto", tipos: "Entretener, Inspirar", funnel: "TOFU" }
           ],
           executionIds: ["300", "299", "298"]
         };
