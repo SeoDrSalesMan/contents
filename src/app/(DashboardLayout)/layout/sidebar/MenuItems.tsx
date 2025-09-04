@@ -23,25 +23,25 @@ const Menuitems = [
     icon: IconLayoutDashboard,
     href: "/",
   },
-  {
+ /*  {
     id: uniqueId(),
     title: "Estructuras",
     icon: IconTent,
     href: "/estructuras",
-  },
+  }, */
    {
     id: uniqueId(),
     title: "Articulos",
     icon: IconTypography,
     href: "/articulos",
   },
-   
+  /*  
    {
     id: uniqueId(),
     title: "RRSS",
     icon: IconAperture,
     href: "/rrss",
-  },
+  }, */
   {
     navlabel: true,
     subheader: "SISTEMA",
