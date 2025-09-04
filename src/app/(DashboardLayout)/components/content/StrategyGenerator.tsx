@@ -64,6 +64,7 @@ export default function StrategyGenerator() {
   const [ideasCount, setIdeasCount] = useState<number>(defaultIdeas);
   const [canales, setCanales] = useState<string[]>([]);
   const [tipos, setTipos] = useState<string[]>([]);
+  const [funnel, setFunnel] = useState<string>("");
   const [newStrategies, setNewStrategies] = useState<ContentItem[]>([]);
   const [selectedStrategies, setSelectedStrategies] = useState<number[]>([]);
 
@@ -153,6 +154,7 @@ export default function StrategyGenerator() {
       numeroIdeas: Number(ideasCount) || 0,
       canales: canales.join(", "),
       tipos: tipos.join(", "),
+      funnelStage: funnel,
       cliente: client.name,
       instruccionesGlobales: globalInstructions,
       alcance: client.alcance || "",
@@ -252,41 +254,28 @@ export default function StrategyGenerator() {
             </FormGroup>
           </FormControl>
 
+          <FormControl fullWidth>
+            <InputLabel id="funnel-strategy">Etapa del embudo</InputLabel>
+            <Select<string>
+              labelId="funnel-strategy"
+              label="Etapa del embudo"
+              value={funnel}
+              onChange={e => setFunnel(e.target.value)}
+            >
+              <MenuItem value="">Selecciona etapa</MenuItem>
+              <MenuItem value="TOFU">TOFU – Conocimiento</MenuItem>
+              <MenuItem value="MOFU">MOFU – Consideración</MenuItem>
+              <MenuItem value="BOFU">BOFU – Decisión</MenuItem>
+            </Select>
+          </FormControl>
+
           <TextField
             label="Número de ideas a generar" type="number"
             value={ideasCount} onChange={e=>setIdeasCount(Number(e.target.value) || 0)}
             inputProps={{ min: 1, max: 100 }}
           />
 
-          <FormControl component="fieldset" variant="standard">
-            <Typography component="legend">Canales</Typography>
-            <FormGroup row>
-              <FormControlLabel
-                control={<Checkbox checked={canales.includes("Blog")} onChange={e => setCanales(c => (e.target as HTMLInputElement).checked ? [...c, "Blog"] : c.filter(i => i !== "Blog"))} name="Blog" />}
-                label="Blog"
-              />
-              <FormControlLabel
-                control={<Checkbox checked={canales.includes("Facebook")} onChange={e => setCanales(c => (e.target as HTMLInputElement).checked ? [...c, "Facebook"] : c.filter(i => i !== "Facebook"))} name="Facebook" />}
-                label="Facebook"
-              />
-              <FormControlLabel
-                control={<Checkbox checked={canales.includes("Reels")} onChange={e => setCanales(c => (e.target as HTMLInputElement).checked ? [...c, "Reels"] : c.filter(i => i !== "Reels"))} name="Reels" />}
-                label="Reels"
-              />
-              <FormControlLabel
-                control={<Checkbox checked={canales.includes("LinkedIn")} onChange={e => setCanales(c => (e.target as HTMLInputElement).checked ? [...c, "LinkedIn"] : c.filter(i => i !== "LinkedIn"))} name="LinkedIn" />}
-                label="LinkedIn"
-              />
-              <FormControlLabel
-                control={<Checkbox checked={canales.includes("Instagram")} onChange={e => setCanales(c => (e.target as HTMLInputElement).checked ? [...c, "Instagram"] : c.filter(i => i !== "Instagram"))} name="Instagram" />}
-                label="Instagram"
-              />
-              <FormControlLabel
-                control={<Checkbox checked={canales.includes("TikTok")} onChange={e => setCanales(c => (e.target as HTMLInputElement).checked ? [...c, "TikTok"] : c.filter(i => i !== "TikTok"))} name="TikTok" />}
-                label="TikTok"
-              />
-            </FormGroup>
-          </FormControl>
+          
 
           <Button type="submit" variant="contained">Generar estrategia</Button>
         </Stack>
@@ -373,7 +362,7 @@ export default function StrategyGenerator() {
           <Table size="small">
             <TableHead>
               <TableRow>
-                {["Fecha","Canal","Formato","Título","Descripción","Keyword","Intención","Funnel","Acciones"].map(h=>(
+                {["Fecha","Título","Descripción","Keyword","Volumen","Tipos","Funnel","Acciones"].map(h=>(
                   <TableCell key={h} sx={{ fontWeight: 'bold', textAlign: h === "Fecha" ? 'left' : 'left' }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>
                       {h}
@@ -391,21 +380,12 @@ export default function StrategyGenerator() {
                         {strategy.fecha || "Sin fecha"}
                         {index === 0 && (
                           <Typography component="span" color="primary" variant="caption" sx={{ ml: 1, fontWeight: 'bold' }}>
-                            (MÁS RECIENTE)
+                         
                           </Typography>
                         )}
                       </Typography>
                     </TableCell>
-                    <TableCell>
-                      <Typography variant="body2">
-                        {strategy.canal || "No especificado"}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2">
-                        {strategy.formato || "N/E"}
-                      </Typography>
-                    </TableCell>
+                
                     <TableCell>
                       <Typography variant="body2" sx={{
                         fontWeight: index === 0 ? 'bold' : 'normal',
