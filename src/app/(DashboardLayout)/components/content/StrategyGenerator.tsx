@@ -52,7 +52,7 @@ function parseIdeasPayload(data: unknown): ContentItem[] {
       descripcion: asS(n.descripcion || n.description || ""),
       keyword: asS(n.keyword || n.keywords || n.palabra || ""),
       volumen: asS(n.volumen || n.volume || ""),
-      tipos: asS(n.tipos || n.types || ""),
+      tipos: asS(n.tipos || n.tipo || n.types || ""),
       funnel: asS(n.funnel || n.embudo || "")
     };
   });
