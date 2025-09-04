@@ -464,7 +464,7 @@ export default function StrategyGenerator() {
               <TableHead>
                 <TableRow>
                   <TableCell>Seleccionar</TableCell>
-                  {["Fecha","Canal","Formato","Título","Descripción","Keyword","Volumen","Tipos","Funnel"].map(h=>(
+                  {["Fecha","Título","Descripción","Keyword","Volumen","Tipos","Funnel"].map(h=>(
                     <TableCell key={h}>{h}</TableCell>
                   ))}
                 </TableRow>
@@ -485,8 +485,6 @@ export default function StrategyGenerator() {
                       />
                     </TableCell>
                     <TableCell>{it.fecha}</TableCell>
-                    <TableCell>{it.canal}</TableCell>
-                    <TableCell>{it.formato}</TableCell>
                     <TableCell>{it.titulo}</TableCell>
                     <TableCell>{it.descripcion}</TableCell>
                     <TableCell>{it.keyword}</TableCell>
