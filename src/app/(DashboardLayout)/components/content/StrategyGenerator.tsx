@@ -40,7 +40,7 @@ function parseIdeasPayload(data: unknown): ContentItem[] {
   else items = [data];
 
   return items.map((it: any): ContentItem => {
-    if (!it || typeof it !== "object") return { fecha: "", canal: "", formato: "", titulo: String(it ?? ""), descripcion: "", keyword: "", funnel: "" };
+    if (!it || typeof it !== "object") return { fecha: "", titulo: String(it ?? ""), descripcion: "", keyword: "", funnel: "" };
     const n: Record<string, any> = {}; Object.keys(it).forEach(k => (n[normKey(k)] = (it as any)[k]));
     const asS = (v: any) => v == null ? "" : Array.isArray(v) ? v.join(", ") : String(v);
     const fecha = asS(n.fecha || n.date || n.fechaformato || "").slice(0, 10);
@@ -132,8 +132,6 @@ export default function StrategyGenerator() {
     return `https://content-generator.nv0ey8.easypanel.host/workflow/${client.workflowId}/executions/${id}`;
   };
 
-  const channels = useMemo<string[]>(() => Array.from(new Set(items.map(i => i.canal).filter((c): c is string => Boolean(c)))), [items]);
-  const formats = useMemo<string[]>(() => Array.from(new Set(items.map(i => i.formato).filter((f): f is string => Boolean(f)))), [items]);
   const funnels = useMemo<string[]>(() => Array.from(new Set(items.map(i => i.funnel).filter(Boolean))), [items]);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -174,8 +172,8 @@ export default function StrategyGenerator() {
 
   function exportCSV(): void {
     const rows = [
-      ["Fecha","Canal","Formato","Título","Descripción","Keyword","Volumen","Tipos","Funnel"].map(v=>`"${String(v).replace(/"/g,'""')}"`),
-      ...filteredLatestExecutions.map(it=>[`"${(it.fecha||"").replace(/"/g,'""')}"`,`"${(it.canal||"").replace(/"/g,'""')}"`,`"${(it.formato||"").replace(/"/g,'""')}"`,`"${(it.titulo||"").replace(/"/g,'""')}"`,`"${(it.descripcion||"").replace(/"/g,'""')}"`,`"${(it.keyword||"").replace(/"/g,'""')}"`,`"${(it.volumen||"").replace(/"/g,'""')}"`,`"${(it.tipos||"").replace(/"/g,'""')}"`,`"${(it.funnel||"").replace(/"/g,'""')}"`])
+      ["Fecha","Título","Descripción","Keyword","Volumen","Tipos","Funnel"].map(v=>`"${String(v).replace(/"/g,'""')}"`),
+      ...filteredLatestExecutions.map(it=>[`"${(it.fecha||"").replace(/"/g,'""')}"`,`"${(it.titulo||"").replace(/"/g,'""')}"`,`"${(it.descripcion||"").replace(/"/g,'""')}"`,`"${(it.keyword||"").replace(/"/g,'""')}"`,`"${(it.volumen||"").replace(/"/g,'""')}"`,`"${(it.tipos||"").replace(/"/g,'""')}"`,`"${(it.funnel||"").replace(/"/g,'""')}"`])
     ].map(r=>r.join(";")).join("\n");
     const blob = new Blob(["\uFEFF"+rows], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -312,26 +310,7 @@ export default function StrategyGenerator() {
                 label="Hasta" type="date" InputLabelProps={{ shrink: true }}
                 value={filters.to} onChange={e=>setFilters(f=>({ ...f, to: e.target.value }))} sx={{ width: 180 }}
               />
-              <FormControl sx={{ minWidth: 160 }}>
-                <InputLabel id="canal-label-history">Canal</InputLabel>
-                <Select<string>
-                  labelId="canal-label-history" label="Canal" value={filters.channel}
-                  onChange={e=>setFilters(f=>({ ...f, channel: e.target.value }))}
-                >
-                  <MenuItem value="">Todos</MenuItem>
-                  {Array.from(new Set(latestExecutions.map(i => i.canal).filter(Boolean))).map(v=><MenuItem key={v} value={v}>{v}</MenuItem>)}
-                </Select>
-              </FormControl>
-              <FormControl sx={{ minWidth: 160 }}>
-                <InputLabel id="formato-label-history">Formato</InputLabel>
-                <Select<string>
-                  labelId="formato-label-history" label="Formato" value={filters.format}
-                  onChange={e=>setFilters(f=>({ ...f, format: e.target.value }))}
-                >
-                  <MenuItem value="">Todos</MenuItem>
-                  {Array.from(new Set(latestExecutions.map(i => i.formato).filter(Boolean))).map(v=><MenuItem key={v} value={v}>{v}</MenuItem>)}
-                </Select>
-              </FormControl>
+            
               <FormControl sx={{ minWidth: 160 }}>
                 <InputLabel id="funnel-label-history">Funnel</InputLabel>
                 <Select<string>
