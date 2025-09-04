@@ -3,8 +3,6 @@ import React, { createContext, useContext, useMemo, useState, useEffect } from "
 
 export interface ContentItem {
   fecha: string;
-  canal?: string;
-  formato?: string;
   titulo: string;
   descripcion: string;
   keyword: string;

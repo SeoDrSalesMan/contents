@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Fetch execution data from n8n
-        const executionResponse = await fetch(`${webhookUrl.split('/webhook/')[0]}/rest/executions/${executionId}`, {
+        const executionResponse = await fetch(`${webhookUrl.split('/webhook/')[0]}/executions/${executionId}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
