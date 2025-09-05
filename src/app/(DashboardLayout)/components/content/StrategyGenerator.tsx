@@ -64,6 +64,7 @@ export default function StrategyGenerator() {
   const [canales, setCanales] = useState<string[]>([]);
   const [tipos, setTipos] = useState<string[]>([]);
   const [funnel, setFunnel] = useState<string>("");
+  const [additionalInstructions, setAdditionalInstructions] = useState<string>("");
   const [newStrategies, setNewStrategies] = useState<ContentItem[]>([]);
   const [selectedStrategies, setSelectedStrategies] = useState<number[]>([]);
 
@@ -150,6 +151,7 @@ export default function StrategyGenerator() {
       funnelStage: funnel,
       cliente: client.name,
       instruccionesGlobales: globalInstructions,
+      instruccionesAdicionales: additionalInstructions || "",
       alcance: client.alcance || "",
       estilo: client.estilo || ""
     };
@@ -267,7 +269,15 @@ export default function StrategyGenerator() {
             inputProps={{ min: 1, max: 100 }}
           />
 
-          
+          <TextField
+            label="Instrucciones adicionales"
+            value={additionalInstructions}
+            onChange={(e) => setAdditionalInstructions(e.target.value)}
+            multiline
+            rows={3}
+            placeholder="Agrega instrucciones específicas para la generación de estrategias..."
+            fullWidth
+          />
 
           <Button type="submit" variant="contained">Generar estrategia</Button>
         </Stack>
