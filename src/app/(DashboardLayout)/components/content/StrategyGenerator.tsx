@@ -241,6 +241,21 @@ export default function StrategyGenerator() {
     setEditedData(null);
   };
 
+  const handleGenerateRrss = (strategy: ContentItem) => {
+    if (!client) {
+      alert("Selecciona un cliente válido.");
+      return;
+    }
+
+    // Navegar a la página de RRSS con parámetros para auto-rellenar
+    const params = new URLSearchParams({
+      titulo: strategy.titulo || "",
+      descripcion: strategy.descripcion || ""
+    });
+
+    router.push(`/rrss?${params.toString()}`);
+  };
+
   return (
     <Box sx={{ maxWidth: 900, mx: "auto" }}>
       <Box sx={{ maxWidth: 900, mx: "auto", mb: 2 }}>
@@ -553,9 +568,17 @@ export default function StrategyGenerator() {
                             variant="outlined"
                             size="small"
                             onClick={() => handleGenerateStructure(strategy)}
+                            sx={{ mr: 1, fontSize: '0.75rem', minWidth: 'auto', px: 1.5, py: 0.5 }}
+                          >
+                            Estructura
+                          </Button>
+                          <Button
+                            variant="contained"
+                            size="small"
+                            onClick={() => handleGenerateRrss(strategy)}
                             sx={{ fontSize: '0.75rem', minWidth: 'auto', px: 1.5, py: 0.5 }}
                           >
-                            Generar Estructura
+                            RRSS
                           </Button>
                         </Box>
                       )}
