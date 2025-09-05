@@ -58,7 +58,7 @@ function parseIdeasPayload(data: unknown): ContentItem[] {
 
 export default function StrategyGenerator() {
   const router = useRouter();
-  const { clients, selectedClientId, defaultIdeas, globalInstructions, addStrategies, addExecutionId } = useContentSettings();
+  const { clients, selectedClientId, defaultIdeas, globalInstructions, addStrategies, updateStrategy, addExecutionId } = useContentSettings();
   const [kw, setKw] = useState<string>("");
   const [ideasCount, setIdeasCount] = useState<number>(defaultIdeas);
   const [eventDate, setEventDate] = useState<string>("");
@@ -79,7 +79,11 @@ export default function StrategyGenerator() {
   const [executionError, setExecutionError] = useState<string | null>(null);
 
   const [filters, setFilters] = useState<Filters>({ from: "", to: "", channel: "", format: "", funnel: "" });
-  
+
+  // Estado para edición en línea
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editedData, setEditedData] = useState<ContentItem | null>(null);
+
   // Aplicar filtros a las últimas ejecuciones
   const filteredLatestExecutions = useMemo(() => {
     return latestExecutions.filter(it => {
@@ -201,7 +205,7 @@ export default function StrategyGenerator() {
       alert("Selecciona un cliente válido.");
       return;
     }
-    
+
     // Navegar a la página de estructuras con parámetros de la estrategia
     const params = new URLSearchParams({
       title: strategy.titulo || "",
@@ -210,8 +214,31 @@ export default function StrategyGenerator() {
       clientId: client.id,
       fromStrategy: "true"
     });
-    
+
     router.push(`/estructuras?${params.toString()}`);
+  };
+
+  const handleEditStart = (index: number, strategy: ContentItem) => {
+    setEditingIndex(index);
+    setEditedData({ ...strategy });
+  };
+
+  const handleEditCancel = () => {
+    setEditingIndex(null);
+    setEditedData(null);
+  };
+
+  const handleEditSave = () => {
+    if (!client || editingIndex === null || !editedData) return;
+
+    // Calcular el índice real en client.strategies
+    const totalStrategies = client.strategies.length;
+    const realIndex = totalStrategies - 1 - editingIndex;
+
+    updateStrategy(client.id, realIndex, editedData);
+
+    setEditingIndex(null);
+    setEditedData(null);
   };
 
   return (
@@ -368,68 +395,170 @@ export default function StrategyGenerator() {
               {filteredLatestExecutions.length > 0 ? (
                 filteredLatestExecutions.map((strategy, index) => (
                   <TableRow key={`${strategy.titulo}-${index}`} sx={{ bgcolor: index === 0 ? 'action.selected' : 'inherit' }}>
-                    <TableCell>
-                      <Typography variant="body2">
-                        {strategy.fecha || "Sin fecha"}
-                        {index === 0 && (
-                          <Typography component="span" color="primary" variant="caption" sx={{ ml: 1, fontWeight: 'bold' }}>
-                         
-                          </Typography>
-                        )}
-                      </Typography>
+                    <TableCell sx={{ width: '10%' }}>
+                      {editingIndex === index ? (
+                        <TextField
+                          value={editedData?.fecha || ""}
+                          onChange={(e) => setEditedData(prev => prev ? { ...prev, fecha: e.target.value } : null)}
+                          fullWidth
+                          size="small"
+                        />
+                      ) : (
+                        <Typography variant="body2">
+                          {strategy.fecha || "Sin fecha"}
+                          {index === 0 && (
+                            <Typography component="span" color="primary" variant="caption" sx={{ ml: 1, fontWeight: 'bold' }}>
+                            </Typography>
+                          )}
+                        </Typography>
+                      )}
                     </TableCell>
-                
-                    <TableCell>
-                      <Typography variant="body2" sx={{
-                        fontWeight: index === 0 ? 'bold' : 'normal',
-                        whiteSpace: 'pre-wrap',
-                        wordBreak: 'break-word'
-                      }}>
-                        {strategy.titulo || "Sin título"}
-                      </Typography>
+
+                    <TableCell sx={{ width: '20%' }}>
+                      {editingIndex === index ? (
+                        <TextField
+                          value={editedData?.titulo || ""}
+                          onChange={(e) => setEditedData(prev => prev ? { ...prev, titulo: e.target.value } : null)}
+                          fullWidth
+                          size="small"
+                          multiline
+                          rows={2}
+                        />
+                      ) : (
+                        <Typography variant="body2" sx={{
+                          fontWeight: index === 0 ? 'bold' : 'normal',
+                          whiteSpace: 'pre-wrap',
+                          wordBreak: 'break-word'
+                        }}>
+                          {strategy.titulo || "Sin título"}
+                        </Typography>
+                      )}
                     </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" sx={{
-                        whiteSpace: 'pre-wrap',
-                        wordBreak: 'break-word'
-                      }}>
-                        {strategy.descripcion || "Sin descripción"}
-                      </Typography>
+
+                    <TableCell sx={{ width: '25%' }}>
+                      {editingIndex === index ? (
+                        <TextField
+                          value={editedData?.descripcion || ""}
+                          onChange={(e) => setEditedData(prev => prev ? { ...prev, descripcion: e.target.value } : null)}
+                          fullWidth
+                          size="small"
+                          multiline
+                          rows={2}
+                        />
+                      ) : (
+                        <Typography variant="body2" sx={{
+                          whiteSpace: 'pre-wrap',
+                          wordBreak: 'break-word'
+                        }}>
+                          {strategy.descripcion || "Sin descripción"}
+                        </Typography>
+                      )}
                     </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" color="text.secondary">
-                        {strategy.keyword || "-"}
-                      </Typography>
+
+                    <TableCell sx={{ width: '10%' }}>
+                      {editingIndex === index ? (
+                        <TextField
+                          value={editedData?.keyword || ""}
+                          onChange={(e) => setEditedData(prev => prev ? { ...prev, keyword: e.target.value } : null)}
+                          fullWidth
+                          size="small"
+                        />
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          {strategy.keyword || "-"}
+                        </Typography>
+                      )}
                     </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" color="text.secondary">
-                        {strategy.volumen || "-"}
-                      </Typography>
+
+                    <TableCell sx={{ width: '8%' }}>
+                      {editingIndex === index ? (
+                        <TextField
+                          value={editedData?.volumen || ""}
+                          onChange={(e) => setEditedData(prev => prev ? { ...prev, volumen: e.target.value } : null)}
+                          fullWidth
+                          size="small"
+                        />
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          {strategy.volumen || "-"}
+                        </Typography>
+                      )}
                     </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" color="text.secondary">
-                        {strategy.tipos || "-"}
-                      </Typography>
+
+                    <TableCell sx={{ width: '10%' }}>
+                      {editingIndex === index ? (
+                        <TextField
+                          value={editedData?.tipos || ""}
+                          onChange={(e) => setEditedData(prev => prev ? { ...prev, tipos: e.target.value } : null)}
+                          fullWidth
+                          size="small"
+                        />
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          {strategy.tipos || "-"}
+                        </Typography>
+                      )}
                     </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" color="text.secondary">
-                        {strategy.funnel || "-"}
-                      </Typography>
+
+                    <TableCell sx={{ width: '10%' }}>
+                      {editingIndex === index ? (
+                        <Select
+                          value={editedData?.funnel || ""}
+                          onChange={(e) => setEditedData(prev => prev ? { ...prev, funnel: e.target.value } : null)}
+                          fullWidth
+                          size="small"
+                        >
+                          <MenuItem value="TOFU">TOFU</MenuItem>
+                          <MenuItem value="MOFU">MOFU</MenuItem>
+                          <MenuItem value="BOFU">BOFU</MenuItem>
+                        </Select>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          {strategy.funnel || "-"}
+                        </Typography>
+                      )}
                     </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        onClick={() => handleGenerateStructure(strategy)}
-                        sx={{ 
-                          fontSize: '0.75rem', 
-                          minWidth: 'auto',
-                          px: 1.5,
-                          py: 0.5
-                        }}
-                      >
-                        Generar Estructura
-                      </Button>
+
+                    <TableCell sx={{ width: '15%' }}>
+                      {editingIndex === index ? (
+                        <Box>
+                          <Button
+                            variant="contained"
+                            size="small"
+                            onClick={handleEditSave}
+                            sx={{ mr: 1, fontSize: '0.7rem', minWidth: 'auto', px: 1 }}
+                          >
+                            Guardar
+                          </Button>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={handleEditCancel}
+                            sx={{ fontSize: '0.7rem', minWidth: 'auto', px: 1 }}
+                          >
+                            Cancelar
+                          </Button>
+                        </Box>
+                      ) : (
+                        <Box>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => handleEditStart(index, strategy)}
+                            sx={{ mr: 1, fontSize: '0.75rem', minWidth: 'auto', px: 1.5, py: 0.5 }}
+                          >
+                            Editar
+                          </Button>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => handleGenerateStructure(strategy)}
+                            sx={{ fontSize: '0.75rem', minWidth: 'auto', px: 1.5, py: 0.5 }}
+                          >
+                            Generar Estructura
+                          </Button>
+                        </Box>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))
