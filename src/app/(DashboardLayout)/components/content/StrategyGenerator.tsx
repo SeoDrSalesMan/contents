@@ -61,6 +61,7 @@ export default function StrategyGenerator() {
   const { clients, selectedClientId, defaultIdeas, globalInstructions, addStrategies, addExecutionId } = useContentSettings();
   const [kw, setKw] = useState<string>("");
   const [ideasCount, setIdeasCount] = useState<number>(defaultIdeas);
+  const [eventDate, setEventDate] = useState<string>("");
   const [canales, setCanales] = useState<string[]>([]);
   const [tipos, setTipos] = useState<string[]>([]);
   const [funnel, setFunnel] = useState<string>("");
@@ -146,6 +147,7 @@ export default function StrategyGenerator() {
     const payload = {
       keyword1: kwArray,
       numeroIdeas: Number(ideasCount) || 0,
+      eventoFechaEspecial: eventDate,
       canales: canales.join(", "),
       tipos: tipos.join(", "),
       funnelStage: funnel,
@@ -267,6 +269,14 @@ export default function StrategyGenerator() {
             label="Número de ideas a generar" type="number"
             value={ideasCount} onChange={e=>setIdeasCount(Number(e.target.value) || 0)}
             inputProps={{ min: 1, max: 100 }}
+          />
+
+          <TextField
+            label="Evento o Fecha especial"
+            value={eventDate}
+            onChange={(e) => setEventDate(e.target.value)}
+            placeholder="Ej: Navidad, Día de la Madre, etc."
+            fullWidth
           />
 
           <TextField
