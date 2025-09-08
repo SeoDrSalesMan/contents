@@ -19,17 +19,18 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TableRow
+  TableRow,
+  CircularProgress
 } from "@mui/material";
 import { useContentSettings } from "./ContentSettingsContext";
 import { useSearchParams } from "next/navigation";
 
 const getRrssWebhook = (clientId: string): string => {
   const webhookMap: Record<string, string> = {
-    'distrito-legal': 'https://content-generator.nv0ey8.easypanel.host/webhook-test/rrss-distrito',
-    'neuron-rehab': 'https://content-generator.nv0ey8.easypanel.host/webhook-test/rrss-neuron',
-    'sistem-lab': 'https://content-generator.nv0ey8.easypanel.host/webhook-test/rrss-sistemlab',
-    'gran_gala_flamenco': 'https://content-generator.nv0ey8.easypanel.host/webhook-test/rrss-grangala'
+    'distrito_legal': 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-distrito',
+    'neuron_rehab': 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-neuron',
+    'sistem_lab': 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-sistemlab',
+    'gran_gala_flamenco': 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-grangala'
   };
   return webhookMap[clientId] || '';
 };
@@ -177,6 +178,7 @@ export default function RrssGenerator() {
               onChange={handleInputChange('titulo')}
               fullWidth
               placeholder="Título para la estrategia de redes sociales"
+              disabled={isLoading}
             />
 
             <TextField
@@ -187,6 +189,7 @@ export default function RrssGenerator() {
               multiline
               rows={3}
               placeholder="Descripción de la estrategia"
+              disabled={isLoading}
             />
 
             <FormControl fullWidth required>
@@ -205,6 +208,7 @@ export default function RrssGenerator() {
                     ))}
                   </Box>
                 )}
+                disabled={isLoading}
               >
                 <MenuItem value="Educar">Educar</MenuItem>
                 <MenuItem value="Inspirar">Inspirar</MenuItem>
@@ -222,6 +226,7 @@ export default function RrssGenerator() {
               multiline
               rows={2}
               placeholder="Define la audiencia objetivo"
+              disabled={isLoading}
             />
 
             <FormControl fullWidth required>
@@ -240,6 +245,7 @@ export default function RrssGenerator() {
                     ))}
                   </Box>
                 )}
+                disabled={isLoading}
               >
                 <MenuItem value="IG">Instagram (IG)</MenuItem>
                 <MenuItem value="LI">LinkedIn (LI)</MenuItem>
@@ -258,6 +264,7 @@ export default function RrssGenerator() {
               onChange={handleInputChange('fecha_eventos')}
               fullWidth
               placeholder="Fechas importantes o eventos especiales (opcional)"
+              disabled={isLoading}
             />
 
             <Button
@@ -265,8 +272,16 @@ export default function RrssGenerator() {
               variant="contained"
               disabled={isLoading}
               fullWidth
+              sx={{ minHeight: 48 }}
             >
-              {isLoading ? 'Generando...' : 'Generar Estrategia'}
+              {isLoading ? (
+                <>
+                  <CircularProgress size={20} sx={{ mr: 1, color: 'white' }} />
+                  Generando...
+                </>
+              ) : (
+                'Generar Estrategia'
+              )}
             </Button>
           </Stack>
         </Box>

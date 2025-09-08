@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   Box, Typography, Stack, FormControl, InputLabel, Select, MenuItem,
-  TextField, Button, Paper, Table, TableHead, TableRow, TableCell, TableBody, Tabs, Tab, FormGroup, FormControlLabel, Checkbox, Link as MuiLink
+  TextField, Button, Paper, Table, TableHead, TableRow, TableCell, TableBody, Tabs, Tab, FormGroup, FormControlLabel, Checkbox, Link as MuiLink, CircularProgress
 } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useContentSettings, ContentItem } from "./ContentSettingsContext";
@@ -83,6 +83,7 @@ export default function StrategyGenerator() {
   // Estado para edición en línea
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editedData, setEditedData] = useState<ContentItem | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   // Aplicar filtros a las últimas ejecuciones
   const filteredLatestExecutions = useMemo(() => {
@@ -143,6 +144,8 @@ export default function StrategyGenerator() {
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!client) { alert("Selecciona un cliente válido."); return; }
+
+    setIsGenerating(true);
     const ideasWebhook = client.ideasWebhook || client.webhook;
     let kwArray = (kw || "").split(",").map(s => s.trim()).filter(Boolean);
     if (kwArray.length > 3) kwArray = kwArray.slice(0, 3);
@@ -175,6 +178,8 @@ export default function StrategyGenerator() {
     } catch (err) {
       console.error(err);
       alert("Error al generar la estrategia. Revisa la consola.");
+    } finally {
+      setIsGenerating(false);
     }
   }
 
@@ -266,8 +271,9 @@ export default function StrategyGenerator() {
       <Box component="form" onSubmit={onSubmit}>
         <Stack spacing={2}>
           <TextField
-            label="Keyword 1 (separa por comas si son varias)"
+            label="Termino clave"
             value={kw} onChange={e=>setKw(e.target.value)} required
+            disabled={isGenerating}
           />
 
           <FormControl component="fieldset" variant="standard">
@@ -276,18 +282,22 @@ export default function StrategyGenerator() {
               <FormControlLabel
                 control={<Checkbox checked={tipos.includes("Educar")} onChange={e => setTipos(c => (e.target as HTMLInputElement).checked ? [...c, "Educar"] : c.filter(i => i !== "Educar"))} name="Educar" />}
                 label="Educar"
+                disabled={isGenerating}
               />
               <FormControlLabel
                 control={<Checkbox checked={tipos.includes("Inspirar")} onChange={e => setTipos(c => (e.target as HTMLInputElement).checked ? [...c, "Inspirar"] : c.filter(i => i !== "Inspirar"))} name="Inspirar" />}
                 label="Inspirar"
+                disabled={isGenerating}
               />
               <FormControlLabel
                 control={<Checkbox checked={tipos.includes("Entretener")} onChange={e => setTipos(c => (e.target as HTMLInputElement).checked ? [...c, "Entretener"] : c.filter(i => i !== "Entretener"))} name="Entretener" />}
                 label="Entretener"
+                disabled={isGenerating}
               />
               <FormControlLabel
                 control={<Checkbox checked={tipos.includes("Promocionar")} onChange={e => setTipos(c => (e.target as HTMLInputElement).checked ? [...c, "Promocionar"] : c.filter(i => i !== "Promocionar"))} name="Promocionar" />}
                 label="Promocionar"
+                disabled={isGenerating}
               />
             </FormGroup>
           </FormControl>
@@ -299,6 +309,7 @@ export default function StrategyGenerator() {
               label="Etapa del embudo"
               value={funnel}
               onChange={e => setFunnel(e.target.value)}
+              disabled={isGenerating}
             >
               <MenuItem value="">Selecciona etapa</MenuItem>
               <MenuItem value="TOFU">TOFU – Conocimiento</MenuItem>
@@ -311,6 +322,7 @@ export default function StrategyGenerator() {
             label="Número de ideas a generar" type="number"
             value={ideasCount} onChange={e=>setIdeasCount(Number(e.target.value) || 0)}
             inputProps={{ min: 1, max: 100 }}
+            disabled={isGenerating}
           />
 
           <TextField
@@ -319,6 +331,7 @@ export default function StrategyGenerator() {
             onChange={(e) => setEventDate(e.target.value)}
             placeholder="Ej: Navidad, Día de la Madre, etc."
             fullWidth
+            disabled={isGenerating}
           />
 
           <TextField
@@ -329,9 +342,24 @@ export default function StrategyGenerator() {
             rows={3}
             placeholder="Agrega instrucciones específicas para la generación de estrategias..."
             fullWidth
+            disabled={isGenerating}
           />
 
-          <Button type="submit" variant="contained">Generar estrategia</Button>
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={isGenerating}
+            sx={{ minWidth: 180 }}
+          >
+            {isGenerating ? (
+              <>
+                <CircularProgress size={20} sx={{ mr: 1, color: 'white' }} />
+                Generando...
+              </>
+            ) : (
+              'Generar estrategia'
+            )}
+          </Button>
         </Stack>
       </Box>
 

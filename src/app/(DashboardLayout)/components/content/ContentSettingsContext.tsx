@@ -19,9 +19,22 @@ export interface Client {
   webhook: string;
   ideasWebhook?: string;
   structureWebhook?: string;
+  dataWebhook?: string;
   info: string;
-  alcance: string;
-  estilo: string;
+  // Nuevos campos según requerimiento
+  nombre: string;
+  web: string;
+  sector: string;
+  propuesta_valor: string;
+  publico_objetivo: string;
+  numero_contenidos_blog: number;
+  frecuencia_mensual_blog: string;
+  numero_contenidos_rrss: number;
+  frecuencia_mensual_rrss: string;
+  verticales_interes: string;
+  audiencia_no_deseada: string;
+  estilo_comunicacion: string;
+  tono_voz: string;
   strategies: ContentItem[];
   articles: any[];
   workflowId: string;
@@ -40,7 +53,8 @@ interface ContentSettingsContextValue {
   selectedClientId: string;
   setSelectedClientId: (id: string) => void;
   clients: Client[];
-  updateClientField: (id: string, field: "alcance" | "estilo", value: string) => void;
+  updateClientField: (id: string, field: keyof Client, value: string) => void;
+  saveClientData: (clientId: string) => Promise<boolean>;
   addStrategy: (clientId: string, strategy: ContentItem) => void;
   addStrategies: (clientId: string, strategies: ContentItem[]) => void;
   addArticle: (clientId: string, article: any) => void;
@@ -52,10 +66,114 @@ interface ContentSettingsContextValue {
 const ContentSettingsContext = createContext<ContentSettingsContextValue | null>(null);
 
 const initialClients: Client[] = [
-  { id: "gran_gala_flamenco", name: "Gran Gala Flamenco", webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/gala", ideasWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/ideas-gala", structureWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/estructura-grangala", info: "Espectáculos flamencos en España. Enfoque cultural y turístico.", alcance: "", estilo: "", strategies: [], articles: [], workflowId: "j9lMwR2UTgqDsI1g", executionIds: [] },
-  { id: "distrito_legal", name: "Distrito Legal", webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/distrito", ideasWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook-test/ideas-distrito", structureWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/estructura-distrito", info: "Servicios legales online en España. Enfoque profesional con tono formal.", alcance: "", estilo: "", strategies: [], articles: [], workflowId: "zQw5IM51uOdywlMD", executionIds: ["300", "299", "298"] },
-  { id: "neuron_rehab", name: "Neuron Rehab", webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/neuron", ideasWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/ideas-neuron", structureWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/estructura-neuron", info: "Rehabilitación neurológica avanzada. Público: pacientes y familiares.", alcance: "", estilo: "", strategies: [], articles: [], workflowId: "nUlAdnVfDwjnszRq", executionIds: [] },
-  { id: "sistem_lab", name: "SistemLab", webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/sistemlab", ideasWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/ideas-sistemlab", structureWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/estructura-sistemlab", info: "Laboratorio de sistemas y tecnología. Enfoque técnico y profesional.", alcance: "", estilo: "", strategies: [], articles: [], workflowId: "sistemlab", executionIds: [] },
+  {
+    id: "gran_gala_flamenco",
+    name: "Gran Gala Flamenco",
+    webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/gala",
+    ideasWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/ideas-gala",
+    structureWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/estructura-grangala",
+    dataWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/datos-grangala",
+    info: "Espectáculos flamencos en España. Enfoque cultural y turístico.",
+    // Nuevos campos con valores iniciales vacíos
+    nombre: "",
+    web: "",
+    sector: "",
+    propuesta_valor: "",
+    publico_objetivo: "",
+    numero_contenidos_blog: 0,
+    frecuencia_mensual_blog: "",
+    numero_contenidos_rrss: 0,
+    frecuencia_mensual_rrss: "",
+    verticales_interes: "",
+    audiencia_no_deseada: "",
+    estilo_comunicacion: "",
+    tono_voz: "",
+    strategies: [],
+    articles: [],
+    workflowId: "j9lMwR2UTgqDsI1g",
+    executionIds: []
+  },
+  {
+    id: "distrito_legal",
+    name: "Distrito Legal",
+    webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/distrito",
+    ideasWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/ideas-distrito",
+    structureWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/estructura-distrito",
+    dataWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/datos-distrito",
+    info: "Servicios legales online en España. Enfoque profesional con tono formal.",
+    // Nuevos campos con valores iniciales vacíos
+    nombre: "",
+    web: "",
+    sector: "",
+    propuesta_valor: "",
+    publico_objetivo: "",
+    numero_contenidos_blog: 0,
+    frecuencia_mensual_blog: "",
+    numero_contenidos_rrss: 0,
+    frecuencia_mensual_rrss: "",
+    verticales_interes: "",
+    audiencia_no_deseada: "",
+    estilo_comunicacion: "",
+    tono_voz: "",
+    strategies: [],
+    articles: [],
+    workflowId: "zQw5IM51uOdywlMD",
+    executionIds: ["300", "299", "298"]
+  },
+  {
+    id: "neuron_rehab",
+    name: "Neuron Rehab",
+    webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/neuron",
+    ideasWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/ideas-neuron",
+    structureWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/estructura-neuron",
+    dataWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/datos-neuron",
+    info: "Rehabilitación neurológica avanzada. Público: pacientes y familiares.",
+    // Nuevos campos con valores iniciales vacíos
+    nombre: "",
+    web: "",
+    sector: "",
+    propuesta_valor: "",
+    publico_objetivo: "",
+    numero_contenidos_blog: 0,
+    frecuencia_mensual_blog: "",
+    numero_contenidos_rrss: 0,
+    frecuencia_mensual_rrss: "",
+    verticales_interes: "",
+    audiencia_no_deseada: "",
+    estilo_comunicacion: "",
+    tono_voz: "",
+    strategies: [],
+    articles: [],
+    workflowId: "nUlAdnVfDwjnszRq",
+    executionIds: []
+  },
+  {
+    id: "sistem_lab",
+    name: "SistemLab",
+    webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/sistemlab",
+    ideasWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/ideas-sistemlab",
+    structureWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/estructura-sistemlab",
+    dataWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/datos-sistemlab",
+    info: "Laboratorio de sistemas y tecnología. Enfoque técnico y profesional.",
+    // Nuevos campos con valores iniciales vacíos
+    nombre: "",
+    web: "",
+    sector: "",
+    propuesta_valor: "",
+    publico_objetivo: "",
+    numero_contenidos_blog: 0,
+    frecuencia_mensual_blog: "",
+    numero_contenidos_rrss: 0,
+    frecuencia_mensual_rrss: "",
+    verticales_interes: "",
+    audiencia_no_deseada: "",
+    estilo_comunicacion: "",
+    tono_voz: "",
+    strategies: [],
+    articles: [],
+    workflowId: "sistemlab",
+    executionIds: []
+  },
 ];
 
 export function ContentSettingsProvider({ children }: { children: React.ReactNode }) {
@@ -99,8 +217,14 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
     }
   }, [clients]);
 
-  const updateClientField = (id: string, field: "alcance" | "estilo", value: string) =>
-    setClients(prev => prev.map(c => (c.id === id ? { ...c, [field]: value } : c)));
+  const updateClientField = (id: string, field: keyof Client, value: string) =>
+    setClients(prev => prev.map(c => {
+      // Manejar conversión para campos numéricos
+      if (field === 'numero_contenidos_blog' || field === 'numero_contenidos_rrss') {
+        return { ...c, [field]: parseInt(value) || 0 };
+      }
+      return { ...c, [field]: value };
+    }));
 
   const addStrategy = (clientId: string, strategy: ContentItem) => {
     setClients(prev => prev.map(c => (c.id === clientId ? { ...c, strategies: [...c.strategies, strategy] } : c)));
@@ -140,6 +264,51 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
     setClients(prev => prev.map(c => (c.id === clientId ? { ...c, executionIds: [executionId, ...c.executionIds.slice(0, 4)] } : c)));
   };
 
+  const saveClientData = async (clientId: string): Promise<boolean> => {
+    const client = clients.find(c => c.id === clientId);
+    if (!client || !client.dataWebhook) {
+      console.error('Client or webhook URL not found');
+      return false;
+    }
+
+    try {
+      const response = await fetch(client.dataWebhook, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+
+        body: JSON.stringify({
+          clientId: client.id,
+          nombre: client.nombre,
+          web: client.web,
+          sector: client.sector,
+          propuesta_valor: client.propuesta_valor,
+          publico_objetivo: client.publico_objetivo,
+          numero_contenidos_blog: client.numero_contenidos_blog,
+          frecuencia_mensual_blog: client.frecuencia_mensual_blog,
+          numero_contenidos_rrss: client.numero_contenidos_rrss,
+          frecuencia_mensual_rrss: client.frecuencia_mensual_rrss,
+          verticales_interes: client.verticales_interes,
+          audiencia_no_deseada: client.audiencia_no_deseada,
+          estilo_comunicacion: client.estilo_comunicacion,
+          tono_voz: client.tono_voz,
+        })
+      });
+
+      if (response.ok) {
+        console.log('Client data saved successfully');
+        return true;
+      } else {
+        console.error('Failed to save client data:', response.statusText);
+        return false;
+      }
+    } catch (error) {
+      console.error('Error saving client data:', error);
+      return false;
+    }
+  };
+
   const value = useMemo<ContentSettingsContextValue>(
     () => ({
       defaultTone, setDefaultTone,
@@ -147,12 +316,12 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
       defaultIdeas, setDefaultIdeas,
       globalInstructions, setGlobalInstructions,
       selectedClientId, setSelectedClientId,
-      clients, updateClientField,
+      clients, updateClientField, saveClientData,
       addStrategy, addStrategies, addArticle,
       updateStrategy, updateArticle,
       addExecutionId
     }),
-    [defaultTone, defaultLength, defaultIdeas, globalInstructions, selectedClientId, clients]
+    [defaultTone, defaultLength, defaultIdeas, globalInstructions, selectedClientId, clients, saveClientData]
   );
 
   return <ContentSettingsContext.Provider value={value}>{children}</ContentSettingsContext.Provider>;

@@ -52,14 +52,14 @@ const Menuitems = [
     icon: IconUserPlus,
     href: "/configuracion",
   },
-  {
+/*   {
     id: uniqueId(),
     title: "Tonos",
     icon: IconCopy,
     href: "/utilities/shadow",
   },
 
- 
+  */
 
  
 
