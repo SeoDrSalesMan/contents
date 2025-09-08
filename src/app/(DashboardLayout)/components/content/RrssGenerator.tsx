@@ -119,6 +119,8 @@ export default function RrssGenerator() {
     try {
       const payload = {
         cliente: client.name,
+        titulo: formData.titulo,
+        descripcion: formData.descripcion,
         objetivo: formData.objetivo.join(', '),
         audiencia: formData.audiencia,
         canales: formData.canales.join(', '),
