@@ -45,6 +45,8 @@ export default function RrssGenerator() {
     objetivo: [] as string[],
     audiencia: '',
     canales: [] as string[],
+    numero_estrategias: 1,
+    frecuencia_mensual: '',
     fecha_eventos: ''
   });
   const [results, setResults] = useState<any[]>([]);
@@ -120,6 +122,8 @@ export default function RrssGenerator() {
         objetivo: formData.objetivo.join(', '),
         audiencia: formData.audiencia,
         canales: formData.canales.join(', '),
+        numero_estrategias: formData.numero_estrategias,
+        frecuencia_mensual: formData.frecuencia_mensual,
         fecha_eventos: formData.fecha_eventos
       };
 
@@ -146,6 +150,8 @@ export default function RrssGenerator() {
         objetivo: [] as string[],
         audiencia: '',
         canales: [] as string[],
+        numero_estrategias: 1,
+        frecuencia_mensual: '',
         fecha_eventos: ''
       });
 
@@ -256,7 +262,42 @@ export default function RrssGenerator() {
               </Select>
             </FormControl>
 
+            <TextField
+              label="Número de Estrategias"
+              type="number"
+              value={formData.numero_estrategias}
+              onChange={(e) => setFormData(prev => ({
+                ...prev,
+                numero_estrategias: Number(e.target.value) || 1
+              }))}
+              fullWidth
+              placeholder="Número de estrategias a generar"
+              disabled={isLoading}
+              InputProps={{ inputProps: { min: 1, max: 50 } }}
+            />
 
+            <FormControl fullWidth>
+              <InputLabel id="frecuencia-label">Frecuencia Mensual</InputLabel>
+              <Select
+                labelId="frecuencia-label"
+                id="frecuencia"
+                value={formData.frecuencia_mensual}
+                onChange={(e) => setFormData(prev => ({
+                  ...prev,
+                  frecuencia_mensual: e.target.value
+                }))}
+                disabled={isLoading}
+                label="Frecuencia Mensual"
+              >
+                <MenuItem value="Diario">Diario</MenuItem>
+                <MenuItem value="2-3 veces/semana">2-3 veces/semana</MenuItem>
+                <MenuItem value="Semanal">Semanal</MenuItem>
+                <MenuItem value="Bisemanal">Bisemanal</MenuItem>
+                <MenuItem value="Semanal alterno">Semanal alterno</MenuItem>
+                <MenuItem value="Mensual">Mensual</MenuItem>
+                <MenuItem value="Trimestral">Trimestral</MenuItem>
+              </Select>
+            </FormControl>
 
             <TextField
               label="Fecha o Eventos"
