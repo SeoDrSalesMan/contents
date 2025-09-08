@@ -67,6 +67,7 @@ export default function RrssGenerator() {
       }));
     }
 
+    
     if (descripcionParam) {
       setFormData(prev => ({
         ...prev,
