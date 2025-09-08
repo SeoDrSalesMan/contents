@@ -161,8 +161,7 @@ export default function StrategyGenerator() {
       cliente: client.name,
       instruccionesGlobales: globalInstructions,
       instruccionesAdicionales: additionalInstructions || "",
-      alcance: client.alcance || "",
-      estilo: client.estilo || ""
+      // Removiendo campos obsoletos alcance y estilo
     };
 
     try {

@@ -57,8 +57,7 @@ export default function StructureGenerator() {
           tono: tone,
           clientId: client.id,
           instruccionesGlobales: globalInstructions,
-          alcance: client.alcance,
-          estilo: client.estilo
+          // Removiendo campos obsoletos alcance y estilo
         })
       });
 

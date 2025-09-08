@@ -57,8 +57,7 @@ export default function ArticleCreator() {
       tipoContenido: contentType,
       tituloConcepto: conceptTitle.trim(),
       objetivoUtilidad: objective.trim(),
-      alcance: client.alcance || "",
-      estilo: client.estilo || ""
+      // Removiendo campos obsoletos alcance y estilo
     };
 
     try{
