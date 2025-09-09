@@ -19,7 +19,7 @@ const Menuitems = [
 
   {
     id: uniqueId(),
-    title: "Estrategias",
+    title: "Ideas",
     icon: IconLayoutDashboard,
     href: "/",
   },
@@ -34,14 +34,13 @@ const Menuitems = [
     title: "Articulos",
     icon: IconTypography,
     href: "/articulos",
-  },
-  /*  
+  },  
    {
     id: uniqueId(),
-    title: "RRSS",
+    title: "Estrategia RRSS",
     icon: IconAperture,
     href: "/rrss",
-  }, */
+  },
   {
     navlabel: true,
     subheader: "SISTEMA",
