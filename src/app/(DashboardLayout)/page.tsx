@@ -8,7 +8,7 @@ import StrategyGenerator from '@/app/(DashboardLayout)/components/content/Strate
 
 const Estrategias = () => {
   return (
-    <PageContainer title="Generador de Estrategias" description="Este es el Generador de Estrategias de COntenidos">
+    <PageContainer title="Generador de Ideas" description="Este es el Generador de Ideas para Estrategias de Contenidos">
       <StrategyGenerator />
     </PageContainer>
   );
