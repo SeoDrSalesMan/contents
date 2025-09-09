@@ -335,13 +335,8 @@ export default function RrssGenerator() {
         </Typography>
       )}
 
-      <Box sx={{
-        display: 'flex',
-        flexDirection: { xs: 'column', lg: 'row' },
-        gap: 3,
-        mt: 2
-      }}>
-        <Box sx={{ flex: 1, minWidth: { xs: '100%', lg: '400px' }, maxWidth: { lg: '500px' } }}>
+      <Stack spacing={4} sx={{ mt: 2 }}>
+        <Box>
           <Paper variant="outlined" sx={{ p: 3 }}>
             <Box component="form" onSubmit={handleSubmit}>
               <Stack spacing={3}>
@@ -584,7 +579,7 @@ export default function RrssGenerator() {
             </Paper>
           )}
         </Box>
-      </Box>
+      </Stack>
 
       {/* Latest Strategy Section */}
       <Box sx={{ mt: 4, width: '100%' }}>
