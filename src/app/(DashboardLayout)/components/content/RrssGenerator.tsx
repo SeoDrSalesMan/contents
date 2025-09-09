@@ -67,7 +67,6 @@ export default function RrssGenerator() {
       }));
     }
 
-    
     if (descripcionParam) {
       setFormData(prev => ({
         ...prev,
@@ -97,6 +96,64 @@ export default function RrssGenerator() {
       ...prev,
       objetivo: typeof value === 'string' ? value.split(',') : value,
     }));
+  };
+
+  const parseMarkdownTable = (markdown: string): any[] => {
+    const lines = markdown.split('\n').filter(line => line.trim() !== '');
+    if (lines.length < 2) return []; // Need at least header and separator
+
+    // Find table lines (skip code blocks)
+    const tableStart = lines.findIndex(line => line.startsWith('|'));
+    if (tableStart === -1) return [];
+
+    const headerLine = lines.slice(tableStart).find(line => line.trim() !== '' && !line.includes('---'));
+    const separatorLine = lines.slice(tableStart).find(line => line.includes('---'));
+    const dataLines = lines.slice(tableStart).filter(line =>
+      line.trim() !== '' &&
+      !line.includes('---') &&
+      line.startsWith('|')
+    );
+
+    if (!headerLine || !dataLines || dataLines.length === 0) return [];
+
+    // Parse header columns
+    const headers = headerLine.split('|').slice(1, -1).map(h => h.trim());
+
+    // Parse data rows
+    const rows = dataLines.slice(1).map(line => {
+      const rowData = line.split('|').slice(1, -1).map(cell => cell.trim());
+      const row: any = {};
+
+      headers.forEach((header, index) => {
+        const value = rowData[index] || '';
+        // Map common headers to standardized keys
+        const lowerHeader = header.toLowerCase();
+        if (lowerHeader.includes('fecha')) row.fecha = value;
+        else if (lowerHeader.includes('día')) row.dia = value;
+        else if (lowerHeader.includes('canal')) row.canal = value;
+        else if (lowerHeader.includes('pilar')) row.pilar = value;
+        else if (lowerHeader.includes('objetivo')) row.objetivo = value;
+        else if (lowerHeader.includes('formato')) row.formato = value;
+        else if (lowerHeader.includes('tema') || lowerHeader.includes('título')) row.tema_titulo = value;
+        else if (lowerHeader.includes('hook')) row.hook = value;
+        else if (lowerHeader.includes('copy')) row.copy = value;
+        else if (lowerHeader.includes('cta')) row.cta = value;
+        else if (lowerHeader.includes('hashtags')) row.hashtags = value;
+        else if (lowerHeader.includes('recurso') || lowerHeader.includes('asset')) row.recurso_asset = value;
+        else if (lowerHeader.includes('duración')) row.duracion = value;
+        else if (lowerHeader.includes('instrucciones')) row.instrucciones = value;
+        else if (lowerHeader.includes('enlace') || lowerHeader.includes('utm')) row.enlace_utm = value;
+        else if (lowerHeader.includes('kpi')) row.kpi = value;
+        else if (lowerHeader.includes('responsable')) row.responsable = value;
+        else if (lowerHeader.includes('estado')) row.estado = value;
+        else if (lowerHeader.includes('notas')) row.notas = value;
+        else row[header] = value; // Fallback to original header
+      });
+
+      return row;
+    });
+
+    return rows;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -142,9 +199,36 @@ export default function RrssGenerator() {
         throw new Error(`Error HTTP: ${response.status}`);
       }
 
-      const result = await response.text();
-      setMessage(`Estrategia generada exitosamente para ${client.name}`);
-      console.log('Respuesta del webhook:', result);
+      const resultText = await response.text();
+      console.log('Respuesta del webhook:', resultText);
+
+      // Try to parse response as JSON first
+      let resultData;
+      try {
+        resultData = JSON.parse(resultText);
+      } catch {
+        // If not JSON, treat as plain text and set as output
+        resultData = [{ output: resultText }];
+      }
+
+      // Handle array of objects or single object
+      let parsedResults: any[] = [];
+      if (Array.isArray(resultData)) {
+        parsedResults = resultData.flatMap(item => {
+          if (item.output) {
+            // Parse markdown table from output field
+            return parseMarkdownTable(item.output);
+          }
+          return [item]; // If no output field, use the item directly
+        });
+      } else if (resultData.output) {
+        parsedResults = parseMarkdownTable(resultData.output);
+      } else {
+        parsedResults = [resultData];
+      }
+
+      setResults(parsedResults);
+      setMessage(`Estrategia generada exitosamente para ${client.name} (${parsedResults.length} elementos)`);
 
       // Limpiar formulario después del éxito
       setFormData({
@@ -167,7 +251,12 @@ export default function RrssGenerator() {
   };
 
   return (
-    <Box sx={{ maxWidth: 600, mx: "auto" }}>
+    <Box sx={{
+      width: '100%',
+      maxWidth: '1400px',
+      mx: "auto",
+      px: { xs: 1, sm: 2 }
+    }}>
       <Typography variant="h5" gutterBottom>
         Generador de Estrategias RRSS
       </Typography>
@@ -178,7 +267,14 @@ export default function RrssGenerator() {
         </Typography>
       )}
 
-      <Paper variant="outlined" sx={{ p: 3, mt: 2 }}>
+      <Box sx={{
+        display: 'flex',
+        flexDirection: { xs: 'column', lg: 'row' },
+        gap: 3,
+        mt: 2
+      }}>
+        <Box sx={{ flex: 1, minWidth: { xs: '100%', lg: '400px' }, maxWidth: { lg: '500px' } }}>
+          <Paper variant="outlined" sx={{ p: 3 }}>
         <Box component="form" onSubmit={handleSubmit}>
           <Stack spacing={3}>
             <TextField
@@ -328,54 +424,98 @@ export default function RrssGenerator() {
               )}
             </Button>
           </Stack>
+          </Box>
+        </Paper>
+
+        <Box sx={{ flex: 1, width: '100%', overflow: 'hidden' }}>
+          {message && (
+            <Alert
+              severity={message.includes('Error') ? 'error' : 'success'}
+              sx={{ mb: 2 }}
+            >
+              {message}
+            </Alert>
+          )}
+
+          {results.length > 0 && (
+            <Paper sx={{ overflow: 'hidden' }}>
+              <Typography variant="h6" sx={{ p: 2, pb: 1 }}>
+                Resultados de la Estrategia ({results.length} elementos)
+              </Typography>
+              <TableContainer sx={{ maxHeight: { xs: 400, lg: 600 }, overflow: 'auto' }}>
+                <Table stickyHeader size="small" sx={{ minWidth: 1200 }}>
+                  <TableHead>
+                    <TableRow sx={{ bgcolor: 'grey.100' }}>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Fecha</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 80, borderRight: 1, borderColor: 'divider' }}>Día</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 80, borderRight: 1, borderColor: 'divider' }}>Canal</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Pilar</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Objetivo</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Formato</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 150, borderRight: 1, borderColor: 'divider' }}>Tema/Título</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 120, borderRight: 1, borderColor: 'divider' }}>Hook</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 200, borderRight: 1, borderColor: 'divider' }}>Copy</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 100, borderRight: 1, borderColor: 'divider' }}>CTA</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 120, borderRight: 1, borderColor: 'divider' }}>Hashtags</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 150, borderRight: 1, borderColor: 'divider' }}>Recurso/Asset</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Duración</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 150, borderRight: 1, borderColor: 'divider' }}>Instrucciones</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 150, borderRight: 1, borderColor: 'divider' }}>Enlace/UTM</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 120, borderRight: 1, borderColor: 'divider' }}>KPI</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 120, borderRight: 1, borderColor: 'divider' }}>Responsable</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Estado</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 200, borderRight: 1, borderColor: 'divider' }}>Notas</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {results.map((row, index) => (
+                      <TableRow key={index} hover sx={{ '&:nth-of-type(even)': { bgcolor: 'grey.50' } }}>
+                        <TableCell sx={{ fontSize: '0.8rem', borderRight: 1, borderColor: 'divider' }}>{row.fecha || '-'}</TableCell>
+                        <TableCell sx={{ fontSize: '0.8rem', borderRight: 1, borderColor: 'divider' }}>{row.dia || '-'}</TableCell>
+                        <TableCell sx={{ fontSize: '0.8rem', borderRight: 1, borderColor: 'divider' }}>{row.canal || '-'}</TableCell>
+                        <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.pilar || '-'}</TableCell>
+                        <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.objetivo || '-'}</TableCell>
+                        <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.formato || '-'}</TableCell>
+                        <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 150 }}>{row.tema_titulo || row.titulo || '-'}</TableCell>
+                        <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 120 }}>{row.hook || '-'}</TableCell>
+                        <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 200 }}>{row.copy || row.texto || '-'}</TableCell>
+                        <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.cta || '-'}</TableCell>
+                        <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 120 }}>{row.hashtags || '-'}</TableCell>
+                        <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 150 }}>{row.recurso_asset || '-'}</TableCell>
+                        <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.duracion || '-'}</TableCell>
+                        <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 150 }}>{row.instrucciones || '-'}</TableCell>
+                        <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 150 }}>
+                          <Box sx={{
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            maxWidth: 'inherit'
+                          }}>
+                            {row.enlace_utm || '-'}
+                          </Box>
+                        </TableCell>
+                        <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 120 }}>{row.kpi || '-'}</TableCell>
+                        <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.responsable || '-'}</TableCell>
+                        <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.estado || '-'}</TableCell>
+                        <TableCell sx={{ fontSize: '0.8rem', maxWidth: 200 }}>
+                          <Box sx={{
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            maxWidth: 'inherit'
+                          }}>
+                            {row.notas || '-'}
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+          )}
         </Box>
-      </Paper>
-
-      {message && (
-        <Alert
-          severity={message.includes('Error') ? 'error' : 'success'}
-          sx={{ mt: 2 }}
-        >
-          {message}
-        </Alert>
-      )}
-
-      {results.length > 0 && (
-        <TableContainer component={Paper} sx={{ mt: 4 }}>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>Fecha</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>Canal</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>Formato</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>Pilar</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>Título</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>Descripción</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>Texto</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>Hashtags</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>CTA</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>KPI</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {results.map((row, index) => (
-                <TableRow key={index}>
-                  <TableCell>{row.fecha || '-'}</TableCell>
-                  <TableCell>{row.canal || '-'}</TableCell>
-                  <TableCell>{row.formato || '-'}</TableCell>
-                  <TableCell>{row.pilar || '-'}</TableCell>
-                  <TableCell>{row.titulo || '-'}</TableCell>
-                  <TableCell>{row.descripcion || '-'}</TableCell>
-                  <TableCell>{row.texto || '-'}</TableCell>
-                  <TableCell>{row.hashtags || '-'}</TableCell>
-                  <TableCell>{row.cta || '-'}</TableCell>
-                  <TableCell>{row.kpi || '-'}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
+      </Box>
     </Box>
   );
 }

@@ -27,6 +27,7 @@ export interface Client {
   sector: string;
   propuesta_valor: string;
   publico_objetivo: string;
+  keywords: string;
   numero_contenidos_blog: number;
   frecuencia_mensual_blog: string;
   numero_contenidos_rrss: number;
@@ -80,6 +81,7 @@ const initialClients: Client[] = [
     sector: "",
     propuesta_valor: "",
     publico_objetivo: "",
+    keywords: "",
     numero_contenidos_blog: 0,
     frecuencia_mensual_blog: "",
     numero_contenidos_rrss: 0,
@@ -107,6 +109,7 @@ const initialClients: Client[] = [
     sector: "",
     propuesta_valor: "",
     publico_objetivo: "",
+    keywords: "",
     numero_contenidos_blog: 0,
     frecuencia_mensual_blog: "",
     numero_contenidos_rrss: 0,
@@ -134,6 +137,7 @@ const initialClients: Client[] = [
     sector: "",
     propuesta_valor: "",
     publico_objetivo: "",
+    keywords: "",
     numero_contenidos_blog: 0,
     frecuencia_mensual_blog: "",
     numero_contenidos_rrss: 0,
@@ -161,6 +165,7 @@ const initialClients: Client[] = [
     sector: "",
     propuesta_valor: "",
     publico_objetivo: "",
+    keywords: "",
     numero_contenidos_blog: 0,
     frecuencia_mensual_blog: "",
     numero_contenidos_rrss: 0,

@@ -51,19 +51,32 @@ const ClientManager = () => {
       <DashboardCard title="Configuración del Cliente">
         {saving && <LinearProgress sx={{ mb: 2 }} />}
         {client ? (
-          <Box>
-            {/* Información básica */}
-            <Typography variant="h6" gutterBottom sx={{ mt: 2, mb: 2 }}>
-              Información Básica
+          <Box component="form" onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
+            {/* Datos cliente */}
+            <Typography
+              variant="h5"
+              sx={{
+                mt: 3,
+                mb: 3,
+                color: 'primary.main',
+                fontWeight: 'bold',
+                borderBottom: '2px solid',
+                borderColor: 'primary.main',
+                pb: 1
+              }}
+            >
+              DATOS DEL CLIENTE
             </Typography>
+
             <GridLegacy container spacing={3} sx={{ mb: 4 }}>
               <GridLegacy item xs={12} md={6}>
                 <TextField
-                  label="Nombre"
+                  label="Nombre Marca"
                   fullWidth
                   value={client.nombre}
                   onChange={(e) => updateClientField(client.id, 'nombre', e.target.value)}
                   sx={{ mb: 2 }}
+                  placeholder="Ingresa el nombre de la marca"
                 />
               </GridLegacy>
               <GridLegacy item xs={12} md={6}>
@@ -73,10 +86,11 @@ const ClientManager = () => {
                   value={client.web}
                   onChange={(e) => updateClientField(client.id, 'web', e.target.value)}
                   sx={{ mb: 2 }}
+                  placeholder="https://www.ejemplo.com"
                 />
               </GridLegacy>
               <GridLegacy item xs={12} md={6}>
-                <FormControl fullWidth>
+                <FormControl fullWidth sx={{ mb: 2 }}>
                   <InputLabel>Sector</InputLabel>
                   <Select
                     value={client.sector}
@@ -89,27 +103,38 @@ const ClientManager = () => {
                   </Select>
                 </FormControl>
               </GridLegacy>
-            </GridLegacy>
-
-            {/* Propuesta de valor y Público objetivo */}
-            <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
-              Propuesta de Valor y Público Objetivo
-            </Typography>
-            <GridLegacy container spacing={3} sx={{ mb: 4 }}>
               <GridLegacy item xs={12} md={6}>
                 <TextField
-                  label="Propuesta de valor"
+                  label="Keywords"
+                  fullWidth
+                  multiline
+                  rows={2}
+                  value={client.keywords || ''}
+                  onChange={(e) => updateClientField(client.id, 'keywords', e.target.value)}
+                  sx={{ mb: 2 }}
+                  placeholder="Palabras clave separadas por comas"
+                />
+              </GridLegacy>
+            </GridLegacy>
+
+            <GridLegacy container spacing={3} sx={{ mb: 4 }}>
+              <GridLegacy item xs={12}>
+                <TextField
+                  label="Propuesta de valor y servicios ofrecidos"
                   fullWidth
                   multiline
                   rows={4}
                   value={client.propuesta_valor}
                   onChange={(e) => updateClientField(client.id, 'propuesta_valor', e.target.value)}
-                  placeholder="Describe la propuesta única de valor de tu marca..."
+                  placeholder="Describe detalladamente la propuesta de valor y los servicios que ofrece la marca..."
                 />
               </GridLegacy>
+            </GridLegacy>
+
+            <GridLegacy container spacing={3} sx={{ mb: 4 }}>
               <GridLegacy item xs={12} md={6}>
                 <TextField
-                  label="Público objetivo"
+                  label="Audiencia o Público objetivo"
                   fullWidth
                   multiline
                   rows={4}
@@ -118,86 +143,20 @@ const ClientManager = () => {
                   placeholder="Define claramente tu público objetivo..."
                 />
               </GridLegacy>
-            </GridLegacy>
-
-            {/* Contenidos Blog */}
-            <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
-              Contenidos - Blog
-            </Typography>
-            <GridLegacy container spacing={3} sx={{ mb: 4 }}>
-              <GridLegacy item xs={12} md={6}>
-                <TextField
-                  label="Número de contenidos blog"
-                  type="number"
-                  fullWidth
-                  value={client.numero_contenidos_blog}
-                  onChange={(e) => updateClientField(client.id, 'numero_contenidos_blog', e.target.value)}
-                  InputProps={{ inputProps: { min: 0, max: 1000 } }}
-                />
-              </GridLegacy>
-              <GridLegacy item xs={12} md={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Frecuencia mensual blog</InputLabel>
-                  <Select
-                    value={client.frecuencia_mensual_blog}
-                    label="Frecuencia mensual blog"
-                    onChange={(e) => updateClientField(client.id, 'frecuencia_mensual_blog', e.target.value)}
-                  >
-                    {frecuenciaOptions.map(option => (
-                      <MenuItem key={option} value={option}>{option}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </GridLegacy>
-            </GridLegacy>
-
-            {/* Contenidos RRSS */}
-            <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
-              Contenidos - Redes Sociales
-            </Typography>
-            <GridLegacy container spacing={3} sx={{ mb: 4 }}>
-              <GridLegacy item xs={12} md={6}>
-                <TextField
-                  label="Número de contenidos RRSS"
-                  type="number"
-                  fullWidth
-                  value={client.numero_contenidos_rrss}
-                  onChange={(e) => updateClientField(client.id, 'numero_contenidos_rrss', e.target.value)}
-                  InputProps={{ inputProps: { min: 0, max: 10000 } }}
-                />
-              </GridLegacy>
-              <GridLegacy item xs={12} md={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Frecuencia mensual RRSS</InputLabel>
-                  <Select
-                    value={client.frecuencia_mensual_rrss}
-                    label="Frecuencia mensual RRSS"
-                    onChange={(e) => updateClientField(client.id, 'frecuencia_mensual_rrss', e.target.value)}
-                  >
-                    {frecuenciaOptions.map(option => (
-                      <MenuItem key={option} value={option}>{option}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </GridLegacy>
-            </GridLegacy>
-
-            {/* Verticales y audiencia */}
-            <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
-              Verticales de Mercado y Audiencia
-            </Typography>
-            <GridLegacy container spacing={3} sx={{ mb: 4 }}>
               <GridLegacy item xs={12} md={6}>
                 <TextField
                   label="Verticales de interés"
                   fullWidth
                   multiline
-                  rows={3}
+                  rows={4}
                   value={client.verticales_interes}
                   onChange={(e) => updateClientField(client.id, 'verticales_interes', e.target.value)}
-                  placeholder="Indica las verticales de mercado que te interesan..."
+                  placeholder="Indica las verticales de mercado específicas que te interesan (ej: fintech, insurtech, healthtech)..."
                 />
               </GridLegacy>
+            </GridLegacy>
+
+            <GridLegacy container spacing={3} sx={{ mb: 4 }}>
               <GridLegacy item xs={12} md={6}>
                 <TextField
                   label="Audiencia NO deseada"
@@ -209,14 +168,7 @@ const ClientManager = () => {
                   placeholder="Describe la audiencia que NO quieres atraer..."
                 />
               </GridLegacy>
-            </GridLegacy>
-
-            {/* Estilo de comunicación y tono de voz */}
-            <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
-              Estilo de Comunicación y Tono de Voz
-            </Typography>
-            <GridLegacy container spacing={3} sx={{ mb: 4 }}>
-              <GridLegacy item xs={12} md={6}>
+              <GridLegacy item xs={12} md={3}>
                 <FormControl fullWidth>
                   <InputLabel>Estilo de comunicación</InputLabel>
                   <Select
@@ -230,7 +182,7 @@ const ClientManager = () => {
                   </Select>
                 </FormControl>
               </GridLegacy>
-              <GridLegacy item xs={12} md={6}>
+              <GridLegacy item xs={12} md={3}>
                 <FormControl fullWidth>
                   <InputLabel>Tono de voz</InputLabel>
                   <Select
@@ -243,6 +195,47 @@ const ClientManager = () => {
                     ))}
                   </Select>
                 </FormControl>
+              </GridLegacy>
+            </GridLegacy>
+
+            {/* Alcance */}
+            <Typography
+              variant="h5"
+              sx={{
+                mt: 5,
+                mb: 3,
+                color: 'primary.main',
+                fontWeight: 'bold',
+                borderBottom: '2px solid',
+                borderColor: 'primary.main',
+                pb: 1
+              }}
+            >
+              ALCANCE
+            </Typography>
+
+            <GridLegacy container spacing={3} sx={{ mb: 4 }}>
+              <GridLegacy item xs={12} md={6}>
+                <TextField
+                  label="Número de contenidos blog"
+                  type="number"
+                  fullWidth
+                  value={client.numero_contenidos_blog}
+                  onChange={(e) => updateClientField(client.id, 'numero_contenidos_blog', e.target.value)}
+                  InputProps={{ inputProps: { min: 0, max: 1000 } }}
+                  sx={{ mb: 2 }}
+                />
+              </GridLegacy>
+              <GridLegacy item xs={12} md={6}>
+                <TextField
+                  label="Número contenidos redes sociales"
+                  type="number"
+                  fullWidth
+                  value={client.numero_contenidos_rrss}
+                  onChange={(e) => updateClientField(client.id, 'numero_contenidos_rrss', e.target.value)}
+                  InputProps={{ inputProps: { min: 0, max: 10000 } }}
+                  sx={{ mb: 2 }}
+                />
               </GridLegacy>
             </GridLegacy>
 
