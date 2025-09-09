@@ -124,11 +124,11 @@ export default function StrategyGenerator() {
       const recentStrategies = clientStrategies.slice(-25).reverse();
       setLatestExecutions(recentStrategies);
       setExecutionError(null);
-      console.log(`Mostrando ${recentStrategies.length} estrategias guardadas para ${client.name}`, recentStrategies);
+      console.log(`Mostrando ${recentStrategies.length} ideas guardadas para ${client.name}`, recentStrategies);
     } else {
       setLatestExecutions([]);
-      setExecutionError(`No hay estrategias guardadas para ${client.name}. Genera algunas estrategias usando el formulario superior.`);
-      console.log(`No hay estrategias guardadas para ${client.name}`);
+      setExecutionError(`No hay ideas guardadas para ${client.name}. Genera algunas ideas usando el formulario superior.`);
+      console.log(`No hay ideas guardadas para ${client.name}`);
     }
 
     setIsLoadingExecutions(false);
@@ -167,7 +167,7 @@ export default function StrategyGenerator() {
     try {
       const res = await fetch(ideasWebhook, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const text = await res.text();
-      if (!res.ok) throw new Error(`Error webhook estrategia: ${res.status} - ${text}`);
+      if (!res.ok) throw new Error(`Error webhook idea: ${res.status} - ${text}`);
       const executionId = res.headers.get("x-execution-id");
       if (executionId) {
         addExecutionId(selectedClientId, executionId);
@@ -176,7 +176,7 @@ export default function StrategyGenerator() {
       setNewStrategies(parseIdeasPayload(data));
     } catch (err) {
       console.error(err);
-      alert("Error al generar la estrategia. Revisa la consola.");
+      alert("Error al generar las ideas. Revisa la consola.");
     } finally {
       setIsGenerating(false);
     }
@@ -264,7 +264,7 @@ export default function StrategyGenerator() {
     <Box sx={{ maxWidth: 900, mx: "auto" }}>
       <Box sx={{ maxWidth: 900, mx: "auto", mb: 2 }}>
         <Tabs value="ideas">
-          <Tab value="ideas" label="Generador de Estrategias" />
+          <Tab value="ideas" label="Generador de Ideas" />
         </Tabs>
       </Box>
       <Box component="form" onSubmit={onSubmit}>
@@ -339,7 +339,7 @@ export default function StrategyGenerator() {
             onChange={(e) => setAdditionalInstructions(e.target.value)}
             multiline
             rows={3}
-            placeholder="Agrega instrucciones específicas para la generación de estrategias..."
+            placeholder="Agrega instrucciones específicas para la generación de ideas..."
             fullWidth
             disabled={isGenerating}
           />
@@ -356,7 +356,7 @@ export default function StrategyGenerator() {
                 Generando...
               </>
             ) : (
-              'Generar estrategia'
+              'Generar ideas'
             )}
           </Button>
         </Stack>
@@ -366,7 +366,7 @@ export default function StrategyGenerator() {
       {client && (
         <Box sx={{ mt: 4 }}>
           <Typography variant="h6" sx={{ mb: 2 }}>
-            Historial de Estrategias {/* Título más descriptivo */}
+            Historial de Ideas {/* Título más descriptivo */}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             Cliente: {client.name}
@@ -378,7 +378,7 @@ export default function StrategyGenerator() {
       {client && (
         <Paper variant="outlined" sx={{ mb: 3, bgcolor: isLoadingExecutions ? 'grey.50' : 'grey.25' }}>
           <Typography variant="h6" sx={{ p: 2, pb: 1 }}>
-            Últimas Estrategias Generadas
+            Últimas Ideas Generadas
             {isLoadingExecutions && " (Buscando...)"}
           </Typography>
 
@@ -628,7 +628,7 @@ export default function StrategyGenerator() {
 
       {newStrategies.length > 0 && (
         <Box sx={{ mt: 4 }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>Nuevas Estrategias</Typography>
+          <Typography variant="h6" sx={{ mb: 2 }}>Nuevas Ideas</Typography>
           <Button onClick={handleSaveSelected} variant="contained">Guardar Seleccionadas</Button>
           <Paper variant="outlined">
             <Table size="small">
