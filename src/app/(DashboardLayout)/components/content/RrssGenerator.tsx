@@ -426,6 +426,7 @@ export default function RrssGenerator() {
               </Stack>
             </Box>
           </Paper>
+        </Box>
 
         <Box sx={{ flex: 1, width: '100%', overflow: 'hidden' }}>
           {message && (
