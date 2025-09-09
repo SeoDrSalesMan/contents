@@ -277,50 +277,50 @@ export default function RrssGenerator() {
           <Paper variant="outlined" sx={{ p: 3 }}>
             <Box component="form" onSubmit={handleSubmit}>
               <Stack spacing={3}>
-            <TextField
-              label="Título"
-              value={formData.titulo}
-              onChange={handleInputChange('titulo')}
-              fullWidth
-              placeholder="Título para la estrategia de redes sociales"
-              disabled={isLoading}
-            />
+                <TextField
+                  label="Título"
+                  value={formData.titulo}
+                  onChange={handleInputChange('titulo')}
+                  fullWidth
+                  placeholder="Título para la estrategia de redes sociales"
+                  disabled={isLoading}
+                />
 
-            <TextField
-              label="Descripción"
-              value={formData.descripcion}
-              onChange={handleInputChange('descripcion')}
-              fullWidth
-              multiline
-              rows={3}
-              placeholder="Descripción de la estrategia"
-              disabled={isLoading}
-            />
+                <TextField
+                  label="Descripción"
+                  value={formData.descripcion}
+                  onChange={handleInputChange('descripcion')}
+                  fullWidth
+                  multiline
+                  rows={3}
+                  placeholder="Descripción de la estrategia"
+                  disabled={isLoading}
+                />
 
-            <FormControl fullWidth required>
-              <InputLabel id="objetivo-label">Objetivo</InputLabel>
-              <Select
-                labelId="objetivo-label"
-                id="objetivo"
-                multiple
-                value={formData.objetivo}
-                onChange={handleObjetivoChange}
-                input={<OutlinedInput label="Objetivo" />}
-                renderValue={(selected: any) => (
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                    {selected.map((value: string) => (
-                      <Chip key={value} label={value} />
-                    ))}
-                  </Box>
-                )}
-                disabled={isLoading}
-              >
-                <MenuItem value="Educar">Educar</MenuItem>
-                <MenuItem value="Inspirar">Inspirar</MenuItem>
-                <MenuItem value="Entretener">Entretener</MenuItem>
-                <MenuItem value="Promocionar">Promocionar</MenuItem>
-              </Select>
-            </FormControl>
+                <FormControl fullWidth required>
+                  <InputLabel id="objetivo-label">Objetivo</InputLabel>
+                  <Select
+                    labelId="objetivo-label"
+                    id="objetivo"
+                    multiple
+                    value={formData.objetivo}
+                    onChange={handleObjetivoChange}
+                    input={<OutlinedInput label="Objetivo" />}
+                    renderValue={(selected: any) => (
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                        {selected.map((value: string) => (
+                          <Chip key={value} label={value} />
+                        ))}
+                      </Box>
+                    )}
+                    disabled={isLoading}
+                  >
+                    <MenuItem value="Educar">Educar</MenuItem>
+                    <MenuItem value="Inspirar">Inspirar</MenuItem>
+                    <MenuItem value="Entretener">Entretener</MenuItem>
+                    <MenuItem value="Promocionar">Promocionar</MenuItem>
+                  </Select>
+                </FormControl>
 
                 <TextField
                   label="Audiencia"
