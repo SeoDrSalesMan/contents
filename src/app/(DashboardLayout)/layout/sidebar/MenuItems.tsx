@@ -29,18 +29,19 @@ const Menuitems = [
     icon: IconTent,
     href: "/estructuras",
   }, */
+     {
+    id: uniqueId(),
+    title: "Estrategias RRSS",
+    icon: IconAperture,
+    href: "/rrss",
+  },
    {
     id: uniqueId(),
     title: "Articulos",
     icon: IconTypography,
     href: "/articulos",
   },  
-   {
-    id: uniqueId(),
-    title: "Estrategia RRSS",
-    icon: IconAperture,
-    href: "/rrss",
-  },
+
   {
     navlabel: true,
     subheader: "SISTEMA",
