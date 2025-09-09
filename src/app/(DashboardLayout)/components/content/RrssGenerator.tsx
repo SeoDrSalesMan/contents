@@ -275,8 +275,8 @@ export default function RrssGenerator() {
       }}>
         <Box sx={{ flex: 1, minWidth: { xs: '100%', lg: '400px' }, maxWidth: { lg: '500px' } }}>
           <Paper variant="outlined" sx={{ p: 3 }}>
-        <Box component="form" onSubmit={handleSubmit}>
-          <Stack spacing={3}>
+            <Box component="form" onSubmit={handleSubmit}>
+              <Stack spacing={3}>
             <TextField
               label="Título"
               value={formData.titulo}
@@ -322,110 +322,110 @@ export default function RrssGenerator() {
               </Select>
             </FormControl>
 
-            <TextField
-              label="Audiencia"
-              value={formData.audiencia}
-              onChange={handleInputChange('audiencia')}
-              required
-              fullWidth
-              multiline
-              rows={2}
-              placeholder="Define la audiencia objetivo"
-              disabled={isLoading}
-            />
+                <TextField
+                  label="Audiencia"
+                  value={formData.audiencia}
+                  onChange={handleInputChange('audiencia')}
+                  required
+                  fullWidth
+                  multiline
+                  rows={2}
+                  placeholder="Define la audiencia objetivo"
+                  disabled={isLoading}
+                />
 
-            <FormControl fullWidth required>
-              <InputLabel id="canales-label">Canales</InputLabel>
-              <Select
-                labelId="canales-label"
-                id="canales"
-                multiple
-                value={formData.canales}
-                onChange={handleCanalesChange}
-                input={<OutlinedInput label="Canales" />}
-                renderValue={(selected: any) => (
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                    {selected.map((value: string) => (
-                      <Chip key={value} label={value} />
-                    ))}
-                  </Box>
-                )}
-                disabled={isLoading}
-              >
-                <MenuItem value="IG">Instagram (IG)</MenuItem>
-                <MenuItem value="LI">LinkedIn (LI)</MenuItem>
-                <MenuItem value="TikTok">TikTok</MenuItem>
-                <MenuItem value="X">X (Twitter)</MenuItem>
-                <MenuItem value="FB">Facebook (FB)</MenuItem>
-                <MenuItem value="YT Shorts">YouTube Shorts</MenuItem>
-              </Select>
-            </FormControl>
+                <FormControl fullWidth required>
+                  <InputLabel id="canales-label">Canales</InputLabel>
+                  <Select
+                    labelId="canales-label"
+                    id="canales"
+                    multiple
+                    value={formData.canales}
+                    onChange={handleCanalesChange}
+                    input={<OutlinedInput label="Canales" />}
+                    renderValue={(selected: any) => (
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                        {selected.map((value: string) => (
+                          <Chip key={value} label={value} />
+                        ))}
+                      </Box>
+                    )}
+                    disabled={isLoading}
+                  >
+                    <MenuItem value="IG">Instagram (IG)</MenuItem>
+                    <MenuItem value="LI">LinkedIn (LI)</MenuItem>
+                    <MenuItem value="TikTok">TikTok</MenuItem>
+                    <MenuItem value="X">X (Twitter)</MenuItem>
+                    <MenuItem value="FB">Facebook (FB)</MenuItem>
+                    <MenuItem value="YT Shorts">YouTube Shorts</MenuItem>
+                  </Select>
+                </FormControl>
 
-            <TextField
-              label="Número de Estrategias"
-              type="number"
-              value={formData.numero_estrategias}
-              onChange={(e) => setFormData(prev => ({
-                ...prev,
-                numero_estrategias: Number(e.target.value) || 1
-              }))}
-              fullWidth
-              placeholder="Número de estrategias a generar"
-              disabled={isLoading}
-              InputProps={{ inputProps: { min: 1, max: 50 } }}
-            />
+                <TextField
+                  label="Número de Estrategias"
+                  type="number"
+                  value={formData.numero_estrategias}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    numero_estrategias: Number(e.target.value) || 1
+                  }))}
+                  fullWidth
+                  placeholder="Número de estrategias a generar"
+                  disabled={isLoading}
+                  InputProps={{ inputProps: { min: 1, max: 50 } }}
+                />
 
-            <FormControl fullWidth>
-              <InputLabel id="frecuencia-label">Frecuencia Mensual</InputLabel>
-              <Select
-                labelId="frecuencia-label"
-                id="frecuencia"
-                value={formData.frecuencia_mensual}
-                onChange={(e) => setFormData(prev => ({
-                  ...prev,
-                  frecuencia_mensual: e.target.value
-                }))}
-                disabled={isLoading}
-                label="Frecuencia Mensual"
-              >
-                <MenuItem value="Diario">Diario</MenuItem>
-                <MenuItem value="2-3 veces/semana">2-3 veces/semana</MenuItem>
-                <MenuItem value="Semanal">Semanal</MenuItem>
-                <MenuItem value="Bisemanal">Bisemanal</MenuItem>
-                <MenuItem value="Semanal alterno">Semanal alterno</MenuItem>
-                <MenuItem value="Mensual">Mensual</MenuItem>
-                <MenuItem value="Trimestral">Trimestral</MenuItem>
-              </Select>
-            </FormControl>
+                <FormControl fullWidth>
+                  <InputLabel id="frecuencia-label">Frecuencia Mensual</InputLabel>
+                  <Select
+                    labelId="frecuencia-label"
+                    id="frecuencia"
+                    value={formData.frecuencia_mensual}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      frecuencia_mensual: e.target.value
+                    }))}
+                    disabled={isLoading}
+                    label="Frecuencia Mensual"
+                  >
+                    <MenuItem value="Diario">Diario</MenuItem>
+                    <MenuItem value="2-3 veces/semana">2-3 veces/semana</MenuItem>
+                    <MenuItem value="Semanal">Semanal</MenuItem>
+                    <MenuItem value="Bisemanal">Bisemanal</MenuItem>
+                    <MenuItem value="Semanal alterno">Semanal alterno</MenuItem>
+                    <MenuItem value="Mensual">Mensual</MenuItem>
+                    <MenuItem value="Trimestral">Trimestral</MenuItem>
+                  </Select>
+                </FormControl>
 
-            <TextField
-              label="Fecha o Eventos"
-              value={formData.fecha_eventos}
-              onChange={handleInputChange('fecha_eventos')}
-              fullWidth
-              placeholder="Fechas importantes o eventos especiales (opcional)"
-              disabled={isLoading}
-            />
+                <TextField
+                  label="Fecha o Eventos"
+                  value={formData.fecha_eventos}
+                  onChange={handleInputChange('fecha_eventos')}
+                  fullWidth
+                  placeholder="Fechas importantes o eventos especiales (opcional)"
+                  disabled={isLoading}
+                />
 
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={isLoading}
-              fullWidth
-              sx={{ minHeight: 48 }}
-            >
-              {isLoading ? (
-                <>
-                  <CircularProgress size={20} sx={{ mr: 1, color: 'white' }} />
-                  Generando...
-                </>
-              ) : (
-                'Generar Estrategia'
-              )}
-            </Button>
-          </Stack>
-          </Box>
-        </Paper>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={isLoading}
+                  fullWidth
+                  sx={{ minHeight: 48 }}
+                >
+                  {isLoading ? (
+                    <>
+                      <CircularProgress size={20} sx={{ mr: 1, color: 'white' }} />
+                      Generando...
+                    </>
+                  ) : (
+                    'Generar Estrategia'
+                  )}
+                </Button>
+              </Stack>
+            </Box>
+          </Paper>
 
         <Box sx={{ flex: 1, width: '100%', overflow: 'hidden' }}>
           {message && (
