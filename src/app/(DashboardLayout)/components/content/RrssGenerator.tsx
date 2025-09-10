@@ -45,7 +45,6 @@ export default function RrssGenerator() {
     objetivo: [] as string[],
     audiencia: '',
     canales: [] as string[],
-    numero_estrategias: 1,
     frecuencia_mensual: '',
     fecha_eventos: '',
     fecha_eventos_no: ''
@@ -251,7 +250,6 @@ export default function RrssGenerator() {
         objetivo: formData.objetivo.join(', '),
         audiencia: formData.audiencia,
         canales: formData.canales.join(', '),
-        numero_estrategias: formData.numero_estrategias,
         frecuencia_mensual: formData.frecuencia_mensual,
         fecha_eventos: formData.fecha_eventos,
         fecha_eventos_no: formData.fecha_eventos_no
@@ -307,7 +305,6 @@ export default function RrssGenerator() {
         objetivo: [] as string[],
         audiencia: '',
         canales: [] as string[],
-        numero_estrategias: 1,
         frecuencia_mensual: '',
         fecha_eventos: '',
         fecha_eventos_no: ''
@@ -426,20 +423,6 @@ export default function RrssGenerator() {
                     <MenuItem value="YT Shorts">YouTube Shorts</MenuItem>
                   </Select>
                 </FormControl>
-
-                <TextField
-                  label="Número de Estrategias"
-                  type="number"
-                  value={formData.numero_estrategias}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    numero_estrategias: Number(e.target.value) || 1
-                  }))}
-                  fullWidth
-                  placeholder="Número de estrategias a generar"
-                  disabled={isLoading}
-                  InputProps={{ inputProps: { min: 1, max: 50 } }}
-                />
 
                 <FormControl fullWidth>
                   <InputLabel id="frecuencia-label">Frecuencia Mensual</InputLabel>
