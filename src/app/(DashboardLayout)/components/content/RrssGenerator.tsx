@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import {
   Box,
   Typography,
@@ -104,7 +104,7 @@ export default function RrssGenerator() {
   };
 
   // Function to load the latest strategy for the selected client
-  const loadLatestStrategy = async () => {
+  const loadLatestStrategy = useCallback(async () => {
     if (!client) {
       console.log('No client selected');
       setLatestStrategy([]);
@@ -163,10 +163,10 @@ export default function RrssGenerator() {
     } finally {
       setLoadingLatest(false);
     }
-  };
+  }, [client, setLoadingLatest, setLatestStrategy]);
 
   // Function to load the last 3 recent strategies for Distrito Legal
-  const loadRecentStrategies = async () => {
+  const loadRecentStrategies = useCallback(async () => {
     if (!client || client.id !== 'distrito_legal') {
       setRecentStrategies([]);
       return;
@@ -259,7 +259,7 @@ export default function RrssGenerator() {
     } finally {
       setLoadingRecent(false);
     }
-  };
+  }, [client, setLoadingRecent, setRecentStrategies]);
 
   // Set mounted state to fix hydration issues
   useEffect(() => {
