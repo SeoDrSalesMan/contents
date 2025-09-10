@@ -52,8 +52,6 @@ export default function RrssGenerator() {
   const [results, setResults] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const [latestStrategy, setLatestStrategy] = useState<any[]>([]);
-  const [loadingLatest, setLoadingLatest] = useState(false);
   const [recentStrategies, setRecentStrategies] = useState<any[]>([]);
   const [loadingRecent, setLoadingRecent] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -103,67 +101,7 @@ export default function RrssGenerator() {
     }));
   };
 
-  // Function to load the latest strategy for the selected client
-  const loadLatestStrategy = useCallback(async () => {
-    if (!client) {
-      console.log('No client selected');
-      setLatestStrategy([]);
-      return;
-    }
 
-    console.log('Loading latest strategy for client:', client.name, client.id);
-    console.log('Client data:', { workflowId: client.workflowId, executionIds: client.executionIds });
-
-    setLoadingLatest(true);
-    try {
-      // For Distrito Legal, use the specific execution ID 322 as requested
-      const latestExecutionId = client.id === 'distrito_legal' ? '322' : client.executionIds[client.executionIds.length - 1];
-
-      console.log('Fetching latest strategy via API proxy for execution:', latestExecutionId);
-
-      // Use the new API proxy route to avoid CORS issues
-      const response = await fetch(`/api/execution/${latestExecutionId}`);
-
-      console.log('API proxy response status:', response.status);
-
-      if (!response.ok) {
-        console.log('Failed to load strategy via proxy, status:', response.status);
-        const errorText = await response.text();
-        console.log('Error response:', errorText);
-        setLatestStrategy([]);
-        return;
-      }
-
-      const executionData = await response.json();
-      console.log('Execution data received via proxy:', executionData);
-
-      // Try multiple possible response formats
-      let strategyText = '';
-      if (executionData.output && executionData.output.output) {
-        strategyText = executionData.output.output;
-      } else if (executionData.output) {
-        strategyText = typeof executionData.output === 'string' ? executionData.output : JSON.stringify(executionData.output);
-      } else if (executionData.data) {
-        strategyText = typeof executionData.data === 'string' ? executionData.data : JSON.stringify(executionData.data);
-      }
-
-      console.log('Strategy text extracted:', strategyText);
-
-      if (strategyText) {
-        const strategyResults = parseMarkdownTable(strategyText);
-        console.log('Parsed results:', strategyResults);
-        setLatestStrategy(strategyResults);
-      } else {
-        console.log('No valid strategy text found');
-        setLatestStrategy([]);
-      }
-    } catch (error) {
-      console.error('Error loading latest strategy:', error);
-      setLatestStrategy([]);
-    } finally {
-      setLoadingLatest(false);
-    }
-  }, [client, setLoadingLatest, setLatestStrategy]);
 
   // Function to load the last 3 recent strategies for Distrito Legal
   const loadRecentStrategies = useCallback(async () => {
@@ -172,25 +110,26 @@ export default function RrssGenerator() {
       return;
     }
 
-    console.log('Loading last 3 strategies for Distrito Legal via API proxy');
+    console.log('Loading last 3 recent strategies for Distrito Legal via API proxy');
     setLoadingRecent(true);
 
     try {
-      const executionIds = ['322', '321', '320'];
+      // Try to find the 3 most recent executions by testing higher execution IDs
       const allStrategies: any[] = [];
+      let foundExecutions = 0;
+      const maxExecutionId = 330; // Updated to include the latest generated execution 330
+      const minExecutionId = 320; // Don't go below this number
 
-      // Load each execution one by one using the API proxy
-      for (const executionId of executionIds) {
+      // Try executions from highest to lowest
+      for (let executionId = maxExecutionId; executionId >= minExecutionId && foundExecutions < 3; executionId--) {
         try {
-          console.log('Fetching execution via proxy:', `/api/execution/${executionId}`);
+          console.log(`Testing execution ${executionId}...`);
 
           const response = await fetch(`/api/execution/${executionId}`);
 
-          console.log(`API proxy response status for ${executionId}:`, response.status);
-
           if (response.ok) {
             const executionData = await response.json();
-            console.log(`Execution ${executionId} data received via proxy:`, executionData);
+            console.log(`✅ Execution ${executionId} found and valid`);
 
             // Try multiple possible response formats - improved logic
             let strategyText = '';
@@ -198,49 +137,39 @@ export default function RrssGenerator() {
             // Check different possible data structures
             if (executionData && typeof executionData.output === 'string') {
               strategyText = executionData.output;
-              console.log(`Found strategy in executionData.output (string):`, strategyText.substring(0, 200));
             } else if (executionData.output && typeof executionData.output === 'object' && executionData.output.output) {
               strategyText = executionData.output.output;
-              console.log(`Found strategy in executionData.output.output:`, strategyText.substring(0, 200));
             } else if (executionData.output && typeof executionData.output === 'object') {
               strategyText = JSON.stringify(executionData.output);
-              console.log(`Found strategy in executionData.output (object):`, strategyText.substring(0, 200));
             } else if (executionData.data) {
               strategyText = typeof executionData.data === 'string' ? executionData.data : JSON.stringify(executionData.data);
-              console.log(`Found strategy in executionData.data:`, strategyText.substring(0, 200));
-            } else {
-              console.log(`No recognized data structure found for execution ${executionId}`);
-              console.log('Available keys:', Object.keys(executionData));
             }
 
             if (strategyText && strategyText.trim().length > 0) {
-              console.log(`Attempting to parse markdown table for execution ${executionId}`);
+              console.log(`✅ Processing markdown table for execution ${executionId}`);
               const strategyResults = parseMarkdownTable(strategyText);
-              console.log(`Parsed ${strategyResults.length} strategies from execution ${executionId}`);
+              console.log(`✅ Parsed ${strategyResults.length} strategies from execution ${executionId}`);
 
               if (strategyResults.length > 0) {
                 // Add execution ID to each item for identification
                 const strategyWithId = strategyResults.map(item => ({
                   ...item,
-                  executionId: executionId,
+                  executionId: executionId.toString(),
                   createdAt: executionData.createdAt || executionData.startDate
                 }));
 
                 allStrategies.push(...strategyWithId);
-                console.log(`Added ${strategyWithId.length} strategies from execution ${executionId}`);
-              } else {
-                console.log(`No valid strategies parsed from execution ${executionId}, but strategyText exists:`, !!strategyText);
+                foundExecutions++;
+                console.log(`✅ Added ${strategyWithId.length} strategies from execution ${executionId}`);
               }
             } else {
-              console.log(`No strategy text found for execution ${executionId}`);
+              console.log(`❌ No strategy text found for execution ${executionId}`);
             }
           } else {
-            console.log(`Execution ${executionId} failed to load via proxy - Status: ${response.status}`);
-            const errorText = await response.text().catch(() => 'No error details');
-            console.log('Error response:', errorText);
+            console.log(`❌ Execution ${executionId} not found`);
           }
         } catch (error) {
-          console.error(`Error loading execution ${executionId}:`, error);
+          console.log(`❌ Error processing execution ${executionId}:`, error);
         }
       }
 
@@ -264,24 +193,20 @@ export default function RrssGenerator() {
   // Set mounted state to fix hydration issues
   useEffect(() => {
     setMounted(true);
-  }, []);
+  }, [client, setRecentStrategies, setResults, setMessage, loadRecentStrategies]);
 
   // Load strategies when client changes and component is mounted
   useEffect(() => {
     if (mounted && client && client.id === 'distrito_legal') {
-      if (client.executionIds && client.executionIds.length > 0) {
-        loadLatestStrategy();
-      }
       loadRecentStrategies();
     }
-  }, [selectedClientId, mounted, client, loadLatestStrategy, loadRecentStrategies]);
+  }, [mounted, client, loadRecentStrategies]);
 
   const parseMarkdownTable = (markdown: string): any[] => {
     const lines = markdown.split('\n').filter(line => line.trim() !== '');
-    if (lines.length < 2) return []; // Need at least header and separator
 
-    // Find table lines (skip code blocks)
-    const tableStart = lines.findIndex(line => line.startsWith('|'));
+    // Find table start and header
+    const tableStart = lines.findIndex(line => line.includes('|'));
     if (tableStart === -1) return [];
 
     const headerLine = lines.slice(tableStart).find(line => line.trim() !== '' && !line.includes('---'));
@@ -294,37 +219,39 @@ export default function RrssGenerator() {
 
     if (!headerLine || !dataLines || dataLines.length === 0) return [];
 
-    // Parse header columns
-    const headers = headerLine.split('|').slice(1, -1).map(h => h.trim());
+    // Parse headers
+    const headers = headerLine.split('|').slice(1, -1).map(h => h.trim().toLowerCase());
 
-    // Parse data rows
+    // Parse rows
     const rows = dataLines.slice(1).map(line => {
-      const rowData = line.split('|').slice(1, -1).map(cell => cell.trim());
+      const values = line.split('|').slice(1, -1).map(v => v.trim());
       const row: any = {};
 
-      headers.forEach((header, index) => {
-        const value = rowData[index] || '';
-        // Map common headers to standardized keys
+      values.forEach((value, index) => {
+        const header = headers[index] || `column_${index}`;
         const lowerHeader = header.toLowerCase();
-        if (lowerHeader.includes('fecha')) row.fecha = value;
-        else if (lowerHeader.includes('día')) row.dia = value;
-        else if (lowerHeader.includes('canal')) row.canal = value;
+
+        // Map known headers to standardized fields
+        if (lowerHeader.includes('fecha') || lowerHeader.includes('date')) row.fecha = value;
+        else if (lowerHeader.includes('canal') || lowerHeader.includes('channel')) row.canal = value;
+        else if (lowerHeader.includes('formato') || lowerHeader.includes('format')) row.formato = value;
         else if (lowerHeader.includes('pilar')) row.pilar = value;
-        else if (lowerHeader.includes('objetivo')) row.objetivo = value;
-        else if (lowerHeader.includes('formato')) row.formato = value;
-        else if (lowerHeader.includes('tema') || lowerHeader.includes('título')) row.tema_titulo = value;
-        else if (lowerHeader.includes('hook')) row.hook = value;
-        else if (lowerHeader.includes('copy')) row.copy = value;
+        else if (lowerHeader.includes('titulo') || lowerHeader.includes('título') || lowerHeader.includes('title')) row.titulo = value;
+        else if (lowerHeader.includes('tema') && lowerHeader.includes('titulo')) row.tema_titulo = value;
+        else if (lowerHeader.includes('copy') || lowerHeader.includes('texto')) row.copy = value;
+        else if (lowerHeader.includes('hashtag')) row.hashtags = value;
         else if (lowerHeader.includes('cta')) row.cta = value;
-        else if (lowerHeader.includes('hashtags')) row.hashtags = value;
         else if (lowerHeader.includes('recurso') || lowerHeader.includes('asset')) row.recurso_asset = value;
-        else if (lowerHeader.includes('duración')) row.duracion = value;
+        else if (lowerHeader.includes('duración') || lowerHeader.includes('duracion')) row.duracion = value;
         else if (lowerHeader.includes('instrucciones')) row.instrucciones = value;
         else if (lowerHeader.includes('enlace') || lowerHeader.includes('utm')) row.enlace_utm = value;
         else if (lowerHeader.includes('kpi')) row.kpi = value;
         else if (lowerHeader.includes('responsable')) row.responsable = value;
         else if (lowerHeader.includes('estado')) row.estado = value;
         else if (lowerHeader.includes('notas')) row.notas = value;
+        else if (lowerHeader.includes('dia') || lowerHeader.includes('día')) row.dia = value;
+        else if (lowerHeader.includes('hook')) row.hook = value;
+        else if (lowerHeader.includes('objetivo')) row.objetivo = value;
         else row[header] = value; // Fallback to original header
       });
 
@@ -365,6 +292,9 @@ export default function RrssGenerator() {
         fecha_eventos_no: formData.fecha_eventos_no
       };
 
+      console.log('🚀 Llamando al webhook de generación:', webhook);
+      console.log('📤 Payload enviado:', payload);
+
       const response = await fetch(webhook, {
         method: 'POST',
         headers: {
@@ -373,8 +303,12 @@ export default function RrssGenerator() {
         body: JSON.stringify(payload)
       });
 
+      console.log('📥 Respuesta del webhook - Status:', response.status);
+
       if (!response.ok) {
-        throw new Error(`Error HTTP: ${response.status}`);
+        const errorText = await response.text().catch(() => 'No error details');
+        console.error('❌ Error en la respuesta del webhook:', errorText);
+        throw new Error(`Error HTTP: ${response.status} - ${errorText.substring(0, 200)}`);
       }
 
       const resultText = await response.text();
@@ -405,20 +339,33 @@ export default function RrssGenerator() {
         parsedResults = [resultData];
       }
 
-      setResults(parsedResults);
-      setMessage(`Estrategia generada exitosamente para ${client.name} (${parsedResults.length} elementos)`);
+      if (parsedResults.length > 0) {
+        setResults(parsedResults);
+        setMessage(`Estrategia generada exitosamente para ${client.name} (${parsedResults.length} elementos)`);
 
-      // Limpiar formulario después del éxito
-      setFormData({
-        titulo: '',
-        descripcion: '',
-        objetivo: [] as string[],
-        audiencia: '',
-        canales: [] as string[],
-        frecuencia_mensual: '',
-        fecha_eventos: '',
-        fecha_eventos_no: ''
-      });
+        // Recargar las estrategias recientes después de generar una nueva
+        if (client.id === 'distrito_legal') {
+          console.log('🔄 Recargando estrategias recientes después de generar nueva estrategia...');
+          setTimeout(() => {
+            loadRecentStrategies();
+          }, 1000); // Dar un poco de tiempo para que se guarde la nueva estrategia
+        }
+
+        // Limpiar formulario después del éxito
+        setFormData({
+          titulo: '',
+          descripcion: '',
+          objetivo: [] as string[],
+          audiencia: '',
+          canales: [] as string[],
+          frecuencia_mensual: '',
+          fecha_eventos: '',
+          fecha_eventos_no: ''
+        });
+      } else {
+        setMessage('No se pudieron procesar los resultados. Verifica la respuesta del servidor.');
+        console.error('❌ No se pudieron parsear los resultados:', { resultText, resultData });
+      }
 
     } catch (error) {
       console.error('Error generando estrategia RRSS:', error);
@@ -616,139 +563,44 @@ export default function RrssGenerator() {
                   <TableHead>
                     <TableRow sx={{ bgcolor: 'grey.100' }}>
                       <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Fecha</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 80, borderRight: 1, borderColor: 'divider' }}>Día</TableCell>
+                      <TableCell sx={{ display: 'none' }}>Día</TableCell>
                       <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 80, borderRight: 1, borderColor: 'divider' }}>Canal</TableCell>
                       <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Pilar</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Objetivo</TableCell>
+                      <TableCell sx={{ display: 'none' }}>Objetivo</TableCell>
                       <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Formato</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 150, borderRight: 1, borderColor: 'divider' }}>Tema/Título</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 120, borderRight: 1, borderColor: 'divider' }}>Hook</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 150, borderRight: 1, borderColor: 'divider' }}>Título</TableCell>
+                      <TableCell sx={{ display: 'none' }}>Hook</TableCell>
                       <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 200, borderRight: 1, borderColor: 'divider' }}>Copy</TableCell>
                       <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 100, borderRight: 1, borderColor: 'divider' }}>CTA</TableCell>
                       <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 120, borderRight: 1, borderColor: 'divider' }}>Hashtags</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 150, borderRight: 1, borderColor: 'divider' }}>Recurso/Asset</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Duración</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 150, borderRight: 1, borderColor: 'divider' }}>Instrucciones</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 150, borderRight: 1, borderColor: 'divider' }}>Enlace/UTM</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 120, borderRight: 1, borderColor: 'divider' }}>KPI</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 120, borderRight: 1, borderColor: 'divider' }}>Responsable</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Estado</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 200, borderRight: 1, borderColor: 'divider' }}>Notas</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 150, borderRight: 1, borderColor: 'divider' }}>Assets requeridos</TableCell>
+                      <TableCell sx={{ display: 'none' }}>Duración</TableCell>
+                      <TableCell sx={{ display: 'none' }}>Instrucciones</TableCell>
+                      <TableCell sx={{ display: 'none' }}>Enlace/UTM</TableCell>
+                      <TableCell sx={{ display: 'none' }}>KPI</TableCell>
+                      <TableCell sx={{ display: 'none' }}>Responsable</TableCell>
+                      <TableCell sx={{ display: 'none' }}>Estado</TableCell>
+                      <TableCell sx={{ display: 'none' }}>Notas</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {results.map((row, index) => (
                       <TableRow key={index} hover sx={{ '&:nth-of-type(even)': { bgcolor: 'grey.50' } }}>
-                        <TableCell sx={{ fontSize: '0.8rem', borderRight: 1, borderColor: 'divider' }}>{row.fecha || '-'}</TableCell>
-                        <TableCell sx={{ fontSize: '0.8rem', borderRight: 1, borderColor: 'divider' }}>{row.dia || '-'}</TableCell>
-                        <TableCell sx={{ fontSize: '0.8rem', borderRight: 1, borderColor: 'divider' }}>{row.canal || '-'}</TableCell>
-                        <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.pilar || '-'}</TableCell>
-                        <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.objetivo || '-'}</TableCell>
-                        <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.formato || '-'}</TableCell>
-                        <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 150 }}>{row.tema_titulo || row.titulo || '-'}</TableCell>
-                        <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 120 }}>{row.hook || '-'}</TableCell>
-                        <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 200 }}>{row.copy || row.texto || '-'}</TableCell>
-                        <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.cta || '-'}</TableCell>
-                        <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 120 }}>{row.hashtags || '-'}</TableCell>
-                        <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 150 }}>{row.recurso_asset || '-'}</TableCell>
-                        <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.duracion || '-'}</TableCell>
-                        <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 150 }}>{row.instrucciones || '-'}</TableCell>
-                        <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 150 }}>
-                          <Box sx={{
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            maxWidth: 'inherit'
-                          }}>
-                            {row.enlace_utm || '-'}
-                          </Box>
-                        </TableCell>
-                        <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 120 }}>{row.kpi || '-'}</TableCell>
-                        <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.responsable || '-'}</TableCell>
-                        <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.estado || '-'}</TableCell>
-                        <TableCell sx={{ fontSize: '0.8rem', maxWidth: 200 }}>
-                          <Box sx={{
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            maxWidth: 'inherit'
-                          }}>
-                            {row.notas || '-'}
-                          </Box>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Paper>
-          )}
-        </Box>
-      </Stack>
-
-      {/* Latest Strategy Section */}
-      <Box sx={{ mt: 4, width: '100%' }}>
-        {loadingLatest ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-            <CircularProgress size={40} />
-            <Typography sx={{ ml: 2 }}>Cargando estrategia anterior...</Typography>
-          </Box>
-        ) : latestStrategy.length > 0 && (
-          <Paper sx={{ overflow: 'hidden' }}>
-            <Typography variant="h6" sx={{ p: 2, pb: 1, color: 'primary.main' }}>
-              Última Estrategia Generada - {client?.name} ({latestStrategy.length} elementos)
-            </Typography>
-
-            <Alert
-              severity="info"
-              sx={{ mx: 2, mb: 2 }}
-            >
-              Esta es la estrategia más reciente generada para este cliente. Se actualizará automáticamente cuando se cambie de cliente.
-            </Alert>
-
-            <TableContainer sx={{ maxHeight: { xs: 400, lg: 600 }, overflow: 'auto' }}>
-              <Table stickyHeader size="small" sx={{ minWidth: 1200 }}>
-                <TableHead>
-                  <TableRow sx={{ bgcolor: 'grey.50' }}>
-                    <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Fecha</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 80, borderRight: 1, borderColor: 'divider' }}>Día</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 80, borderRight: 1, borderColor: 'divider' }}>Canal</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Pilar</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Objetivo</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Formato</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 150, borderRight: 1, borderColor: 'divider' }}>Tema/Título</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 120, borderRight: 1, borderColor: 'divider' }}>Hook</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 200, borderRight: 1, borderColor: 'divider' }}>Copy</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 100, borderRight: 1, borderColor: 'divider' }}>CTA</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 120, borderRight: 1, borderColor: 'divider' }}>Hashtags</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 150, borderRight: 1, borderColor: 'divider' }}>Recurso/Asset</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Duración</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 150, borderRight: 1, borderColor: 'divider' }}>Instrucciones</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 150, borderRight: 1, borderColor: 'divider' }}>Enlace/UTM</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 120, borderRight: 1, borderColor: 'divider' }}>KPI</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 120, borderRight: 1, borderColor: 'divider' }}>Responsable</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Estado</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 200, borderRight: 1, borderColor: 'divider' }}>Notas</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {latestStrategy.map((row, index) => (
-                    <TableRow key={`latest-${index}`} hover sx={{ '&:nth-of-type(even)': { bgcolor: 'grey.25' }, backgroundColor: 'rgba(25, 118, 210, 0.04)' }}>
                       <TableCell sx={{ fontSize: '0.8rem', borderRight: 1, borderColor: 'divider' }}>{row.fecha || '-'}</TableCell>
-                      <TableCell sx={{ fontSize: '0.8rem', borderRight: 1, borderColor: 'divider' }}>{row.dia || '-'}</TableCell>
+                      <TableCell sx={{ display: 'none' }}>{row.dia || '-'}</TableCell>
                       <TableCell sx={{ fontSize: '0.8rem', borderRight: 1, borderColor: 'divider' }}>{row.canal || '-'}</TableCell>
                       <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.pilar || '-'}</TableCell>
-                      <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.objetivo || '-'}</TableCell>
+                      <TableCell sx={{ display: 'none' }}>{row.objetivo || '-'}</TableCell>
                       <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.formato || '-'}</TableCell>
                       <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 150 }}>{row.tema_titulo || row.titulo || '-'}</TableCell>
-                      <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 120 }}>{row.hook || '-'}</TableCell>
+                      <TableCell sx={{ display: 'none' }}>{row.hook || '-'}</TableCell>
                       <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 200 }}>{row.copy || row.texto || '-'}</TableCell>
                       <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.cta || '-'}</TableCell>
                       <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 120 }}>{row.hashtags || '-'}</TableCell>
                       <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 150 }}>{row.recurso_asset || '-'}</TableCell>
-                      <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.duracion || '-'}</TableCell>
-                      <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 150 }}>{row.instrucciones || '-'}</TableCell>
-                      <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 150 }}>
+                      <TableCell sx={{ display: 'none' }}>{row.duracion || '-'}</TableCell>
+                      <TableCell sx={{ display: 'none' }}>{row.instrucciones || '-'}</TableCell>
+                      <TableCell sx={{ display: 'none' }}>
                         <Box sx={{
                           whiteSpace: 'nowrap',
                           overflow: 'hidden',
@@ -758,10 +610,10 @@ export default function RrssGenerator() {
                           {row.enlace_utm || '-'}
                         </Box>
                       </TableCell>
-                      <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 120 }}>{row.kpi || '-'}</TableCell>
-                      <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.responsable || '-'}</TableCell>
-                      <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.estado || '-'}</TableCell>
-                      <TableCell sx={{ fontSize: '0.8rem', maxWidth: 200 }}>
+                      <TableCell sx={{ display: 'none' }}>{row.kpi || '-'}</TableCell>
+                      <TableCell sx={{ display: 'none' }}>{row.responsable || '-'}</TableCell>
+                      <TableCell sx={{ display: 'none' }}>{row.estado || '-'}</TableCell>
+                      <TableCell sx={{ display: 'none' }}>
                         <Box sx={{
                           whiteSpace: 'nowrap',
                           overflow: 'hidden',
@@ -771,14 +623,15 @@ export default function RrssGenerator() {
                           {row.notas || '-'}
                         </Box>
                       </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
-        )}
-      </Box>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+          )}
+        </Box>
+      </Stack>
 
       {/* Recent Strategies Section - Last 3 executions */}
       <Box sx={{ mt: 4, width: '100%' }}>
@@ -793,12 +646,7 @@ export default function RrssGenerator() {
               Últimas 3 Estrategias Generadas - {client?.name} ({recentStrategies.length} elementos totales)
             </Typography>
 
-            <Alert
-              severity="info"
-              sx={{ mx: 2, mb: 2 }}
-            >
-              Historial de las últimas 3 ejecuciones: 322, 321 y 320. Incluye todos los estrategias generadas en estos procesos.
-            </Alert>
+
 
             <TableContainer sx={{ maxHeight: { xs: 400, lg: 600 }, overflow: 'auto' }}>
               <Table stickyHeader size="small" sx={{ minWidth: 1200 }}>
@@ -808,24 +656,24 @@ export default function RrssGenerator() {
                       <strong>ID Ejecución</strong>
                     </TableCell>
                     <TableCell sx={{ minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Fecha</TableCell>
-                    <TableCell sx={{ minWidth: 80, borderRight: 1, borderColor: 'divider' }}>Día</TableCell>
+                    <TableCell sx={{ display: 'none' }}>Día</TableCell>
                     <TableCell sx={{ minWidth: 80, borderRight: 1, borderColor: 'divider' }}>Canal</TableCell>
                     <TableCell sx={{ minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Pilar</TableCell>
-                    <TableCell sx={{ minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Objetivo</TableCell>
+                    <TableCell sx={{ display: 'none' }}>Objetivo</TableCell>
                     <TableCell sx={{ minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Formato</TableCell>
-                    <TableCell sx={{ minWidth: 150, borderRight: 1, borderColor: 'divider' }}>Tema/Título</TableCell>
-                    <TableCell sx={{ minWidth: 120, borderRight: 1, borderColor: 'divider' }}>Hook</TableCell>
+                    <TableCell sx={{ minWidth: 150, borderRight: 1, borderColor: 'divider' }}>Título</TableCell>
+                    <TableCell sx={{ display: 'none' }}>Hook</TableCell>
                     <TableCell sx={{ minWidth: 200, borderRight: 1, borderColor: 'divider' }}>Copy</TableCell>
                     <TableCell sx={{ minWidth: 100, borderRight: 1, borderColor: 'divider' }}>CTA</TableCell>
                     <TableCell sx={{ minWidth: 120, borderRight: 1, borderColor: 'divider' }}>Hashtags</TableCell>
-                    <TableCell sx={{ minWidth: 150, borderRight: 1, borderColor: 'divider' }}>Recurso/Asset</TableCell>
-                    <TableCell sx={{ minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Duración</TableCell>
-                    <TableCell sx={{ minWidth: 150, borderRight: 1, borderColor: 'divider' }}>Instrucciones</TableCell>
-                    <TableCell sx={{ minWidth: 150, borderRight: 1, borderColor: 'divider' }}>Enlace/UTM</TableCell>
-                    <TableCell sx={{ minWidth: 120, borderRight: 1, borderColor: 'divider' }}>KPI</TableCell>
-                    <TableCell sx={{ minWidth: 120, borderRight: 1, borderColor: 'divider' }}>Responsable</TableCell>
-                    <TableCell sx={{ minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Estado</TableCell>
-                    <TableCell sx={{ minWidth: 200, borderRight: 1, borderColor: 'divider' }}>Notas</TableCell>
+                    <TableCell sx={{ minWidth: 150, borderRight: 1, borderColor: 'divider' }}>Assets requeridos</TableCell>
+                    <TableCell sx={{ display: 'none' }}>Duración</TableCell>
+                    <TableCell sx={{ display: 'none' }}>Instrucciones</TableCell>
+                    <TableCell sx={{ display: 'none' }}>Enlace/UTM</TableCell>
+                    <TableCell sx={{ display: 'none' }}>KPI</TableCell>
+                    <TableCell sx={{ display: 'none' }}>Responsable</TableCell>
+                    <TableCell sx={{ display: 'none' }}>Estado</TableCell>
+                    <TableCell sx={{ display: 'none' }}>Notas</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -838,31 +686,31 @@ export default function RrssGenerator() {
                           borderColor: 'divider',
                           fontWeight: 'bold',
                           color: 'primary.main',
-                          bgcolor: row.executionId === '322' ? 'primary.50' : row.executionId === '321' ? 'success.50' : 'warning.50'
+                          bgcolor: row.executionId === '330' ? 'success.50' : row.executionId === '329' ? 'primary.50' : row.executionId === '328' ? 'warning.50' : 'info.50'
                         }}
                       >
                         <Chip
                           label={row.executionId}
                           size="small"
-                          color={row.executionId === '322' ? 'primary' : row.executionId === '321' ? 'success' : 'warning'}
+                          color={row.executionId === '330' ? 'success' : row.executionId === '329' ? 'primary' : row.executionId === '328' ? 'warning' : 'info'}
                           variant="outlined"
                         />
                       </TableCell>
                       <TableCell sx={{ fontSize: '0.8rem', borderRight: 1, borderColor: 'divider' }}>{row.fecha || '-'}</TableCell>
-                      <TableCell sx={{ fontSize: '0.8rem', borderRight: 1, borderColor: 'divider' }}>{row.dia || '-'}</TableCell>
+                      <TableCell sx={{ display: 'none' }}>{row.dia || '-'}</TableCell>
                       <TableCell sx={{ fontSize: '0.8rem', borderRight: 1, borderColor: 'divider' }}>{row.canal || '-'}</TableCell>
                       <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.pilar || '-'}</TableCell>
-                      <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.objetivo || '-'}</TableCell>
+                      <TableCell sx={{ display: 'none' }}>{row.objetivo || '-'}</TableCell>
                       <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.formato || '-'}</TableCell>
                       <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 150 }}>{row.tema_titulo || row.titulo || '-'}</TableCell>
-                      <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 120 }}>{row.hook || '-'}</TableCell>
+                      <TableCell sx={{ display: 'none' }}>{row.hook || '-'}</TableCell>
                       <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 200 }}>{row.copy || row.texto || '-'}</TableCell>
                       <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.cta || '-'}</TableCell>
                       <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 120 }}>{row.hashtags || '-'}</TableCell>
                       <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 150 }}>{row.recurso_asset || '-'}</TableCell>
-                      <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.duracion || '-'}</TableCell>
-                      <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 150 }}>{row.instrucciones || '-'}</TableCell>
-                      <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 150 }}>
+                      <TableCell sx={{ display: 'none' }}>{row.duracion || '-'}</TableCell>
+                      <TableCell sx={{ display: 'none' }}>{row.instrucciones || '-'}</TableCell>
+                      <TableCell sx={{ display: 'none' }}>
                         <Box sx={{
                           whiteSpace: 'nowrap',
                           overflow: 'hidden',
@@ -872,10 +720,10 @@ export default function RrssGenerator() {
                           {row.enlace_utm || '-'}
                         </Box>
                       </TableCell>
-                      <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 120 }}>{row.kpi || '-'}</TableCell>
-                      <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.responsable || '-'}</TableCell>
-                      <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.estado || '-'}</TableCell>
-                      <TableCell sx={{ fontSize: '0.8rem', maxWidth: 200 }}>
+                      <TableCell sx={{ display: 'none' }}>{row.kpi || '-'}</TableCell>
+                      <TableCell sx={{ display: 'none' }}>{row.responsable || '-'}</TableCell>
+                      <TableCell sx={{ display: 'none' }}>{row.estado || '-'}</TableCell>
+                      <TableCell sx={{ display: 'none' }}>
                         <Box sx={{
                           whiteSpace: 'nowrap',
                           overflow: 'hidden',
