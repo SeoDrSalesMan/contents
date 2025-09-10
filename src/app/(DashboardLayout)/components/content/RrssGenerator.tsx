@@ -47,7 +47,8 @@ export default function RrssGenerator() {
     canales: [] as string[],
     numero_estrategias: 1,
     frecuencia_mensual: '',
-    fecha_eventos: ''
+    fecha_eventos: '',
+    fecha_eventos_no: ''
   });
   const [results, setResults] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -252,7 +253,8 @@ export default function RrssGenerator() {
         canales: formData.canales.join(', '),
         numero_estrategias: formData.numero_estrategias,
         frecuencia_mensual: formData.frecuencia_mensual,
-        fecha_eventos: formData.fecha_eventos
+        fecha_eventos: formData.fecha_eventos,
+        fecha_eventos_no: formData.fecha_eventos_no
       };
 
       const response = await fetch(webhook, {
@@ -307,7 +309,8 @@ export default function RrssGenerator() {
         canales: [] as string[],
         numero_estrategias: 1,
         frecuencia_mensual: '',
-        fecha_eventos: ''
+        fecha_eventos: '',
+        fecha_eventos_no: ''
       });
 
     } catch (error) {
@@ -462,11 +465,20 @@ export default function RrssGenerator() {
                 </FormControl>
 
                 <TextField
-                  label="Fecha o Eventos"
+                  label="Fecha o evento para Tener en Cuenta"
                   value={formData.fecha_eventos}
                   onChange={handleInputChange('fecha_eventos')}
                   fullWidth
                   placeholder="Fechas importantes o eventos especiales (opcional)"
+                  disabled={isLoading}
+                />
+
+                <TextField
+                  label="Fecha o evento para NO Tener en Cuenta"
+                  value={formData.fecha_eventos_no}
+                  onChange={handleInputChange('fecha_eventos_no')}
+                  fullWidth
+                  placeholder="Fechas o eventos que NO deben considerarse (opcional)"
                   disabled={isLoading}
                 />
 
