@@ -118,33 +118,24 @@ export default function RrssGenerator() {
     try {
       // For Distrito Legal, use the specific execution ID 322 as requested
       const latestExecutionId = client.id === 'distrito_legal' ? '322' : client.executionIds[client.executionIds.length - 1];
-      const workflowsId = client.id === 'distrito_legal' ? 'KpdNAOeZShs0PHpE' : client.workflowId;
 
-      console.log('Fetching execution:', `https://content-generator.nv0ey8.easypanel.host/workflow/${workflowsId}/executions/${latestExecutionId}`);
+      console.log('Fetching latest strategy via API proxy for execution:', latestExecutionId);
 
-      // Add timeout and better error handling
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      // Use the new API proxy route to avoid CORS issues
+      const response = await fetch(`/api/execution/${latestExecutionId}`);
 
-      const response = await fetch(`https://content-generator.nv0ey8.easypanel.host/workflow/${workflowsId}/executions/${latestExecutionId}`, {
-        signal: controller.signal,
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-      });
-
-      clearTimeout(timeoutId);
-      console.log('Response status:', response.status);
+      console.log('API proxy response status:', response.status);
 
       if (!response.ok) {
-        console.log('Failed to load strategy, status:', response.status);
+        console.log('Failed to load strategy via proxy, status:', response.status);
+        const errorText = await response.text();
+        console.log('Error response:', errorText);
         setLatestStrategy([]);
         return;
       }
 
       const executionData = await response.json();
-      console.log('Execution data received:', executionData);
+      console.log('Execution data received via proxy:', executionData);
 
       // Try multiple possible response formats
       let strategyText = '';
@@ -168,9 +159,6 @@ export default function RrssGenerator() {
       }
     } catch (error) {
       console.error('Error loading latest strategy:', error);
-      if (error instanceof Error && error.name === 'AbortError') {
-        console.log('Request timed out - Chrome extension may be interfering');
-      }
       setLatestStrategy([]);
     } finally {
       setLoadingLatest(false);
@@ -184,25 +172,25 @@ export default function RrssGenerator() {
       return;
     }
 
-    console.log('Loading last 3 strategies for Distrito Legal');
+    console.log('Loading last 3 strategies for Distrito Legal via API proxy');
     setLoadingRecent(true);
 
     try {
       const executionIds = ['322', '321', '320'];
-      const workflowId = 'KpdNAOeZShs0PHpE'; // Hardcoded for Distrito Legal
       const allStrategies: any[] = [];
 
-      // Load each execution one by one
+      // Load each execution one by one using the API proxy
       for (const executionId of executionIds) {
         try {
-          const executionUrl = `https://content-generator.nv0ey8.easypanel.host/workflow/${workflowId}/executions/${executionId}`;
-          console.log('Fetching execution:', executionUrl);
+          console.log('Fetching execution via proxy:', `/api/execution/${executionId}`);
 
-          const response = await fetch(executionUrl);
+          const response = await fetch(`/api/execution/${executionId}`);
+
+          console.log(`API proxy response status for ${executionId}:`, response.status);
 
           if (response.ok) {
             const executionData = await response.json();
-            console.log(`Execution ${executionId} data received:`, executionData);
+            console.log(`Execution ${executionId} data received via proxy:`, executionData);
 
             // Try multiple possible response formats - improved logic
             let strategyText = '';
@@ -247,9 +235,9 @@ export default function RrssGenerator() {
               console.log(`No strategy text found for execution ${executionId}`);
             }
           } else {
-            console.error(`Execution ${executionId} failed to load - Status: ${response.status}, URL: ${executionUrl}`);
+            console.log(`Execution ${executionId} failed to load via proxy - Status: ${response.status}`);
             const errorText = await response.text().catch(() => 'No error details');
-            console.error('Error response:', errorText);
+            console.log('Error response:', errorText);
           }
         } catch (error) {
           console.error(`Error loading execution ${executionId}:`, error);
