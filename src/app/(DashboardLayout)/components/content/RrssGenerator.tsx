@@ -113,8 +113,8 @@ export default function RrssGenerator() {
 
     setLoadingLatest(true);
     try {
-      // For Distrito Legal, use the specific execution ID 320 as requested
-      const latestExecutionId = client.id === 'distrito_legal' ? '320' : client.executionIds[client.executionIds.length - 1];
+      // For Distrito Legal, use the specific execution ID 322 as requested
+      const latestExecutionId = client.id === 'distrito_legal' ? '322' : client.executionIds[client.executionIds.length - 1];
 
       console.log('Fetching execution:', `https://content-generator.nv0ey8.easypanel.host/workflow/${client.workflowId}/executions/${latestExecutionId}`);
 
