@@ -274,7 +274,7 @@ export default function RrssGenerator() {
       }
       loadRecentStrategies();
     }
-  }, [selectedClientId, mounted]);
+  }, [selectedClientId, mounted, client, loadLatestStrategy, loadRecentStrategies]);
 
   const parseMarkdownTable = (markdown: string): any[] => {
     const lines = markdown.split('\n').filter(line => line.trim() !== '');

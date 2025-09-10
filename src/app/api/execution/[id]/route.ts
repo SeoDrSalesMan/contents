@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const executionId = (await params).id;
+  const resolvedParams = await params;
+  const executionId = resolvedParams.id;
 
   try {
     console.log(`API Proxy: Fetching execution ${executionId}`);
