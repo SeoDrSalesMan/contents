@@ -54,6 +54,9 @@ export default function RrssGenerator() {
   const [message, setMessage] = useState('');
   const [latestStrategy, setLatestStrategy] = useState<any[]>([]);
   const [loadingLatest, setLoadingLatest] = useState(false);
+  const [recentStrategies, setRecentStrategies] = useState<any[]>([]);
+  const [loadingRecent, setLoadingRecent] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const client = useMemo(() => clients.find(c => c.id === selectedClientId) || null, [clients, selectedClientId]);
 
@@ -115,11 +118,23 @@ export default function RrssGenerator() {
     try {
       // For Distrito Legal, use the specific execution ID 322 as requested
       const latestExecutionId = client.id === 'distrito_legal' ? '322' : client.executionIds[client.executionIds.length - 1];
+      const workflowsId = client.id === 'distrito_legal' ? 'KpdNAOeZShs0PHpE' : client.workflowId;
 
-      console.log('Fetching execution:', `https://content-generator.nv0ey8.easypanel.host/workflow/${client.workflowId}/executions/${latestExecutionId}`);
+      console.log('Fetching execution:', `https://content-generator.nv0ey8.easypanel.host/workflow/${workflowsId}/executions/${latestExecutionId}`);
 
-      const response = await fetch(`https://content-generator.nv0ey8.easypanel.host/workflow/${client.workflowId}/executions/${latestExecutionId}`);
+      // Add timeout and better error handling
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
+      const response = await fetch(`https://content-generator.nv0ey8.easypanel.host/workflow/${workflowsId}/executions/${latestExecutionId}`, {
+        signal: controller.signal,
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      });
+
+      clearTimeout(timeoutId);
       console.log('Response status:', response.status);
 
       if (!response.ok) {
@@ -153,18 +168,125 @@ export default function RrssGenerator() {
       }
     } catch (error) {
       console.error('Error loading latest strategy:', error);
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('Request timed out - Chrome extension may be interfering');
+      }
       setLatestStrategy([]);
     } finally {
       setLoadingLatest(false);
     }
   };
 
-  // Load latest strategy when client changes or component mounts
-  useEffect(() => {
-    if (client && client.executionIds && client.executionIds.length > 0) {
-      loadLatestStrategy();
+  // Function to load the last 3 recent strategies for Distrito Legal
+  const loadRecentStrategies = async () => {
+    if (!client || client.id !== 'distrito_legal') {
+      setRecentStrategies([]);
+      return;
     }
-  }, [selectedClientId]);
+
+    console.log('Loading last 3 strategies for Distrito Legal');
+    setLoadingRecent(true);
+
+    try {
+      const executionIds = ['322', '321', '320'];
+      const workflowId = 'KpdNAOeZShs0PHpE'; // Hardcoded for Distrito Legal
+      const allStrategies: any[] = [];
+
+      // Load each execution one by one
+      for (const executionId of executionIds) {
+        try {
+          const executionUrl = `https://content-generator.nv0ey8.easypanel.host/workflow/${workflowId}/executions/${executionId}`;
+          console.log('Fetching execution:', executionUrl);
+
+          const response = await fetch(executionUrl);
+
+          if (response.ok) {
+            const executionData = await response.json();
+            console.log(`Execution ${executionId} data received:`, executionData);
+
+            // Try multiple possible response formats - improved logic
+            let strategyText = '';
+
+            // Check different possible data structures
+            if (executionData && typeof executionData.output === 'string') {
+              strategyText = executionData.output;
+              console.log(`Found strategy in executionData.output (string):`, strategyText.substring(0, 200));
+            } else if (executionData.output && typeof executionData.output === 'object' && executionData.output.output) {
+              strategyText = executionData.output.output;
+              console.log(`Found strategy in executionData.output.output:`, strategyText.substring(0, 200));
+            } else if (executionData.output && typeof executionData.output === 'object') {
+              strategyText = JSON.stringify(executionData.output);
+              console.log(`Found strategy in executionData.output (object):`, strategyText.substring(0, 200));
+            } else if (executionData.data) {
+              strategyText = typeof executionData.data === 'string' ? executionData.data : JSON.stringify(executionData.data);
+              console.log(`Found strategy in executionData.data:`, strategyText.substring(0, 200));
+            } else {
+              console.log(`No recognized data structure found for execution ${executionId}`);
+              console.log('Available keys:', Object.keys(executionData));
+            }
+
+            if (strategyText && strategyText.trim().length > 0) {
+              console.log(`Attempting to parse markdown table for execution ${executionId}`);
+              const strategyResults = parseMarkdownTable(strategyText);
+              console.log(`Parsed ${strategyResults.length} strategies from execution ${executionId}`);
+
+              if (strategyResults.length > 0) {
+                // Add execution ID to each item for identification
+                const strategyWithId = strategyResults.map(item => ({
+                  ...item,
+                  executionId: executionId,
+                  createdAt: executionData.createdAt || executionData.startDate
+                }));
+
+                allStrategies.push(...strategyWithId);
+                console.log(`Added ${strategyWithId.length} strategies from execution ${executionId}`);
+              } else {
+                console.log(`No valid strategies parsed from execution ${executionId}, but strategyText exists:`, !!strategyText);
+              }
+            } else {
+              console.log(`No strategy text found for execution ${executionId}`);
+            }
+          } else {
+            console.error(`Execution ${executionId} failed to load - Status: ${response.status}, URL: ${executionUrl}`);
+            const errorText = await response.text().catch(() => 'No error details');
+            console.error('Error response:', errorText);
+          }
+        } catch (error) {
+          console.error(`Error loading execution ${executionId}:`, error);
+        }
+      }
+
+      console.log('=== SUMMARY ===');
+      console.log(`Processing completed. Total strategies loaded: ${allStrategies.length}`);
+      console.log('Strategies per execution:');
+      allStrategies.forEach((strategy, index) => {
+        console.log(`  ${index + 1}. Execution ${strategy.executionId}: "${(strategy.tema_titulo || strategy.titulo || 'No title').substring(0, 50)}..."`);
+      });
+
+      setRecentStrategies(allStrategies);
+
+    } catch (error) {
+      console.error('Error loading recent strategies:', error);
+      setRecentStrategies([]);
+    } finally {
+      setLoadingRecent(false);
+    }
+  };
+
+  // Set mounted state to fix hydration issues
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Load strategies when client changes and component is mounted
+  useEffect(() => {
+    if (mounted && client && client.id === 'distrito_legal') {
+      if (client.executionIds && client.executionIds.length > 0) {
+        loadLatestStrategy();
+      }
+      loadRecentStrategies();
+    }
+  }, [selectedClientId, mounted]);
 
   const parseMarkdownTable = (markdown: string): any[] => {
     const lines = markdown.split('\n').filter(line => line.trim() !== '');
@@ -668,6 +790,124 @@ export default function RrssGenerator() {
             </TableContainer>
           </Paper>
         )}
+      </Box>
+
+      {/* Recent Strategies Section - Last 3 executions */}
+      <Box sx={{ mt: 4, width: '100%' }}>
+        {loadingRecent ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+            <CircularProgress size={40} />
+            <Typography sx={{ ml: 2 }}>Cargando últimas 3 estrategias...</Typography>
+          </Box>
+        ) : recentStrategies.length > 0 ? (
+          <Paper sx={{ overflow: 'hidden' }}>
+            <Typography variant="h6" sx={{ p: 2, pb: 1, color: 'primary.main' }}>
+              Últimas 3 Estrategias Generadas - {client?.name} ({recentStrategies.length} elementos totales)
+            </Typography>
+
+            <Alert
+              severity="info"
+              sx={{ mx: 2, mb: 2 }}
+            >
+              Historial de las últimas 3 ejecuciones: 322, 321 y 320. Incluye todos los estrategias generadas en estos procesos.
+            </Alert>
+
+            <TableContainer sx={{ maxHeight: { xs: 400, lg: 600 }, overflow: 'auto' }}>
+              <Table stickyHeader size="small" sx={{ minWidth: 1200 }}>
+                <TableHead>
+                  <TableRow sx={{ bgcolor: 'action.hover', '& th': { fontWeight: 'bold', fontSize: '0.8rem' } }}>
+                    <TableCell sx={{ minWidth: 120, borderRight: 1, borderColor: 'divider' }}>
+                      <strong>ID Ejecución</strong>
+                    </TableCell>
+                    <TableCell sx={{ minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Fecha</TableCell>
+                    <TableCell sx={{ minWidth: 80, borderRight: 1, borderColor: 'divider' }}>Día</TableCell>
+                    <TableCell sx={{ minWidth: 80, borderRight: 1, borderColor: 'divider' }}>Canal</TableCell>
+                    <TableCell sx={{ minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Pilar</TableCell>
+                    <TableCell sx={{ minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Objetivo</TableCell>
+                    <TableCell sx={{ minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Formato</TableCell>
+                    <TableCell sx={{ minWidth: 150, borderRight: 1, borderColor: 'divider' }}>Tema/Título</TableCell>
+                    <TableCell sx={{ minWidth: 120, borderRight: 1, borderColor: 'divider' }}>Hook</TableCell>
+                    <TableCell sx={{ minWidth: 200, borderRight: 1, borderColor: 'divider' }}>Copy</TableCell>
+                    <TableCell sx={{ minWidth: 100, borderRight: 1, borderColor: 'divider' }}>CTA</TableCell>
+                    <TableCell sx={{ minWidth: 120, borderRight: 1, borderColor: 'divider' }}>Hashtags</TableCell>
+                    <TableCell sx={{ minWidth: 150, borderRight: 1, borderColor: 'divider' }}>Recurso/Asset</TableCell>
+                    <TableCell sx={{ minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Duración</TableCell>
+                    <TableCell sx={{ minWidth: 150, borderRight: 1, borderColor: 'divider' }}>Instrucciones</TableCell>
+                    <TableCell sx={{ minWidth: 150, borderRight: 1, borderColor: 'divider' }}>Enlace/UTM</TableCell>
+                    <TableCell sx={{ minWidth: 120, borderRight: 1, borderColor: 'divider' }}>KPI</TableCell>
+                    <TableCell sx={{ minWidth: 120, borderRight: 1, borderColor: 'divider' }}>Responsable</TableCell>
+                    <TableCell sx={{ minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Estado</TableCell>
+                    <TableCell sx={{ minWidth: 200, borderRight: 1, borderColor: 'divider' }}>Notas</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {recentStrategies.map((row, index) => (
+                    <TableRow key={`recent-${index}`} hover sx={{ '&:nth-of-type(even)': { bgcolor: 'grey.50' } }}>
+                      <TableCell
+                        sx={{
+                          fontSize: '0.8rem',
+                          borderRight: 1,
+                          borderColor: 'divider',
+                          fontWeight: 'bold',
+                          color: 'primary.main',
+                          bgcolor: row.executionId === '322' ? 'primary.50' : row.executionId === '321' ? 'success.50' : 'warning.50'
+                        }}
+                      >
+                        <Chip
+                          label={row.executionId}
+                          size="small"
+                          color={row.executionId === '322' ? 'primary' : row.executionId === '321' ? 'success' : 'warning'}
+                          variant="outlined"
+                        />
+                      </TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem', borderRight: 1, borderColor: 'divider' }}>{row.fecha || '-'}</TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem', borderRight: 1, borderColor: 'divider' }}>{row.dia || '-'}</TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem', borderRight: 1, borderColor: 'divider' }}>{row.canal || '-'}</TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.pilar || '-'}</TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.objetivo || '-'}</TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.formato || '-'}</TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 150 }}>{row.tema_titulo || row.titulo || '-'}</TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 120 }}>{row.hook || '-'}</TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 200 }}>{row.copy || row.texto || '-'}</TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.cta || '-'}</TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 120 }}>{row.hashtags || '-'}</TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 150 }}>{row.recurso_asset || '-'}</TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.duracion || '-'}</TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 150 }}>{row.instrucciones || '-'}</TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 150 }}>
+                        <Box sx={{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          maxWidth: 'inherit'
+                        }}>
+                          {row.enlace_utm || '-'}
+                        </Box>
+                      </TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0', maxWidth: 120 }}>{row.kpi || '-'}</TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.responsable || '-'}</TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem', borderRight: '1px solid #e0e0e0' }}>{row.estado || '-'}</TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem', maxWidth: 200 }}>
+                        <Box sx={{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          maxWidth: 'inherit'
+                        }}>
+                          {row.notas || '-'}
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+        ) : client?.id === 'distrito_legal' ? (
+          <Alert severity="warning">
+            No hay estrategias recientes disponibles para Distrito Legal.
+          </Alert>
+        ) : null}
       </Box>
     </Box>
   );
