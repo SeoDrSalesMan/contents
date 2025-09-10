@@ -21,6 +21,7 @@ export default function StructureGenerator() {
   const [generatedStructures, setGeneratedStructures] = useState<Array<{titulo: string; estructura: any[]; executionInfo?: any}>>([]);
 
   // Pre-fill form if coming from strategy
+  
   useEffect(() => {
     const fromStrategy = searchParams.get('fromStrategy');
     const paramTitle = searchParams.get('title');

@@ -287,7 +287,7 @@ export default function RrssGenerator() {
             // Parse markdown table from output field
             return parseMarkdownTable(item.output);
           }
-          return [item]; // If no output field, use the item directly
+          return [item];  // If no output field, use the item directly
         });
       } else if (resultData.output) {
         parsedResults = parseMarkdownTable(resultData.output);
