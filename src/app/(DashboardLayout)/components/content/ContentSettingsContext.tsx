@@ -62,6 +62,8 @@ interface ContentSettingsContextValue {
   updateStrategy: (clientId: string, index: number, strategy: ContentItem) => void;
   updateArticle: (clientId: string, index: number, article: any) => void;
   addExecutionId: (clientId: string, executionId: string) => void;
+  draftArticle: { title: string; structure: string } | null;
+  setDraftArticle: (data: { title: string; structure: string } | null) => void;
 }
 
 const ContentSettingsContext = createContext<ContentSettingsContextValue | null>(null);
@@ -190,6 +192,7 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
 
   const [clients, setClients] = useState<Client[]>(initialClients);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [draftArticle, setDraftArticle] = useState<{ title: string; structure: string } | null>(null);
 
   useEffect(() => {
     setIsHydrated(true);
@@ -324,9 +327,10 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
       clients, updateClientField, saveClientData,
       addStrategy, addStrategies, addArticle,
       updateStrategy, updateArticle,
-      addExecutionId
+      addExecutionId,
+      draftArticle, setDraftArticle
     }),
-    [defaultTone, defaultLength, defaultIdeas, globalInstructions, selectedClientId, clients, saveClientData]
+    [defaultTone, defaultLength, defaultIdeas, globalInstructions, selectedClientId, clients, saveClientData, draftArticle]
   );
 
   return <ContentSettingsContext.Provider value={value}>{children}</ContentSettingsContext.Provider>;

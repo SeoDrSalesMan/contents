@@ -14,15 +14,26 @@ import { uniqueId } from "lodash";
 const Menuitems = [
   {
     navlabel: true,
-    subheader: "CONTENIDOS",
+    subheader: "ESTRATEGIAS",
   },
 
+  {
+    id: uniqueId(),
+    title: "Estrategias",
+    icon: IconTent,
+    href: "/estrategias",
+  },
+     {
+    navlabel: true,
+    subheader: "BLOG POSTS",
+  },
   {
     id: uniqueId(),
     title: "Ideas",
     icon: IconLayoutDashboard,
     href: "/",
   },
+
  /*  {
     id: uniqueId(),
     title: "Estructuras",
@@ -31,9 +42,9 @@ const Menuitems = [
   }, */
      {
     id: uniqueId(),
-    title: "Estrategias RRSS",
+    title: "Estructuras",
     icon: IconAperture,
-    href: "/rrss",
+    href: "/estructuras",
   },
    {
     id: uniqueId(),

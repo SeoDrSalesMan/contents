@@ -9,7 +9,7 @@ import { Tone, useContentSettings } from "./ContentSettingsContext";
 export default function ArticleCreator() {
   const {
     clients, selectedClientId,
-    defaultTone, defaultLength, globalInstructions, addArticle, updateArticle
+    defaultTone, defaultLength, globalInstructions, addArticle, updateArticle, draftArticle, setDraftArticle
   } = useContentSettings();
 
   const client = useMemo(() => clients.find(c => c.id === selectedClientId) || null, [clients, selectedClientId]);
@@ -32,6 +32,44 @@ export default function ArticleCreator() {
 
   useEffect(()=>setTone(defaultTone),[defaultTone]);
   useEffect(()=>setLength(defaultLength),[defaultLength]);
+
+  // Auto-populate form when draft article is available or from URL parameters
+  useEffect(() => {
+    // First priority: draftArticle from context
+    if (draftArticle) {
+      setTitle(draftArticle.title);
+      setStructureRaw(draftArticle.structure);
+      setKeywords("");
+      // Clear the draft after populating to prevent re-population on further visits
+      setDraftArticle(null);
+    }
+    // Second priority: URL parameters as fallback
+    else if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      console.log('URL parameters:', Object.fromEntries(urlParams.entries()));
+
+      const fromStructure = urlParams.get('fromStructure');
+      const titleParam = urlParams.get('title');
+      const structureParam = urlParams.get('structure');
+
+      if (fromStructure === 'true' && titleParam && structureParam) {
+        console.log('Loading data from URL parameters');
+        try {
+          const decodedTitle = decodeURIComponent(titleParam);
+          const decodedStructure = decodeURIComponent(structureParam);
+
+          setTitle(decodedTitle);
+          setStructureRaw(decodedStructure);
+          setKeywords("");
+
+          // Clean URL after loading data
+          window.history.replaceState({}, document.title, '/articulos');
+        } catch (error) {
+          console.error('Error decoding URL parameters:', error);
+        }
+      }
+    }
+  }, [draftArticle, setDraftArticle]);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
