@@ -36,7 +36,7 @@ const getRrssWebhook = (clientId: string): string => {
 };
 
 export default function RrssGenerator() {
-  const { clients, selectedClientId } = useContentSettings();
+  const { clients, selectedClientId, createExecution } = useContentSettings();
   const searchParams = useSearchParams();
 
   const [formData, setFormData] = useState({

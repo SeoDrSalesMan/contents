@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -22,7 +22,7 @@ import {
 import { useContentSettings } from "../components/content/ContentSettingsContext";
 
 export default function EstrategiasPage() {
-  const { selectedClientId } = useContentSettings();
+  const { selectedClientId, createExecution, executions } = useContentSettings();
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedStrategies, setGeneratedStrategies] = useState<any[]>([]);
   const [message, setMessage] = useState('');
@@ -37,6 +37,8 @@ export default function EstrategiasPage() {
   const getClienteDisplayName = (cliente: string) => {
     return clienteDisplayNames[cliente as keyof typeof clienteDisplayNames] || cliente;
   };
+
+
 
   const handleGenerateStrategy = async () => {
     if (!selectedClientId) {
@@ -73,16 +75,25 @@ export default function EstrategiasPage() {
 
       const result = await response.json();
 
-      const newStrategy = {
-        id: Date.now(),
+      // Use global execution tracking
+      const execution = createExecution('strategy', selectedClientId, {
         cliente: selectedClientId,
+        timestamp: new Date().toISOString(),
+        action: 'generar_estrategia'
+      }, result);
+
+      const newStrategy = {
+        id: execution.id,
+        cliente: selectedClientId,
+        executionId: execution.executionId,
+        workflowUrl: execution.workflowUrl,
         webhookResult: result,
-        createdAt: new Date().toISOString(),
+        createdAt: execution.createdAt,
         estado: 'Estrategia generada'
       };
 
       setGeneratedStrategies(prev => [newStrategy, ...prev]);
-      setMessage(`Estrategia generada correctamente para ${getClienteDisplayName(selectedClientId)}.`);
+      setMessage(`Estrategia generada correctamente para ${getClienteDisplayName(selectedClientId)}. Ejecución ${execution.executionId}`);
 
     } catch (error) {
       console.error('Error calling webhook:', error);
@@ -219,7 +230,7 @@ export default function EstrategiasPage() {
             {generatedStrategies.map((strategy) => (
               <Card key={strategy.id} sx={{ borderRadius: 2 }}>
                 <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
                     <Typography variant="h6">
                       Estrategia para {getClienteDisplayName(strategy.cliente)}
                     </Typography>
@@ -237,16 +248,42 @@ export default function EstrategiasPage() {
                     >
                       {strategy.estado}
                     </Typography>
+                    {strategy.executionId && (
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          px: 2,
+                          py: 0.5,
+                          borderRadius: 2,
+                          backgroundColor: 'info.light',
+                          color: 'info.contrastText',
+                          fontSize: '0.75rem',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        ID: {strategy.executionId}
+                      </Typography>
+                    )}
                   </Box>
 
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                     Activada: {new Date(strategy.createdAt).toLocaleString()}
                   </Typography>
 
-                  {strategy.webhookResult && (
-                    <Typography variant="body2" sx={{ mt: 1, fontFamily: 'monospace' }}>
-                      Respuesta: {JSON.stringify(strategy.webhookResult, null, 2)}
+                  {strategy.workflowUrl && (
+                    <Typography variant="body2" color="primary" sx={{ mt: 1 }}>
+                      <strong>Workflow:</strong> <a href={strategy.workflowUrl} target="_blank" rel="noopener noreferrer">
+                        Ver ejecución {strategy.executionId}
+                      </a>
                     </Typography>
+                  )}
+
+                  {strategy.webhookResult && strategy.webhookResult[0]?.output && (
+                    <Box sx={{ mt: 2 }}>
+                      <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.85rem', whiteSpace: 'pre-wrap', maxHeight: '300px', overflowY: 'auto' }}>
+                        {strategy.webhookResult[0].output}
+                      </Typography>
+                    </Box>
                   )}
                 </CardContent>
               </Card>

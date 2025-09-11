@@ -1,6 +1,17 @@
 "use client";
 import React, { createContext, useContext, useMemo, useState, useEffect } from "react";
 
+export interface ExecutionRecord {
+  id: string;
+  executionId: number;
+  type: 'strategy' | 'ideas' | 'structure' | 'article';
+  clientId: string;
+  payload: any;
+  result: any;
+  createdAt: string;
+  workflowUrl: string;
+}
+
 export interface ContentItem {
   fecha: string;
   titulo: string;
@@ -64,6 +75,9 @@ interface ContentSettingsContextValue {
   addExecutionId: (clientId: string, executionId: string) => void;
   draftArticle: { title: string; structure: string } | null;
   setDraftArticle: (data: { title: string; structure: string } | null) => void;
+  executions: ExecutionRecord[];
+  lastExecutionId: number;
+  createExecution: (type: 'strategy' | 'ideas' | 'structure' | 'article', clientId: string, payload: any, result: any) => ExecutionRecord;
 }
 
 const ContentSettingsContext = createContext<ContentSettingsContextValue | null>(null);
@@ -193,6 +207,8 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
   const [clients, setClients] = useState<Client[]>(initialClients);
   const [isHydrated, setIsHydrated] = useState(false);
   const [draftArticle, setDraftArticle] = useState<{ title: string; structure: string } | null>(null);
+  const [executions, setExecutions] = useState<ExecutionRecord[]>([]);
+  const [lastExecutionId, setLastExecutionId] = useState<number>(352);
 
   useEffect(() => {
     setIsHydrated(true);
@@ -272,6 +288,31 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
     setClients(prev => prev.map(c => (c.id === clientId ? { ...c, executionIds: [executionId, ...c.executionIds.slice(0, 4)] } : c)));
   };
 
+  const createExecution = (type: 'strategy' | 'ideas' | 'structure' | 'article', clientId: string, payload: any, result: any) => {
+    const currentExecutionId = lastExecutionId + 1;
+    setLastExecutionId(currentExecutionId);
+
+    const execution: ExecutionRecord = {
+      id: Date.now().toString(),
+      executionId: currentExecutionId,
+      type,
+      clientId,
+      payload,
+      result,
+      createdAt: new Date().toISOString(),
+      workflowUrl: `https://content-generator.nv0ey8.easypanel.host/workflow/KpdNAOeZShs0PHpE/executions/${currentExecutionId}`
+    };
+
+    setExecutions(prev => [execution, ...prev]);
+
+    // Persist executions
+    const updatedExecutions = [execution, ...executions];
+    localStorage.setItem('globalExecutions', JSON.stringify(updatedExecutions));
+    localStorage.setItem('lastExecutionId', currentExecutionId.toString());
+
+    return execution;
+  };
+
   const saveClientData = async (clientId: string): Promise<boolean> => {
     const client = clients.find(c => c.id === clientId);
     if (!client || !client.dataWebhook) {
@@ -328,9 +369,10 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
       addStrategy, addStrategies, addArticle,
       updateStrategy, updateArticle,
       addExecutionId,
-      draftArticle, setDraftArticle
+      draftArticle, setDraftArticle,
+      executions, lastExecutionId, createExecution
     }),
-    [defaultTone, defaultLength, defaultIdeas, globalInstructions, selectedClientId, clients, saveClientData, draftArticle]
+    [defaultTone, defaultLength, defaultIdeas, globalInstructions, selectedClientId, clients, saveClientData, draftArticle, executions, lastExecutionId, createExecution]
   );
 
   return <ContentSettingsContext.Provider value={value}>{children}</ContentSettingsContext.Provider>;
