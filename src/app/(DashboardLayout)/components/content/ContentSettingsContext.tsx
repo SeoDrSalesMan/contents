@@ -212,34 +212,76 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
 
   useEffect(() => {
     setIsHydrated(true);
-    
-    // Always ensure Distrito Legal has sample strategies for demonstration
-    const clientsWithSampleData = initialClients.map(client => {
-      if (client.id === "distrito_legal") {
-        return {
-          ...client,
-          strategies: [
-            { fecha: "22-10", titulo: "Cómo sacar provecho al foro de Ley Segunda Oportunidad para resolver dudas y compartir experiencias", descripcion: "Estrategias para interactuar y aprovechar al máximo las comunidades especializadas en la ley", keyword: "foro ley segunda oportunidad", volumen: "390", tipos: "Entretener", funnel: "BOFU" },
-            { fecha: "28-10", titulo: "Sentencias clave que marcan precedentes en la Ley Segunda Oportunidad y su aplicación práctica", descripcion: "Estudio de casos judiciales que impactan directamente en la interpretación y uso de la ley", keyword: "sentencias ley segunda oportunidad", volumen: "70", tipos: "Educar", funnel: "BOFU" },
-            { fecha: "23-10", titulo: "Opiniones variadas sobre la Ley de Segunda Oportunidad: ¿qué piensan expertos y afectados?", descripcion: "Compilación de análisis y valoraciones que muestran perspectivas diversas sobre la efectividad de la ley", keyword: "ley de segunda oportunidad opiniones", volumen: "390", tipos: "Entretener", funnel: "MOFU" },
-            { fecha: "28-10", titulo: "Últimas noticias y actualizaciones sobre la Ley Segunda Oportunidad: cómo afectan a los deudores", descripcion: "Resumen de novedades legales y jurisprudencia que influyen en el acceso y beneficios de la ley", keyword: "ultimas noticias ley segunda oportunidad", volumen: "50", tipos: "Inspirar", funnel: "MOFU" },
-            { fecha: "19-10", titulo: "Cómo utilizar la Ley Segunda Oportunidad para autónomos: requisitos y estrategias para la gestión de deudas", descripcion: "Explicación especializada para autónomos con enfoque en cómo acogerse a la ley y maximizar sus ventajas", keyword: "ley segunda oportunidad autónomos", volumen: "70", tipos: "Educar", funnel: "BOFU" },
-            { fecha: "26-10", titulo: "Sentencias recientes que impactan la Ley Segunda Oportunidad: qué significan para quienes buscan acogerse", descripcion: "Análisis de fallos relevantes que afectan la interpretación y aplicación de la ley para futuros solicitantes", keyword: "sentencias ley segunda oportunidad", volumen: "70", tipos: "Educar", funnel: "BOFU" }
-          ],
-          executionIds: ["300", "299", "298"]
-        };
+
+    // Load individual client configurations from localStorage
+    const loadedClients = initialClients.map(client => {
+      try {
+        const clientStorageKey = `client_${client.id}_config`;
+        const savedData = localStorage.getItem(clientStorageKey);
+
+        if (savedData) {
+          const parsedData = JSON.parse(savedData);
+
+          // Validate that the saved data belongs to the correct client
+          if (parsedData.id === client.id) {
+            console.log(`📥 Loaded saved configuration for ${client.id} from localStorage`);
+
+            return {
+              ...client,
+              // Load client-specific configuration
+              nombre: parsedData.nombre || '',
+              web: parsedData.web || '',
+              sector: parsedData.sector || '',
+              propuesta_valor: parsedData.propuesta_valor || '',
+              publico_objetivo: parsedData.publico_objetivo || '',
+              keywords: parsedData.keywords || '',
+              numero_contenidos_blog: parsedData.numero_contenidos_blog || 0,
+              frecuencia_mensual_blog: parsedData.frecuencia_mensual_blog || '',
+              numero_contenidos_rrss: parsedData.numero_contenidos_rrss || 0,
+              frecuencia_mensual_rrss: parsedData.frecuencia_mensual_rrss || '',
+              verticales_interes: parsedData.verticales_interes || '',
+              audiencia_no_deseada: parsedData.audiencia_no_deseada || '',
+              estilo_comunicacion: parsedData.estilo_comunicacion || '',
+              tono_voz: parsedData.tono_voz || '',
+              // Keep global fields intact
+              strategies: client.strategies,
+              articles: client.articles,
+              workflowId: client.workflowId,
+              executionIds: client.executionIds
+            };
+          }
+        }
+
+        console.log(`🆕 Using default configuration for ${client.id}`);
+
+        // Always ensure Distrito Legal has sample strategies for demonstration
+        if (client.id === "distrito_legal") {
+          return {
+            ...client,
+            strategies: [
+              { fecha: "22-10", titulo: "Cómo sacar provecho al foro de Ley Segunda Oportunidad para resolver dudas y compartir experiencias", descripcion: "Estrategias para interactuar y aprovechar al máximo las comunidades especializadas en la ley", keyword: "foro ley segunda oportunidad", volumen: "390", tipos: "Entretener", funnel: "BOFU" },
+              { fecha: "28-10", titulo: "Sentencias clave que marcan precedentes en la Ley Segunda Oportunidad y su aplicación práctica", descripcion: "Estudio de casos judiciales que impactan directamente en la interpretación y uso de la ley", keyword: "sentencias ley segunda oportunidad", volumen: "70", tipos: "Educar", funnel: "BOFU" },
+              { fecha: "23-10", titulo: "Opiniones variadas sobre la Ley de Segunda Oportunidad: ¿qué piensan expertos y afectados?", descripcion: "Compilación de análisis y valoraciones que muestran perspectivas diversas sobre la efectividad de la ley", keyword: "ley de segunda oportunidad opiniones", volumen: "390", tipos: "Entretener", funnel: "MOFU" },
+              { fecha: "28-10", titulo: "Últimas noticias y actualizaciones sobre la Ley Segunda Oportunidad: cómo afectan a los deudores", descripcion: "Resumen de novedades legales y jurisprudencia que influyen en el acceso y beneficios de la ley", keyword: "ultimas noticias ley segunda oportunidad", volumen: "50", tipos: "Inspirar", funnel: "MOFU" },
+              { fecha: "19-10", titulo: "Cómo utilizar la Ley Segunda Oportunidad para autónomos: requisitos y estrategias para la gestión de deudas", descripcion: "Explicación especializada para autónomos con enfoque en cómo acogerse a la ley y maximizar sus ventajas", keyword: "ley segunda oportunidad autónomos", volumen: "70", tipos: "Educar", funnel: "BOFU" },
+              { fecha: "26-10", titulo: "Sentencias recientes que impactan la Ley Segunda Oportunidad: qué significan para quienes buscan acogerse", descripcion: "Análisis de fallos relevantes que afectan la interpretación y aplicación de la ley para futuros solicitantes", keyword: "sentencias ley segunda oportunidad", volumen: "70", tipos: "Educar", funnel: "BOFU" }
+            ],
+            executionIds: ["300", "299", "298"]
+          };
+        }
+
+        return client;
+      } catch (error) {
+        console.error(`Error loading client ${client.id} data:`, error);
+        return client;
       }
-      return client;
     });
 
-    setClients(clientsWithSampleData);
+    setClients(loadedClients);
+    console.log('✅ All client configurations loaded from localStorage');
   }, []);
 
-  useEffect(() => {
-    if (clients.length > 0) {
-      localStorage.setItem("clients", JSON.stringify(clients));
-    }
-  }, [clients]);
+
 
   const updateClientField = (id: string, field: keyof Client, value: string) =>
     setClients(prev => prev.map(c => {
@@ -321,8 +363,40 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
         return false;
       }
 
-      // Always save to localStorage first for immediate UI updates
-      localStorage.setItem('clients', JSON.stringify(clients));
+      // Save each client individually to localStorage using client-specific key
+      const clientStorageKey = `client_${clientId}_config`;
+      const clientDataToSave = {
+        id: client.id,
+        name: client.name,
+        webhook: client.webhook,
+        ideasWebhook: client.ideasWebhook,
+        structureWebhook: client.structureWebhook,
+        dataWebhook: client.dataWebhook,
+        info: client.info,
+        // Client-specific configuration fields
+        nombre: client.nombre,
+        web: client.web,
+        sector: client.sector,
+        propuesta_valor: client.propuesta_valor,
+        publico_objetivo: client.publico_objetivo,
+        keywords: client.keywords,
+        numero_contenidos_blog: client.numero_contenidos_blog,
+        frecuencia_mensual_blog: client.frecuencia_mensual_blog,
+        numero_contenidos_rrss: client.numero_contenidos_rrss,
+        frecuencia_mensual_rrss: client.frecuencia_mensual_rrss,
+        verticales_interes: client.verticales_interes,
+        audiencia_no_deseada: client.audiencia_no_deseada,
+        estilo_comunicacion: client.estilo_comunicacion,
+        tono_voz: client.tono_voz,
+        // Global fields that shouldn't be overwritten
+        strategies: client.strategies,
+        articles: client.articles,
+        workflowId: client.workflowId,
+        executionIds: client.executionIds
+      };
+
+      localStorage.setItem(clientStorageKey, JSON.stringify(clientDataToSave));
+      console.log(`✅ Client ${clientId} data saved to localStorage with key: ${clientStorageKey}`);
 
       // Try to send to webhook if available
       if (client.dataWebhook) {
@@ -355,15 +429,15 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
             console.log('✅ Client data saved to both localStorage and webhook');
             return true;
           } else {
-            console.warn('⚠️ Client data saved to localStorage but webhook failed:', response.statusText);
+            console.warn(`⚠️ Client ${clientId} data saved to localStorage but webhook failed:`, response.statusText);
             return true; // Still return true since localStorage save worked
           }
         } catch (webhookError) {
-          console.warn('⚠️ Client data saved to localStorage but webhook error:', webhookError);
+          console.warn(`⚠️ Client ${clientId} data saved to localStorage but webhook error:`, webhookError);
           return true; // Still return true since localStorage save worked
         }
       } else {
-        console.log('✅ Client data saved to localStorage (no webhook configured)');
+        console.log(`✅ Client ${clientId} data saved to localStorage (no webhook configured)`);
         return true;
       }
     } catch (error) {

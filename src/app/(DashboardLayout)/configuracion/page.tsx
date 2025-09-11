@@ -18,6 +18,7 @@ const ClientManager = () => {
   React.useEffect(() => {
     if (client) {
       setFormData({ ...client });
+      console.log(`🔄 Configuration loaded for client: ${client.id} (${client.name})`);
     }
   }, [client, selectedClientId]);
 
