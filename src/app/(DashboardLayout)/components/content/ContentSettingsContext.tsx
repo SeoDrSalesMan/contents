@@ -314,46 +314,60 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
   };
 
   const saveClientData = async (clientId: string): Promise<boolean> => {
-    const client = clients.find(c => c.id === clientId);
-    if (!client || !client.dataWebhook) {
-      console.error('Client or webhook URL not found');
-      return false;
-    }
-
     try {
-      const response = await fetch(client.dataWebhook, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-
-        body: JSON.stringify({
-          clientId: client.id,
-          nombre: client.nombre,
-          web: client.web,
-          sector: client.sector,
-          propuesta_valor: client.propuesta_valor,
-          publico_objetivo: client.publico_objetivo,
-          numero_contenidos_blog: client.numero_contenidos_blog,
-          frecuencia_mensual_blog: client.frecuencia_mensual_blog,
-          numero_contenidos_rrss: client.numero_contenidos_rrss,
-          frecuencia_mensual_rrss: client.frecuencia_mensual_rrss,
-          verticales_interes: client.verticales_interes,
-          audiencia_no_deseada: client.audiencia_no_deseada,
-          estilo_comunicacion: client.estilo_comunicacion,
-          tono_voz: client.tono_voz,
-        })
-      });
-
-      if (response.ok) {
-        console.log('Client data saved successfully');
-        return true;
-      } else {
-        console.error('Failed to save client data:', response.statusText);
+      const client = clients.find(c => c.id === clientId);
+      if (!client) {
+        console.error('Client not found');
         return false;
       }
+
+      // Always save to localStorage first for immediate UI updates
+      localStorage.setItem('clients', JSON.stringify(clients));
+
+      // Try to send to webhook if available
+      if (client.dataWebhook) {
+        try {
+          const response = await fetch(client.dataWebhook, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              clientId: client.id,
+              nombre: client.nombre,
+              web: client.web,
+              sector: client.sector,
+              propuesta_valor: client.propuesta_valor,
+              publico_objetivo: client.publico_objetivo,
+              keywords: client.keywords,
+              numero_contenidos_blog: client.numero_contenidos_blog,
+              frecuencia_mensual_blog: client.frecuencia_mensual_blog,
+              numero_contenidos_rrss: client.numero_contenidos_rrss,
+              frecuencia_mensual_rrss: client.frecuencia_mensual_rrss,
+              verticales_interes: client.verticales_interes,
+              audiencia_no_deseada: client.audiencia_no_deseada,
+              estilo_comunicacion: client.estilo_comunicacion,
+              tono_voz: client.tono_voz,
+            })
+          });
+
+          if (response.ok) {
+            console.log('✅ Client data saved to both localStorage and webhook');
+            return true;
+          } else {
+            console.warn('⚠️ Client data saved to localStorage but webhook failed:', response.statusText);
+            return true; // Still return true since localStorage save worked
+          }
+        } catch (webhookError) {
+          console.warn('⚠️ Client data saved to localStorage but webhook error:', webhookError);
+          return true; // Still return true since localStorage save worked
+        }
+      } else {
+        console.log('✅ Client data saved to localStorage (no webhook configured)');
+        return true;
+      }
     } catch (error) {
-      console.error('Error saving client data:', error);
+      console.error('❌ Error saving client data:', error);
       return false;
     }
   };

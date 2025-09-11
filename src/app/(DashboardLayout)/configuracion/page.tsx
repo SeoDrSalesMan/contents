@@ -12,6 +12,14 @@ const ClientManager = () => {
   const client = clients.find(c => c.id === selectedClientId);
   const [saving, setSaving] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
+  const [formData, setFormData] = useState<any>(null);
+
+  // Load client data on client change
+  React.useEffect(() => {
+    if (client) {
+      setFormData({ ...client });
+    }
+  }, [client, selectedClientId]);
 
   const handleSave = async () => {
     if (!client || !client.id) return;
@@ -236,6 +244,34 @@ const ClientManager = () => {
                   InputProps={{ inputProps: { min: 0, max: 10000 } }}
                   sx={{ mb: 2 }}
                 />
+              </GridLegacy>
+              <GridLegacy item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Frecuencia mensual blog</InputLabel>
+                  <Select
+                    value={client.frecuencia_mensual_blog}
+                    label="Frecuencia mensual blog"
+                    onChange={(e) => updateClientField(client.id, 'frecuencia_mensual_blog', e.target.value)}
+                  >
+                    {frecuenciaOptions.map(option => (
+                      <MenuItem key={option} value={option}>{option}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </GridLegacy>
+              <GridLegacy item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Frecuencia mensual redes sociales</InputLabel>
+                  <Select
+                    value={client.frecuencia_mensual_rrss}
+                    label="Frecuencia mensual redes sociales"
+                    onChange={(e) => updateClientField(client.id, 'frecuencia_mensual_rrss', e.target.value)}
+                  >
+                    {frecuenciaOptions.map(option => (
+                      <MenuItem key={option} value={option}>{option}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
               </GridLegacy>
             </GridLegacy>
 

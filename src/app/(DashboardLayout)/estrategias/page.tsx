@@ -9,7 +9,13 @@ import {
   Card,
   CardContent,
   Alert,
-  CircularProgress
+  CircularProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow
 } from "@mui/material";
 
 import {
@@ -36,6 +42,65 @@ export default function EstrategiasPage() {
 
   const getClienteDisplayName = (cliente: string) => {
     return clienteDisplayNames[cliente as keyof typeof clienteDisplayNames] || cliente;
+  };
+
+  const parseMarkdownTable = (markdown: string): any[] => {
+    const lines = markdown.split('\n').filter(line => line.trim() !== '');
+
+    // Find table start and header
+    const tableStart = lines.findIndex(line => line.includes('|'));
+    if (tableStart === -1) return [];
+
+    const headerLine = lines.slice(tableStart).find(line => line.trim() !== '' && !line.includes('---'));
+    const separatorLine = lines.slice(tableStart).find(line => line.includes('---'));
+    const dataLines = lines.slice(tableStart).filter(line =>
+      line.trim() !== '' &&
+      !line.includes('---') &&
+      line.startsWith('|')
+    );
+
+    if (!headerLine || !dataLines || dataLines.length === 0) return [];
+
+    // Parse headers
+    const headers = headerLine.split('|').slice(1, -1).map(h => h.trim().toLowerCase());
+
+    // Parse rows
+    const rows = dataLines.slice(1).map(line => {
+      const values = line.split('|').slice(1, -1).map(v => v.trim());
+      const row: any = {};
+
+      values.forEach((value, index) => {
+        const header = headers[index] || `column_${index}`;
+        const lowerHeader = header.toLowerCase();
+
+        // Map known headers to standardized fields
+        if (lowerHeader.includes('fecha') || lowerHeader.includes('date')) row.fecha = value;
+        else if (lowerHeader.includes('canal') || lowerHeader.includes('channel')) row.canal = value;
+        else if (lowerHeader.includes('formato') || lowerHeader.includes('format')) row.formato = value;
+        else if (lowerHeader.includes('pilar')) row.pilar = value;
+        else if (lowerHeader.includes('titulo') || lowerHeader.includes('título') || lowerHeader.includes('title')) row.titulo = value;
+        else if (lowerHeader.includes('tema') && lowerHeader.includes('titulo')) row.tema_titulo = value;
+        else if (lowerHeader.includes('copy') || lowerHeader.includes('texto')) row.copy = value;
+        else if (lowerHeader.includes('hashtag')) row.hashtags = value;
+        else if (lowerHeader.includes('cta')) row.cta = value;
+        else if (lowerHeader.includes('recurso') || lowerHeader.includes('asset')) row.recurso_asset = value;
+        else if (lowerHeader.includes('duración') || lowerHeader.includes('duracion')) row.duracion = value;
+        else if (lowerHeader.includes('instrucciones')) row.instrucciones = value;
+        else if (lowerHeader.includes('enlace') || lowerHeader.includes('utm')) row.enlace_utm = value;
+        else if (lowerHeader.includes('kpi')) row.kpi = value;
+        else if (lowerHeader.includes('responsable')) row.responsable = value;
+        else if (lowerHeader.includes('estado')) row.estado = value;
+        else if (lowerHeader.includes('notas')) row.notas = value;
+        else if (lowerHeader.includes('dia') || lowerHeader.includes('día')) row.dia = value;
+        else if (lowerHeader.includes('hook')) row.hook = value;
+        else if (lowerHeader.includes('objetivo')) row.objetivo = value;
+        else row[header] = value; // Fallback to original header
+      });
+
+      return row;
+    });
+
+    return rows;
   };
 
 
@@ -278,13 +343,105 @@ export default function EstrategiasPage() {
                     </Typography>
                   )}
 
-                  {strategy.webhookResult && strategy.webhookResult[0]?.output && (
-                    <Box sx={{ mt: 2 }}>
-                      <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.85rem', whiteSpace: 'pre-wrap', maxHeight: '300px', overflowY: 'auto' }}>
-                        {strategy.webhookResult[0].output}
-                      </Typography>
-                    </Box>
-                  )}
+                  {(() => {
+                    console.log('🔍 Analyzing webhook response:', strategy.webhookResult);
+
+                    let strategyResults: any[] = [];
+                    let rawResponse = '';
+
+                    // Handle different response formats
+                    if (strategy.webhookResult) {
+                      if (strategy.webhookResult.output) {
+                        rawResponse = strategy.webhookResult.output;
+                      } else if (Array.isArray(strategy.webhookResult) && strategy.webhookResult[0]?.output) {
+                        rawResponse = strategy.webhookResult[0].output;
+                      } else if (strategy.webhookResult.response || strategy.webhookResult.data) {
+                        rawResponse = strategy.webhookResult.response || strategy.webhookResult.data;
+                      } else {
+                        // Convert object to string if it's not already
+                        rawResponse = typeof strategy.webhookResult === 'string'
+                          ? strategy.webhookResult
+                          : JSON.stringify(strategy.webhookResult, null, 2);
+                      }
+                    }
+
+                    // Try to parse table from response
+                    if (rawResponse) {
+                      strategyResults = parseMarkdownTable(rawResponse);
+                      console.log('📊 Parsed results:', strategyResults.length, 'items');
+                    }
+
+                    // Debug: Always show raw response for troubleshooting
+                    console.log('📄 Raw response for debugging:', rawResponse);
+
+                    // Show table if we have parsed results
+                    if (strategyResults.length > 0) {
+                      return (
+                        <Box sx={{ mt: 2 }}>
+                          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: 'success.main' }}>
+                            ✅ Tabla parseada correctamente ({strategyResults.length} elementos)
+                          </Typography>
+                          <TableContainer sx={{ maxHeight: 400, overflow: 'auto' }}>
+                            <Table size="small" sx={{ minWidth: 800 }}>
+                              <TableHead>
+                                <TableRow sx={{ bgcolor: 'grey.100' }}>
+                                  <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem' }}>Fecha</TableCell>
+                                  <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem' }}>Canal</TableCell>
+                                  <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem' }}>Pilar</TableCell>
+                                  <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem' }}>Formato</TableCell>
+                                  <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 150 }}>Título</TableCell>
+                                  <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 200 }}>Copy</TableCell>
+                                  <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem' }}>CTA</TableCell>
+                                  <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem' }}>Hashtags</TableCell>
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                {strategyResults.map((row, index) => (
+                                  <TableRow key={index} sx={{ '&:nth-of-type(even)': { bgcolor: 'grey.50' } }}>
+                                    <TableCell sx={{ fontSize: '0.8rem' }}>{row.fecha || '-'}</TableCell>
+                                    <TableCell sx={{ fontSize: '0.8rem' }}>{row.canal || '-'}</TableCell>
+                                    <TableCell sx={{ fontSize: '0.8rem' }}>{row.pilar || '-'}</TableCell>
+                                    <TableCell sx={{ fontSize: '0.8rem' }}>{row.formato || '-'}</TableCell>
+                                    <TableCell sx={{ fontSize: '0.8rem', maxWidth: 150 }}>
+                                      {row.tema_titulo || row.titulo || '-'}
+                                    </TableCell>
+                                    <TableCell sx={{ fontSize: '0.8rem', maxWidth: 200 }}>
+                                      {row.copy || row.texto || '-'}
+                                    </TableCell>
+                                    <TableCell sx={{ fontSize: '0.8rem' }}>{row.cta || '-'}</TableCell>
+                                    <TableCell sx={{ fontSize: '0.8rem' }}>{row.hashtags || '-'}</TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </TableContainer>
+                        </Box>
+                      );
+                    }
+
+                    // Fallback: Show raw response
+                    return rawResponse ? (
+                      <Box sx={{ mt: 2 }}>
+                        <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: 'warning.main' }}>
+                          ⚠️ Respuesta del servidor (formato raw):
+                        </Typography>
+                        <Typography variant="body2" sx={{
+                          fontFamily: 'monospace',
+                          fontSize: '0.85rem',
+                          whiteSpace: 'pre-wrap',
+                          maxHeight: '300px',
+                          overflowY: 'auto',
+                          p: 2,
+                          bgcolor: 'grey.50',
+                          borderRadius: 1,
+                          border: '1px solid',
+                          borderColor: 'warning.light'
+                        }}>
+                          {rawResponse}
+                        </Typography>
+                      </Box>
+                    ) : null;
+                  })()}
                 </CardContent>
               </Card>
             ))}
