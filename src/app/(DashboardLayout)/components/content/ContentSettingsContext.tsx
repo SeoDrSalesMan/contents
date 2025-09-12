@@ -1,5 +1,5 @@
 "use client";
-import React, { createContext, useContext, useMemo, useState, useEffect } from "react";
+import React, { createContext, useContext, useMemo, useState, useEffect, useCallback } from "react";
 
 export interface ExecutionRecord {
   id: string;
@@ -359,7 +359,7 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
     setClients(prev => prev.map(c => (c.id === clientId ? { ...c, executionIds: [executionId, ...c.executionIds.slice(0, 4)] } : c)));
   };
 
-  const createExecution = (type: 'strategy' | 'ideas' | 'structure' | 'article', clientId: string, payload: any, result: any) => {
+  const createExecution = useCallback((type: 'strategy' | 'ideas' | 'structure' | 'article', clientId: string, payload: any, result: any) => {
     const currentExecutionId = lastExecutionId + 1;
     setLastExecutionId(currentExecutionId);
 
@@ -382,9 +382,9 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
     localStorage.setItem('lastExecutionId', currentExecutionId.toString());
 
     return execution;
-  };
+  }, [lastExecutionId, executions]);
 
-  const saveClientData = async (clientId: string): Promise<boolean> => {
+  const saveClientData = useCallback(async (clientId: string): Promise<boolean> => {
     try {
       const client = clients.find(c => c.id === clientId);
       if (!client) {
@@ -473,7 +473,7 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
       console.error('❌ Error saving client data:', error);
       return false;
     }
-  };
+  }, [clients]);
 
   const value = useMemo<ContentSettingsContextValue>(
     () => ({

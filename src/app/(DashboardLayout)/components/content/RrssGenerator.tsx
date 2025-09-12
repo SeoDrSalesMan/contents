@@ -565,7 +565,7 @@ export default function RrssGenerator() {
                       <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Fecha</TableCell>
                       <TableCell sx={{ display: 'none' }}>Día</TableCell>
                       <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 80, borderRight: 1, borderColor: 'divider' }}>Canal</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Pilar</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Tipo</TableCell>
                       <TableCell sx={{ display: 'none' }}>Objetivo</TableCell>
                       <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Formato</TableCell>
                       <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 150, borderRight: 1, borderColor: 'divider' }}>Título</TableCell>
@@ -658,7 +658,7 @@ export default function RrssGenerator() {
                     <TableCell sx={{ minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Fecha</TableCell>
                     <TableCell sx={{ display: 'none' }}>Día</TableCell>
                     <TableCell sx={{ minWidth: 80, borderRight: 1, borderColor: 'divider' }}>Canal</TableCell>
-                    <TableCell sx={{ minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Pilar</TableCell>
+                    <TableCell sx={{ minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Tipo</TableCell>
                     <TableCell sx={{ display: 'none' }}>Objetivo</TableCell>
                     <TableCell sx={{ minWidth: 100, borderRight: 1, borderColor: 'divider' }}>Formato</TableCell>
                     <TableCell sx={{ minWidth: 150, borderRight: 1, borderColor: 'divider' }}>Título</TableCell>

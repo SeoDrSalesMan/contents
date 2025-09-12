@@ -226,7 +226,7 @@ const ClientManager = () => {
         keywords: (savedData?.keywords || client.keywords || '').substring(0, 50)
       });
     }
-  }, [client?.id, selectedClientId, clients]); // React to changes in client ID, selectedClientId, and clients array
+  }, [client, selectedClientId, clients]); // React to changes in client, selectedClientId, and clients array
 
   const handleSave = async () => {
     if (!client || !client.id) return;
@@ -536,7 +536,7 @@ const ClientManager = () => {
                           client.porcentaje_entretener + client.porcentaje_promocionar)}%
                   {(client.porcentaje_educar + client.porcentaje_inspirar +
                     client.porcentaje_entretener + client.porcentaje_promocionar) !== 100 &&
-                    <span> ⚠️ Puede ajustar o usar "Redistribuir para 100%"</span>}
+                    <span> ⚠️ Puede ajustar o usar {"Redistribuir para 100%"}</span>}
                 </Typography>
               </GridLegacy>
               <GridLegacy item xs={12} md={4}>
