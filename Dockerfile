@@ -17,7 +17,18 @@ FROM base AS builder
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
+
+# Force cache bust by copying package files first
+COPY package*.json ./
+
+# Copy source code after dependencies to bust build cache
 COPY . .
+
+# Add build timestamp to ensure rebuild
+ARG BUILD_TS
+ENV BUILD_TS=${BUILD_TS:-$DATE}
+RUN echo "Build timestamp: $BUILD_TS"
+
 RUN npm run build
 
 # Runner
