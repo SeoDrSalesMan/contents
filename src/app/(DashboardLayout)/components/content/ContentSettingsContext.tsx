@@ -43,6 +43,10 @@ export interface Client {
   frecuencia_mensual_blog: string;
   numero_contenidos_rrss: number;
   frecuencia_mensual_rrss: string;
+  porcentaje_educar: number;
+  porcentaje_inspirar: number;
+  porcentaje_entretener: number;
+  porcentaje_promocionar: number;
   verticales_interes: string;
   audiencia_no_deseada: string;
   estilo_comunicacion: string;
@@ -102,6 +106,10 @@ const initialClients: Client[] = [
     frecuencia_mensual_blog: "",
     numero_contenidos_rrss: 0,
     frecuencia_mensual_rrss: "",
+    porcentaje_educar: 25,
+    porcentaje_inspirar: 25,
+    porcentaje_entretener: 25,
+    porcentaje_promocionar: 25,
     verticales_interes: "",
     audiencia_no_deseada: "",
     estilo_comunicacion: "",
@@ -130,6 +138,10 @@ const initialClients: Client[] = [
     frecuencia_mensual_blog: "",
     numero_contenidos_rrss: 0,
     frecuencia_mensual_rrss: "",
+    porcentaje_educar: 25,
+    porcentaje_inspirar: 25,
+    porcentaje_entretener: 25,
+    porcentaje_promocionar: 25,
     verticales_interes: "",
     audiencia_no_deseada: "",
     estilo_comunicacion: "",
@@ -158,6 +170,10 @@ const initialClients: Client[] = [
     frecuencia_mensual_blog: "",
     numero_contenidos_rrss: 0,
     frecuencia_mensual_rrss: "",
+    porcentaje_educar: 25,
+    porcentaje_inspirar: 25,
+    porcentaje_entretener: 25,
+    porcentaje_promocionar: 25,
     verticales_interes: "",
     audiencia_no_deseada: "",
     estilo_comunicacion: "",
@@ -186,6 +202,10 @@ const initialClients: Client[] = [
     frecuencia_mensual_blog: "",
     numero_contenidos_rrss: 0,
     frecuencia_mensual_rrss: "",
+    porcentaje_educar: 25,
+    porcentaje_inspirar: 25,
+    porcentaje_entretener: 25,
+    porcentaje_promocionar: 25,
     verticales_interes: "",
     audiencia_no_deseada: "",
     estilo_comunicacion: "",
@@ -239,6 +259,10 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
               frecuencia_mensual_blog: parsedData.frecuencia_mensual_blog || '',
               numero_contenidos_rrss: parsedData.numero_contenidos_rrss || 0,
               frecuencia_mensual_rrss: parsedData.frecuencia_mensual_rrss || '',
+              porcentaje_educar: parsedData.porcentaje_educar ?? client.porcentaje_educar,
+              porcentaje_inspirar: parsedData.porcentaje_inspirar ?? client.porcentaje_inspirar,
+              porcentaje_entretener: parsedData.porcentaje_entretener ?? client.porcentaje_entretener,
+              porcentaje_promocionar: parsedData.porcentaje_promocionar ?? client.porcentaje_promocionar,
               verticales_interes: parsedData.verticales_interes || '',
               audiencia_no_deseada: parsedData.audiencia_no_deseada || '',
               estilo_comunicacion: parsedData.estilo_comunicacion || '',
@@ -287,6 +311,11 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
     setClients(prev => prev.map(c => {
       // Manejar conversión para campos numéricos
       if (field === 'numero_contenidos_blog' || field === 'numero_contenidos_rrss') {
+        return { ...c, [field]: parseInt(value) || 0 };
+      }
+      // Manejar conversión para campos de porcentaje
+      if (field === 'porcentaje_educar' || field === 'porcentaje_inspirar' ||
+          field === 'porcentaje_entretener' || field === 'porcentaje_promocionar') {
         return { ...c, [field]: parseInt(value) || 0 };
       }
       return { ...c, [field]: value };

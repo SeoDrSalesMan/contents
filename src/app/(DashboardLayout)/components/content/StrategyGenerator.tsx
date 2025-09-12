@@ -63,8 +63,6 @@ export default function StrategyGenerator() {
   const [ideasCount, setIdeasCount] = useState<number>(defaultIdeas);
   const [eventDate, setEventDate] = useState<string>("");
   const [canales, setCanales] = useState<string[]>([]);
-  const [tipos, setTipos] = useState<string[]>([]);
-  const [funnel, setFunnel] = useState<string>("");
   const [additionalInstructions, setAdditionalInstructions] = useState<string>("");
   const [newStrategies, setNewStrategies] = useState<ContentItem[]>([]);
   const [selectedStrategies, setSelectedStrategies] = useState<number[]>([]);
@@ -156,12 +154,9 @@ export default function StrategyGenerator() {
       numeroIdeas: Number(ideasCount) || 0,
       eventoFechaEspecial: eventDate,
       canales: canales.join(", "),
-      tipos: tipos.join(", "),
-      funnelStage: funnel,
       cliente: client.name,
       instruccionesGlobales: globalInstructions,
       instruccionesAdicionales: additionalInstructions || "",
-      // Removiendo campos obsoletos alcance y estilo
     };
 
     try {
@@ -275,47 +270,9 @@ export default function StrategyGenerator() {
             disabled={isGenerating}
           />
 
-          <FormControl component="fieldset" variant="standard">
-            <Typography component="legend">Tipo</Typography>
-            <FormGroup row>
-              <FormControlLabel
-                control={<Checkbox checked={tipos.includes("Educar")} onChange={e => setTipos(c => (e.target as HTMLInputElement).checked ? [...c, "Educar"] : c.filter(i => i !== "Educar"))} name="Educar" />}
-                label="Educar"
-                disabled={isGenerating}
-              />
-              <FormControlLabel
-                control={<Checkbox checked={tipos.includes("Inspirar")} onChange={e => setTipos(c => (e.target as HTMLInputElement).checked ? [...c, "Inspirar"] : c.filter(i => i !== "Inspirar"))} name="Inspirar" />}
-                label="Inspirar"
-                disabled={isGenerating}
-              />
-              <FormControlLabel
-                control={<Checkbox checked={tipos.includes("Entretener")} onChange={e => setTipos(c => (e.target as HTMLInputElement).checked ? [...c, "Entretener"] : c.filter(i => i !== "Entretener"))} name="Entretener" />}
-                label="Entretener"
-                disabled={isGenerating}
-              />
-              <FormControlLabel
-                control={<Checkbox checked={tipos.includes("Promocionar")} onChange={e => setTipos(c => (e.target as HTMLInputElement).checked ? [...c, "Promocionar"] : c.filter(i => i !== "Promocionar"))} name="Promocionar" />}
-                label="Promocionar"
-                disabled={isGenerating}
-              />
-            </FormGroup>
-          </FormControl>
 
-          <FormControl fullWidth>
-            <InputLabel id="funnel-strategy">Etapa del embudo</InputLabel>
-            <Select<string>
-              labelId="funnel-strategy"
-              label="Etapa del embudo"
-              value={funnel}
-              onChange={e => setFunnel(e.target.value)}
-              disabled={isGenerating}
-            >
-              <MenuItem value="">Selecciona etapa</MenuItem>
-              <MenuItem value="TOFU">TOFU – Conocimiento</MenuItem>
-              <MenuItem value="MOFU">MOFU – Consideración</MenuItem>
-              <MenuItem value="BOFU">BOFU – Decisión</MenuItem>
-            </Select>
-          </FormControl>
+
+
 
           <TextField
             label="Número de ideas a generar" type="number"
