@@ -113,7 +113,7 @@ const ClientManager = () => {
     const currentClient = clients.find(c => c.id === clientId);
     if (!currentClient) return;
 
-    const percentageFields = [
+    const percentageFields: (keyof Client)[] = [
       'porcentaje_educar',
       'porcentaje_inspirar',
       'porcentaje_entretener',
