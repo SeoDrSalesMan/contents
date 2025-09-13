@@ -45,9 +45,9 @@ export async function POST(request: NextRequest) {
     const body: ClientInsert = await request.json()
 
     // Validate required fields
-    if (!body.name) {
+    if (!body.nombre) {
       return NextResponse.json(
-        { error: 'Client name is required' },
+        { error: 'Client nombre is required' },
         { status: 400 }
       )
     }
@@ -56,7 +56,6 @@ export async function POST(request: NextRequest) {
       .from('clients')
       .insert([{
         ...body,
-        id: body.id || crypto.randomUUID(),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       }])

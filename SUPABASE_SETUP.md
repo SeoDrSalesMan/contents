@@ -38,45 +38,56 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ## 🗄️ Esquema de Base de Datos
 
-### Tabla: clients
+### Tabla: clientes
 ```sql
-CREATE TABLE clients (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name TEXT NOT NULL,
-  email TEXT,
-  phone TEXT,
-  status TEXT DEFAULT 'active' CHECK (status IN ('active', 'inactive')),
+CREATE TABLE clientes (
+  id TEXT PRIMARY KEY,
+  nombre TEXT NOT NULL,
+  web TEXT,
+  sector TEXT,
+  propuesta_valor TEXT,
+  publico_objetivo TEXT,
+  keywords TEXT,
+  numero_contenidos_blog INTEGER DEFAULT 0,
+  frecuencia_mensual_blog TEXT,
+  numero_contenidos_rrss INTEGER DEFAULT 0,
+  frecuencia_mensual_rrss TEXT,
+  porcentaje_educar INTEGER DEFAULT 25,
+  porcentaje_inspirar INTEGER DEFAULT 25,
+  porcentaje_entretener INTEGER DEFAULT 25,
+  porcentaje_promocionar INTEGER DEFAULT 25,
+  verticales_interes TEXT,
+  audiencia_no_deseada TEXT,
+  estilo_comunicacion TEXT,
+  tono_voz TEXT,
+  workflow_id TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Crear índices para mejor rendimiento
-CREATE INDEX IF NOT EXISTS clients_name_idx ON clients(name);
-CREATE INDEX IF NOT EXISTS clients_status_idx ON clients(status);
-CREATE INDEX IF NOT EXISTS clients_created_at_idx ON clients(created_at DESC);
+CREATE INDEX IF NOT EXISTS clientes_id_idx ON clientes(id);
+CREATE INDEX IF NOT EXISTS clientes_nombre_idx ON clientes(nombre);
+CREATE INDEX IF NOT EXISTS clientes_sector_idx ON clientes(sector);
+CREATE INDEX IF NOT EXISTS clientes_created_at_idx ON clientes(created_at DESC);
 
 -- Habilitar Row Level Security
-ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
+ALTER TABLE clientes ENABLE ROW LEVEL SECURITY;
 
 -- Política de lectura para usuarios autenticados
-CREATE POLICY "Users can read their own clients" ON clients
-  FOR SELECT TO authenticated
-  USING (auth.uid()::text = id OR auth.role() = 'service_role');
+CREATE POLICY "Users can read all clientes" ON clientes
+  FOR SELECT TO authenticated, anon
+  USING (true);
 
--- Política de creación
-CREATE POLICY "Users can insert clients" ON clients
-  FOR INSERT TO authenticated
-  WITH CHECK (auth.uid()::text = id OR auth.role() = 'service_role');
+-- Política de creación/actualización
+CREATE POLICY "Users can manage all clientes" ON clientes
+  FOR ALL TO authenticated
+  USING (true);
 
--- Política de actualización
-CREATE POLICY "Users can update their own clients" ON clients
-  FOR UPDATE TO authenticated
-  USING (auth.uid()::text = id OR auth.role() = 'service_role');
-
--- Política de eliminación
-CREATE POLICY "Users can delete their own clients" ON clients
-  FOR DELETE TO authenticated
-  USING (auth.uid()::text = id OR auth.role() = 'service_role');
+-- Política para consultas anónimas (si necesitas acceso público)
+CREATE POLICY "Anonymous read access" ON clientes
+  FOR SELECT TO anon
+  USING (true);
 ```
 
 ### Crear tabla desde Supabase Dashboard

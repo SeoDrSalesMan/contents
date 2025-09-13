@@ -8,32 +8,82 @@ export const supabase = createClient(
 
 // Types for better TypeScript support
 export type Database = {
-  // Define your database schema here
-  // This will be populated based on your actual Supabase schema
   public: {
     Tables: {
-      // Example table definitions - replace with your actual schema
       clients: {
         Row: {
           id: string
-          name: string
+          nombre: string
+          web?: string
+          sector?: string
+          propuesta_valor?: string
+          publico_objetivo?: string
+          keywords?: string
+          numero_contenidos_blog: number
+          frecuencia_mensual_blog?: string
+          numero_contenidos_rrss: number
+          frecuencia_mensual_rrss?: string
+          porcentaje_educar: number
+          porcentaje_inspirar: number
+          porcentaje_entretener: number
+          porcentaje_promocionar: number
+          verticales_interes?: string
+          audiencia_no_deseada?: string
+          estilo_comunicacion?: string
+          tono_voz?: string
+          workflow_id?: string
           created_at: string
           updated_at: string
         }
         Insert: {
-          id?: string
-          name: string
+          id: string
+          nombre?: string
+          web?: string
+          sector?: string
+          propuesta_valor?: string
+          publico_objetivo?: string
+          keywords?: string
+          numero_contenidos_blog?: number
+          frecuencia_mensual_blog?: string
+          numero_contenidos_rrss?: number
+          frecuencia_mensual_rrss?: string
+          porcentaje_educar?: number
+          porcentaje_inspirar?: number
+          porcentaje_entretener?: number
+          porcentaje_promocionar?: number
+          verticales_interes?: string
+          audiencia_no_deseada?: string
+          estilo_comunicacion?: string
+          tono_voz?: string
+          workflow_id?: string
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: string
-          name?: string
+          nombre?: string
+          web?: string
+          sector?: string
+          propuesta_valor?: string
+          publico_objetivo?: string
+          keywords?: string
+          numero_contenidos_blog?: number
+          frecuencia_mensual_blog?: string
+          numero_contenidos_rrss?: number
+          frecuencia_mensual_rrss?: string
+          porcentaje_educar?: number
+          porcentaje_inspirar?: number
+          porcentaje_entretener?: number
+          porcentaje_promocionar?: number
+          verticales_interes?: string
+          audiencia_no_deseada?: string
+          estilo_comunicacion?: string
+          tono_voz?: string
+          workflow_id?: string
           created_at?: string
           updated_at?: string
         }
       }
-      // Add other tables as needed
     }
     Views: {
       // Define views if any

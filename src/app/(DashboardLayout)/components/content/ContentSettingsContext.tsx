@@ -1,5 +1,6 @@
 "use client";
 import React, { createContext, useContext, useMemo, useState, useEffect, useCallback } from "react";
+import { supabase } from "@/utils/supabase-client";
 
 export interface ExecutionRecord {
   id: string;
@@ -426,6 +427,47 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
 
       localStorage.setItem(clientStorageKey, JSON.stringify(clientDataToSave));
       console.log(`✅ Client ${clientId} data saved to localStorage with key: ${clientStorageKey}`);
+
+      // Save to Supabase table "clients"
+      try {
+        const supabaseData = {
+          id: client.id,
+          nombre: client.nombre || '',
+          web: client.web || '',
+          sector: client.sector || '',
+          propuesta_valor: client.propuesta_valor || '',
+          publico_objetivo: client.publico_objetivo || '',
+          keywords: client.keywords || '',
+          numero_contenidos_blog: client.numero_contenidos_blog || 0,
+          frecuencia_mensual_blog: client.frecuencia_mensual_blog || '',
+          numero_contenidos_rrss: client.numero_contenidos_rrss || 0,
+          frecuencia_mensual_rrss: client.frecuencia_mensual_rrss || '',
+          porcentaje_educar: client.porcentaje_educar || 0,
+          porcentaje_inspirar: client.porcentaje_inspirar || 0,
+          porcentaje_entretener: client.porcentaje_entretener || 0,
+          porcentaje_promocionar: client.porcentaje_promocionar || 0,
+          verticales_interes: client.verticales_interes || '',
+          audiencia_no_deseada: client.audiencia_no_deseada || '',
+          estilo_comunicacion: client.estilo_comunicacion || '',
+          tono_voz: client.tono_voz || '',
+          workflow_id: client.workflowId || '',
+          updated_at: new Date().toISOString()
+        };
+
+        const { data, error: supabaseError } = await supabase
+          .from('clients')
+          .upsert(supabaseData, { onConflict: 'id' });
+
+        if (supabaseError) {
+          console.warn(`⚠️ Client ${clientId} data saved to localStorage but Supabase failed:`, supabaseError);
+          // Don't return false here since localStorage save was successful
+        } else {
+      console.log(`✅ Client ${clientId} data saved to Supabase table "clients"`);
+        }
+      } catch (supabaseError) {
+        console.warn(`⚠️ Client ${clientId} data saved to localStorage but Supabase error:`, supabaseError);
+        // Don't return false here since localStorage save was successful
+      }
 
       // Try to send to webhook if available
       if (client.dataWebhook) {
