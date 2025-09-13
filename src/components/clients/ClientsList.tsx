@@ -14,106 +14,99 @@ import {
   TextField,
   CircularProgress,
   Alert,
-  IconButton,
-  Chip
+  IconButton
 } from '@mui/material'
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material'
-import { useSupabaseTable, useSupabaseCrud, useSupabaseSubscription } from '@/utils/supabase-hooks'
+import { useSupabaseTable, useSupabaseCrud } from '@/utils/supabase-hooks'
+import { Database } from '@/utils/supabase-client'
 
-// Define interfaces based on your database schema
-interface Client {
-  id: string
-  name: string
-  email?: string
-  phone?: string
-  created_at: string
-  updated_at: string
-  status?: 'active' | 'inactive'
-}
+type Client = Database['public']['Tables']['clientes']['Row']
+type ClientInsert = Database['public']['Tables']['clientes']['Insert']
 
-// Form for creating/editing clients
-interface ClientFormData {
-  name: string
-  email: string
-  phone: string
-  status: 'active' | 'inactive'
-}
-
-interface ClientsListProps {
-  onClientSelect?: (client: Client) => void
-}
-
-export default function ClientsList({ onClientSelect }: ClientsListProps) {
+export default function ClientsList({ onClientSelect }: { onClientSelect?: (client: Client) => void }) {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingClient, setEditingClient] = useState<Client | null>(null)
-  const [formData, setFormData] = useState<ClientFormData>({
-    name: '',
-    email: '',
-    phone: '',
-    status: 'active'
+  const [formData, setFormData] = useState<ClientInsert>({
+    id: '',
+    nombre: '',
+    web: '',
+    sector: '',
+    propuesta_valor: '',
+    publico_objetivo: '',
+    keywords: '',
+    numero_contenidos_blog: 0,
+    frecuencia_mensual_blog: '',
+    numero_contenidos_rrss: 0,
+    frecuencia_mensual_rrss: '',
+    porcentaje_educar: 25,
+    porcentaje_inspirar: 25,
+    porcentaje_entretener: 25,
+    porcentaje_promocionar: 25,
+    verticales_interes: '',
+    audiencia_no_deseada: '',
+    estilo_comunicacion: '',
+    tono_voz: ''
   })
 
-  // Hook for reading data
-  const { data: clients, loading: loadingClients, error: clientsError, refetch } = useSupabaseTable('clients')
+  // Hooks
+  const { data: clients, loading: loadingClients, error: clientsError, refetch } = useSupabaseTable('clientes')
+  const { loading: crudLoading, error: crudError, create, update, remove } = useSupabaseCrud('clientes')
 
-  // Hook for CRUD operations
-  const { loading: crudLoading, error: crudError, create, update, remove } = useSupabaseCrud('clients')
-
-  // Real-time updates
-  const { isSubscribed } = useSupabaseSubscription('clients', (payload) => {
-    console.log('Real-time client update:', payload)
-    refetch() // Refresh data when changes occur
-  })
-
-  // Handle form submission
   const handleSubmit = async () => {
     try {
       if (editingClient) {
-        // Update existing client
         await update(editingClient.id, formData)
       } else {
-        // Create new client
-        await create(formData)
+        const newData = { ...formData, id: crypto.randomUUID() }
+        await create(newData)
       }
-
       handleCloseDialog()
-      refetch() // Refresh the list
+      refetch()
     } catch (error) {
       console.error('Error saving client:', error)
     }
   }
 
-  // Open dialog for creating new client
   const handleNewClient = () => {
     setEditingClient(null)
     setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      status: 'active'
+      id: '',
+      nombre: '',
+      web: '',
+      sector: '',
+      propuesta_valor: '',
+      publico_objetivo: '',
+      keywords: '',
+      numero_contenidos_blog: 0,
+      frecuencia_mensual_blog: '',
+      numero_contenidos_rrss: 0,
+      frecuencia_mensual_rrss: '',
+      porcentaje_educar: 25,
+      porcentaje_inspirar: 25,
+      porcentaje_entretener: 25,
+      porcentaje_promocionar: 25,
+      verticales_interes: '',
+      audiencia_no_deseada: '',
+      estilo_comunicacion: '',
+      tono_voz: ''
     })
     setDialogOpen(true)
   }
 
-  // Open dialog for editing client
   const handleEditClient = (client: Client) => {
     setEditingClient(client)
     setFormData({
-      name: client.name,
-      email: client.email || '',
-      phone: client.phone || '',
-      status: client.status || 'active'
+      ...client,
+      updated_at: new Date().toISOString()
     })
     setDialogOpen(true)
   }
 
-  // Handle client deletion
-  const handleDeleteClient = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete ${name}?`)) return
-
+  const handleDeleteClient = async (id: string, nombre: string) => {
+    if (!confirm(`¿Eliminar ${nombre}?`)) return
     try {
       await remove(id)
-      refetch() // Refresh the list
+      refetch()
     } catch (error) {
       console.error('Error deleting client:', error)
     }
@@ -124,7 +117,7 @@ export default function ClientsList({ onClientSelect }: ClientsListProps) {
     setEditingClient(null)
   }
 
-  const handleInputChange = (field: keyof ClientFormData, value: string) => {
+  const handleInputChange = (field: keyof ClientInsert, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
@@ -138,29 +131,13 @@ export default function ClientsList({ onClientSelect }: ClientsListProps) {
 
   return (
     <Box>
-      {/* Header */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4" component="h1">
-          Clients Management
-          {isSubscribed && (
-            <Chip
-              label="Live"
-              size="small"
-              color="success"
-              sx={{ ml: 2, verticalAlign: 'middle' }}
-            />
-          )}
-        </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleNewClient}
-        >
-          Add Client
+        <Typography variant="h4">Gestión de Clientes</Typography>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={handleNewClient}>
+          Nuevo Cliente
         </Button>
       </Box>
 
-      {/* Error Messages */}
       {(clientsError || crudError) && (
         <Alert severity="error" sx={{ mb: 3 }}>
           {clientsError?.message || crudError?.message}
@@ -171,143 +148,153 @@ export default function ClientsList({ onClientSelect }: ClientsListProps) {
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
           gap: 2
         }}
       >
-        {(clients as Client[]).map((client) => (
-          <Card key={client.id} sx={{ cursor: onClientSelect ? 'pointer' : 'default' }}>
+        {(clients as Client[] || []).map((client) => (
+          <Card key={client.id}>
             <CardContent>
-              <Box display="flex" justifyContent="space-between" alignItems="start">
-                <Typography variant="h6" component="h2" mb={1}>
-                  {client.name}
-                </Typography>
-                <Box>
-                  <IconButton size="small" onClick={() => handleEditClient(client)}>
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    onClick={() => handleDeleteClient(client.id, client.name)}
-                    color="error"
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </Box>
-              </Box>
+              <Typography variant="h6" mb={2}>{client.nombre}</Typography>
 
-              {client.email && (
+              {client.sector && (
                 <Typography variant="body2" color="text.secondary" mb={1}>
-                  📧 {client.email}
+                  🏢 {client.sector}
                 </Typography>
               )}
 
-              {client.phone && (
+              {client.web && (
                 <Typography variant="body2" color="text.secondary" mb={1}>
-                  📞 {client.phone}
+                  🌐 {client.web}
                 </Typography>
               )}
 
-              <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
-                <Chip
-                  label={client.status || 'active'}
-                  color={client.status === 'active' ? 'success' : 'default'}
-                  size="small"
-                />
-                <Typography variant="caption" color="text.secondary">
-                  Created: {new Date(client.created_at).toLocaleDateString()}
+              {client.keywords && (
+                <Typography variant="body2" color="text.secondary" mb={2}>
+                  🔍 {client.keywords}
                 </Typography>
-              </Box>
+              )}
 
-              {onClientSelect && (
-                <Button
+              <Box display="flex" justifyContent="flex-end" gap={1}>
+                <IconButton size="small" onClick={() => handleEditClient(client)}>
+                  <EditIcon />
+                </IconButton>
+                <IconButton
                   size="small"
-                  variant="outlined"
-                  fullWidth
-                  sx={{ mt: 2 }}
-                  onClick={() => onClientSelect(client)}
+                  color="error"
+                  onClick={() => handleDeleteClient(client.id, client.nombre)}
                 >
-                  Select Client
-                </Button>
-              )}
+                  <DeleteIcon />
+                </IconButton>
+              </Box>
             </CardContent>
           </Card>
         ))}
       </Box>
 
-      {/* Empty State */}
-      {clients.length === 0 && !loadingClients && (
+      {!clients?.length && !loadingClients && (
         <Box textAlign="center" py={8}>
           <Typography variant="h6" color="text.secondary" mb={2}>
-            No clients found
+            No hay clientes registrados
           </Typography>
           <Button variant="contained" onClick={handleNewClient}>
-            Add your first client
+            Crear primer cliente
           </Button>
         </Box>
       )}
 
-      {/* Create/Edit Dialog */}
-      <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+      {/* Dialog */}
+      <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="md" fullWidth>
         <DialogTitle>
-          {editingClient ? 'Edit Client' : 'Add New Client'}
+          {editingClient ? 'Editar Cliente' : 'Nuevo Cliente'}
         </DialogTitle>
 
         <DialogContent>
           <Box component="form" sx={{ mt: 2 }}>
             <TextField
-              label="Name"
+              label="Nombre"
               fullWidth
               required
               margin="normal"
-              value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
+              value={formData.nombre}
+              onChange={(e) => handleInputChange('nombre', e.target.value)}
             />
 
             <TextField
-              label="Email"
-              type="email"
+              label="Web"
               fullWidth
               margin="normal"
-              value={formData.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
+              value={formData.web}
+              onChange={(e) => handleInputChange('web', e.target.value)}
             />
 
             <TextField
-              label="Phone"
+              label="Sector"
               fullWidth
               margin="normal"
-              value={formData.phone}
-              onChange={(e) => handleInputChange('phone', e.target.value)}
+              value={formData.sector}
+              onChange={(e) => handleInputChange('sector', e.target.value)}
             />
 
             <TextField
-              label="Status"
-              select
+              label="Propuesta de Valor"
+              fullWidth
+              multiline
+              rows={2}
+              margin="normal"
+              value={formData.propuesta_valor}
+              onChange={(e) => handleInputChange('propuesta_valor', e.target.value)}
+            />
+
+            <TextField
+              label="Público Objetivo"
+              fullWidth
+              multiline
+              rows={2}
+              margin="normal"
+              value={formData.publico_objetivo}
+              onChange={(e) => handleInputChange('publico_objetivo', e.target.value)}
+            />
+
+            <TextField
+              label="Keywords"
               fullWidth
               margin="normal"
-              value={formData.status}
-              onChange={(e) => handleInputChange('status', e.target.value)}
-              SelectProps={{
-                native: true,
-              }}
-            >
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </TextField>
+              value={formData.keywords}
+              onChange={(e) => handleInputChange('keywords', e.target.value)}
+              placeholder="Separadas por comas"
+            />
+
+            <Box display="flex" gap={2}>
+              <TextField
+                label="Contenidos Blog"
+                type="number"
+                margin="normal"
+                value={formData.numero_contenidos_blog}
+                onChange={(e) => handleInputChange('numero_contenidos_blog', parseInt(e.target.value) || 0)}
+              />
+
+              <TextField
+                label="Contenidos RRSS"
+                type="number"
+                margin="normal"
+                value={formData.numero_contenidos_rrss}
+                onChange={(e) => handleInputChange('numero_contenidos_rrss', parseInt(e.target.value) || 0)}
+              />
+            </Box>
           </Box>
         </DialogContent>
 
         <DialogActions>
           <Button onClick={handleCloseDialog} disabled={crudLoading}>
-            Cancel
+            Cancelar
           </Button>
           <Button
             onClick={handleSubmit}
             variant="contained"
-            disabled={crudLoading || !formData.name.trim()}
+            disabled={crudLoading || !formData.nombre.trim()}
           >
-            {crudLoading ? <CircularProgress size={20} /> : (editingClient ? 'Update' : 'Create')}
+            {crudLoading ? <CircularProgress size={20} /> : (editingClient ? 'Actualizar' : 'Crear')}
           </Button>
         </DialogActions>
       </Dialog>
