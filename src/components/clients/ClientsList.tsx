@@ -292,7 +292,7 @@ export default function ClientsList({ onClientSelect }: { onClientSelect?: (clie
           <Button
             onClick={handleSubmit}
             variant="contained"
-            disabled={crudLoading || !formData.nombre.trim()}
+            disabled={crudLoading || !formData.nombre || !formData.nombre.trim()}
           >
             {crudLoading ? <CircularProgress size={20} /> : (editingClient ? 'Actualizar' : 'Crear')}
           </Button>
