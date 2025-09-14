@@ -2,7 +2,7 @@
 // This creates a test user to bypass RLS authentication requirements
 
 export const authHelpers = {
-  // Initialize a test session
+  // Initialize a test session with profile creation
   initializeTestSession: async (supabase) => {
     try {
       console.log('🔄 Checking for existing test session...');
@@ -18,23 +18,44 @@ export const authHelpers = {
       // If no user, create a test user
       console.log('📝 Creating test user session...');
 
-      // We'll use Supabase's sign-up method to create a test user
-      // This creates a real session and profile
-      const testEmail = `test_${Date.now()}@example.com`;
+      // Generate a valid test email for Supabase authentication
+      const timestamp = Date.now();
+      const randomSuffix = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+      const testEmail = `user${randomSuffix}@mailinator.com`;
       const testPassword = 'test123456';
 
-      const { data, error } = await supabase.auth.signUp({
+      const { data: signupData, error: signupError } = await supabase.auth.signUp({
         email: testEmail,
         password: testPassword,
       });
 
-      if (error) {
-        console.error('❌ Error creating test user:', error);
+      if (signupError || !signupData.user) {
+        console.error('❌ Error creating test user:', signupError);
         return null;
       }
 
-      console.log('✅ Test user created successfully:', data.user?.id);
-      return data.user;
+      const user = signupData.user;
+      console.log('✅ Test user created:', user.id);
+
+      // 🆔 CRÍTICO: Crear perfil automáticamente
+      // El schema requiere que existe un perfil antes de usar created_by
+      console.log('📝 Creating user profile...');
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert([{
+          id: user.id,  // Foreign key constraints require this
+          full_name: 'Usuario de Prueba',
+          avatar_url: null
+        }]);
+
+      if (profileError) {
+        console.error('❌ Error creating profile:', profileError);
+        return null;
+      }
+
+      console.log('✅ Profile created successfully for user:', user.id);
+      return user;
 
     } catch (error) {
       console.error('❌ Error in test session initialization:', error);

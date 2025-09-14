@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useMemo, useState, useEffect, useCallback } from "react";
 import { supabase } from "@/utils/supabase-client";
 import { authHelpers } from "@/utils/auth";
+import { diagnostics } from "@/utils/supabase-diagnostic";
 
 export interface ExecutionRecord {
   id: string;
@@ -344,6 +345,20 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
     }
   }, [clients]);
 
+  // 🔍 Ejecutar diagnóstico de Supabase al inicializar
+  useEffect(() => {
+    const runInitialDiagnostic = async () => {
+      try {
+        console.log('🔍 Starting Supabase diagnostic...');
+        await diagnostics.runAll();
+      } catch (error) {
+        console.error('❌ Diagnostic error:', error);
+      }
+    };
+
+    runInitialDiagnostic();
+  }, []);
+
   useEffect(() => {
     setIsHydrated(true);
 
@@ -567,11 +582,11 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
 
       // Save to Supabase table "clients" (usando la estructura REAL de la tabla)
       try {
-        // 🆔 CAMBIO CRÍTICO: Agregamos created_by basado en el usuario autenticado
+        // 🆔 CAMBIO CRÍTICO: Mapear campos correctamente al esquema de Supabase
         const supabaseData = {
-          // NO enviar 'id' porque es UUID auto-generado en Supabase
-          // Usar 'name' en lugar de 'nombre'
-          name: client.nombre || '',
+          // ✅ NO enviar 'id' - Dejar que Supabase genere UUID automáticamente
+          // ✅ Usar 'name' como identificador único
+          name: client.nombre || '',  // El nombre del cliente va aquí
           web: client.web || '',
           sector: client.sector || '',
           propuesta_valor: client.propuesta_valor || '',
@@ -591,7 +606,7 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
           estilo_comunicacion: client.estilo_comunicacion || '',
           tono_voz: client.tono_voz || '',
           // 🆔 CAMBIO CRÍTICO: Agregar el campo created_by requerido por el esquema
-          created_by: user.id  // <- Esto es lo que faltaba
+          created_by: user.id,  // <- Necesario para foreign key constraint
         };
 
         console.log(`📝 Attempting to save to Supabase with auth:`, {
