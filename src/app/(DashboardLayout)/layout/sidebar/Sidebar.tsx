@@ -86,7 +86,7 @@ const MSidebar = ({
                   </MenuItem>
                   {clients.map((client) => (
                     <MenuItem key={client.id} value={client.id}>
-                      {client.name}
+                      {client.nombre}
                     </MenuItem>
                   ))}
                 </Select>
@@ -143,7 +143,7 @@ const MSidebar = ({
               </MenuItem>
               {clients.map((client) => (
                 <MenuItem key={client.id} value={client.id}>
-                  {client.name}
+                  {client.nombre}
                 </MenuItem>
               ))}
             </Select>

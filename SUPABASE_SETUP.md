@@ -2,6 +2,17 @@
 
 Este documento explica cómo configurar y usar Supabase en el proyecto de content-generator.
 
+## ✅ ACTUALIZACIÓN IMPORTANTE
+
+**Estados actuales:**
+- ✅ La tabla **"clients"** ya existe en Supabase ✅
+- ✅ El código está actualizado para usar la tabla existente ✅
+- ✅ ¡La integración está completa! Solo configura las variables de entorno ✅
+
+**¿Qué hacer ahora?**
+1. Configura las variables de entorno con tus credenciales de Supabase
+2. ¡Tu aplicación ya está lista para guardar datos en Supabase!
+
 ## 🚀 Configuración Inicial
 
 ### 1. Crear proyecto en Supabase
