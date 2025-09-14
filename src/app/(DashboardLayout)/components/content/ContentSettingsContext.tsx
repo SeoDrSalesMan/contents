@@ -614,36 +614,36 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
           data: supabaseData
         });
 
-        // Verificar si ya existe un registro con mismo name y hacer UPDATE o INSERT según corresponda
-        // Usar maybeSingle() para manejar casos donde no existe el registro
+        // 🔄 NUEVA LÓGICA: INSERT PRIMERO, UPDATE SI YA EXISTE
         let operationResult;
 
         try {
-          // Intentar hacer UPDATE primero (si existe)
-          const updateResult = await supabase
-            .from('clients')
-            .update(supabaseData)
-            .eq('name', client.nombre)
-            .select('id');
-
-          console.log('Update result:', updateResult);
-
-          // Si el update afectó 0 filas (no existe), hacer INSERT
-          if (updateResult.data && updateResult.data.length === 0) {
-            console.log('No existing record found, doing INSERT instead');
-            operationResult = await supabase
-              .from('clients')
-              .insert([supabaseData]);
-          } else {
-            operationResult = updateResult;
-          }
-        } catch (error: any) {
-          console.log('Error during update, trying INSERT:', error);
-
-          // Si hay error en update, intentar INSERT
+          // Intentar INSERT primero (para nuevos clientes)
+          console.log('🔄 Attempting INSERT for new client');
           operationResult = await supabase
             .from('clients')
             .insert([supabaseData]);
+
+          console.log('✅ INSERT successful:', operationResult);
+
+        } catch (error: any) {
+          console.log('⚠️ INSERT failed, checking if client already exists:', error);
+
+          // Si el INSERT falla por unique constraint (23505), intentar UPDATE
+          if (error.code === '23505') {
+            console.log('🔄 Client exists, doing UPDATE instead');
+
+            // Para UPDATE, usar upsert con onConflict para manejar conflictos de unicidad
+            operationResult = await supabase
+              .from('clients')
+              .upsert(supabaseData, {
+                onConflict: 'name,created_by',  // Columnas que determinan unicidad
+                ignoreDuplicates: false
+              });
+          } else {
+            // Si no es error de unicidad, tirar el error original
+            throw error;
+          }
         }
 
         const { data, error: supabaseError } = operationResult;
