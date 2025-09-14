@@ -25,15 +25,14 @@ interface Props {
   children: React.ReactNode;
 }
 
-
-
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [isSidebarOpen, setSidebarOpen] = useState(true);
+  const [isSidebarOpen, setSidebarOpen] = useState(true); // Sidebar visible por defecto
   const [isMobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
   return (
     <ContentSettingsProvider>
       <MainWrapper className="mainwrapper">

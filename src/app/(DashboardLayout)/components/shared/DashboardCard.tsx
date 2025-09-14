@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Card, CardContent, Typography, Stack, Box } from "@mui/material";
 
 type Props = {
@@ -24,8 +24,46 @@ const DashboardCard = ({
   headsubtitle,
   middlecontent,
 }: Props) => {
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // Limpiar atributos de navegador/extensiones después del montaje
+  useEffect(() => {
+    if (cardRef.current) {
+      // Limpiar cualquier atributo dinámico agregado por extensiones del navegador
+      const cleanupAttributes = (element: HTMLElement) => {
+        // Lista de atributos típicos agregados por extensiones
+        const attributesToRemove = [
+          'bis_skin_checked',
+          'data-ad-client',
+          'data-ad-slot',
+          'data-ad-format'
+        ];
+
+        attributesToRemove.forEach(attr => {
+          if (element.hasAttribute(attr)) {
+            element.removeAttribute(attr);
+          }
+        });
+
+        // Limpiar recursivamente hijos
+        Array.from(element.children).forEach(child => {
+          if (child instanceof HTMLElement) {
+            cleanupAttributes(child);
+          }
+        });
+      };
+
+      cleanupAttributes(cardRef.current);
+    }
+  }, []);
+
   return (
-    <Card sx={{ padding: 0 }} elevation={9} variant={undefined}>
+    <Card
+      ref={cardRef}
+      sx={{ padding: 0 }}
+      elevation={9}
+      variant={undefined}
+    >
       {cardheading ? (
         <CardContent>
           <Typography variant="h5">{headtitle}</Typography>

@@ -20,8 +20,8 @@ import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/ico
 import { useSupabaseTable, useSupabaseCrud } from '@/utils/supabase-hooks'
 import { Database } from '@/utils/supabase-client'
 
-type Client = Database['public']['Tables']['clientes']['Row']
-type ClientInsert = Database['public']['Tables']['clientes']['Insert']
+type Client = Database['public']['Tables']['clients']['Row']
+type ClientInsert = Database['public']['Tables']['clients']['Insert']
 
 export default function ClientsList({ onClientSelect }: { onClientSelect?: (client: Client) => void }) {
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -49,8 +49,8 @@ export default function ClientsList({ onClientSelect }: { onClientSelect?: (clie
   })
 
   // Hooks
-  const { data: clients, loading: loadingClients, error: clientsError, refetch } = useSupabaseTable('clientes')
-  const { loading: crudLoading, error: crudError, create, update, remove } = useSupabaseCrud('clientes')
+  const { data: clients, loading: loadingClients, error: clientsError, refetch } = useSupabaseTable('clients')
+  const { loading: crudLoading, error: crudError, create, update, remove } = useSupabaseCrud('clients')
 
   const handleSubmit = async () => {
     try {

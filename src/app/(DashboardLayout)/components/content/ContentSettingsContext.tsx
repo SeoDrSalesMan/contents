@@ -69,6 +69,7 @@ interface ContentSettingsContextValue {
   setGlobalInstructions: (s: string) => void;
   selectedClientId: string;
   setSelectedClientId: (id: string) => void;
+  loadClientFromSupabase: (clientId: string) => Promise<void>;
   clients: Client[];
   updateClientField: (id: string, field: keyof Client, value: string) => void;
   saveClientData: (clientId: string) => Promise<boolean>;
@@ -231,6 +232,101 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
   const [executions, setExecutions] = useState<ExecutionRecord[]>([]);
   const [lastExecutionId, setLastExecutionId] = useState<number>(352);
 
+  // Función para cargar datos de cliente desde Supabase (definida antes de los useEffect)
+  const loadClientFromSupabase = useCallback(async (clientId: string): Promise<void> => {
+    try {
+      console.log(`🔄 Loading client data from Supabase for ${clientId}`);
+
+      // Para cargar datos, necesitamos buscar por el campo que tenemos disponible (name) en lugar de id
+      // Como clientId viene del código del cliente, buscaremos por name correspondiente
+      const client = clients.find(c => c.id === clientId);
+      const clientName = client?.name || clientId;
+
+      const { data: supabaseData, error } = await supabase
+        .from('clients')
+        .select('*')
+        .eq('name', clientName)
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 = No rows found
+        console.error('Error loading from Supabase:', error);
+        return;
+      }
+
+      if (supabaseData) {
+        console.log(`✅ Loaded client data from Supabase:`, supabaseData);
+
+        // Actualizar el estado del cliente con los datos de Supabase
+        setClients(prev => prev.map(c => {
+          if (c.id === clientId) {
+            return {
+              ...c,
+              nombre: supabaseData.name || '',
+              web: supabaseData.web || '',
+              sector: supabaseData.sector || '',
+              propuesta_valor: supabaseData.propuesta_valor || '',
+              publico_objetivo: supabaseData.publico_objetivo || '',
+              // Tratar keywords como array si viene de Supabase, o convertir string si viene de localStorage
+              keywords: Array.isArray(supabaseData.keywords) ?
+                supabaseData.keywords.join(', ') :
+                (supabaseData.keywords || ''),
+              numero_contenidos_blog: supabaseData.numero_contenidos_blog || 0,
+              frecuencia_mensual_blog: supabaseData.frecuencia_mensual_blog || '',
+              numero_contenidos_rrss: supabaseData.numero_contenidos_rrss || 0,
+              frecuencia_mensual_rrss: supabaseData.frecuencia_mensual_rrss || '',
+              porcentaje_educar: supabaseData.porcentaje_educar ?? c.porcentaje_educar,
+              porcentaje_inspirar: supabaseData.porcentaje_inspirar ?? c.porcentaje_inspirar,
+              porcentaje_entretener: supabaseData.porcentaje_entretener ?? c.porcentaje_entretener,
+              porcentaje_promocionar: supabaseData.porcentaje_promocionar ?? c.porcentaje_promocionar,
+              verticales_interes: supabaseData.verticales_interes || '',
+              audiencia_no_deseada: supabaseData.audiencia_no_deseada || '',
+              estilo_comunicacion: supabaseData.estilo_comunicacion || '',
+              tono_voz: supabaseData.tono_voz || ''
+            };
+          }
+          return c;
+        }));
+
+        // También guardar en localStorage para mantener sincronización
+        const clientStorageKey = `client_${clientId}_config`;
+        const localData = localStorage.getItem(clientStorageKey);
+        let clientData: any = {};
+
+        if (localData) {
+          clientData = JSON.parse(localData);
+        }
+
+        // Actualizar con datos de Supabase
+        clientData.nombre = supabaseData.name || '';
+        clientData.web = supabaseData.web || '';
+        clientData.sector = supabaseData.sector || '';
+        clientData.propuesta_valor = supabaseData.propuesta_valor || '';
+        clientData.publico_objetivo = supabaseData.publico_objetivo || '';
+        clientData.keywords = supabaseData.keywords || '';
+        clientData.numero_contenidos_blog = supabaseData.numero_contenidos_blog || 0;
+        clientData.frecuencia_mensual_blog = supabaseData.frecuencia_mensual_blog || '';
+        clientData.numero_contenidos_rrss = supabaseData.numero_contenidos_rrss || 0;
+        clientData.frecuencia_mensual_rrss = supabaseData.frecuencia_mensual_rrss || '';
+        clientData.porcentaje_educar = supabaseData.porcentaje_educar ?? 25;
+        clientData.porcentaje_inspirar = supabaseData.porcentaje_inspirar ?? 25;
+        clientData.porcentaje_entretener = supabaseData.porcentaje_entretener ?? 25;
+        clientData.porcentaje_promocionar = supabaseData.porcentaje_promocionar ?? 25;
+        clientData.verticales_interes = supabaseData.verticales_interes || '';
+        clientData.audiencia_no_deseada = supabaseData.audiencia_no_deseada || '';
+        clientData.estilo_comunicacion = supabaseData.estilo_comunicacion || '';
+        clientData.tono_voz = supabaseData.tono_voz || '';
+
+        localStorage.setItem(clientStorageKey, JSON.stringify(clientData));
+        console.log(`✅ Client ${clientId} data synchronized from Supabase to localStorage`);
+
+      } else {
+        console.log(`ℹ️ No data found in Supabase for client ${clientId}`);
+      }
+    } catch (error) {
+      console.error('❌ Error loading client from Supabase:', error);
+    }
+  }, []);
+
   useEffect(() => {
     setIsHydrated(true);
 
@@ -306,6 +402,14 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
     console.log('✅ All client configurations loaded from localStorage');
   }, []);
 
+  // Cargar datos desde Supabase cuando se selecciona un cliente
+  useEffect(() => {
+    if (selectedClientId && isHydrated) {
+      console.log(`🟡 Client selected: ${selectedClientId}, loading from Supabase...`);
+      loadClientFromSupabase(selectedClientId);
+    }
+  }, [selectedClientId, isHydrated, loadClientFromSupabase]);
+
 
 
   const updateClientField = (id: string, field: keyof Client, value: string) =>
@@ -359,6 +463,8 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
   const addExecutionId = (clientId: string, executionId: string) => {
     setClients(prev => prev.map(c => (c.id === clientId ? { ...c, executionIds: [executionId, ...c.executionIds.slice(0, 4)] } : c)));
   };
+
+
 
   const createExecution = useCallback((type: 'strategy' | 'ideas' | 'structure' | 'article', clientId: string, payload: any, result: any) => {
     const currentExecutionId = lastExecutionId + 1;
@@ -428,16 +534,18 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
       localStorage.setItem(clientStorageKey, JSON.stringify(clientDataToSave));
       console.log(`✅ Client ${clientId} data saved to localStorage with key: ${clientStorageKey}`);
 
-      // Save to Supabase table "clients"
+      // Save to Supabase table "clients" (usando la estructura real de la tabla)
       try {
         const supabaseData = {
-          id: client.id,
-          nombre: client.nombre || '',
+          // NO enviar 'id' porque es UUID auto-generado en Supabase
+          // Usar 'name' en lugar de 'nombre' (que es como está la tabla)
+          name: client.nombre || '',
           web: client.web || '',
           sector: client.sector || '',
           propuesta_valor: client.propuesta_valor || '',
           publico_objetivo: client.publico_objetivo || '',
-          keywords: client.keywords || '',
+          // Formatear keywords como PostgreSQL ARRAY - contiene comas
+          keywords: client.keywords ? client.keywords.split(',').map(k => k.trim()) : [],
           numero_contenidos_blog: client.numero_contenidos_blog || 0,
           frecuencia_mensual_blog: client.frecuencia_mensual_blog || '',
           numero_contenidos_rrss: client.numero_contenidos_rrss || 0,
@@ -449,20 +557,52 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
           verticales_interes: client.verticales_interes || '',
           audiencia_no_deseada: client.audiencia_no_deseada || '',
           estilo_comunicacion: client.estilo_comunicacion || '',
-          tono_voz: client.tono_voz || '',
-          workflow_id: client.workflowId || '',
-          updated_at: new Date().toISOString()
+          tono_voz: client.tono_voz || ''
         };
 
-        const { data, error: supabaseError } = await supabase
-          .from('clients')
-          .upsert(supabaseData, { onConflict: 'id' });
+        console.log(`📝 Attempting to save to Supabase:`, supabaseData);
+
+        // Verificar si ya existe un registro con mismo name y hacer UPDATE o INSERT según corresponda
+        // Usar maybeSingle() para manejar casos donde no existe el registro
+        let operationResult;
+
+        try {
+          // Intentar hacer UPDATE primero (si existe)
+          const updateResult = await supabase
+            .from('clients')
+            .update(supabaseData)
+            .eq('name', client.nombre)
+            .select('id');
+
+          console.log('Update result:', updateResult);
+
+          // Si el update afectó 0 filas (no existe), hacer INSERT
+          if (updateResult.data && updateResult.data.length === 0) {
+            console.log('No existing record found, doing INSERT instead');
+            operationResult = await supabase
+              .from('clients')
+              .insert([supabaseData]);
+          } else {
+            operationResult = updateResult;
+          }
+        } catch (error: any) {
+          console.log('Error during update, trying INSERT:', error);
+
+          // Si hay error en update, intentar INSERT
+          operationResult = await supabase
+            .from('clients')
+            .insert([supabaseData]);
+        }
+
+        const { data, error: supabaseError } = operationResult;
+
+        console.log(`💾 Supabase response:`, { data, error: supabaseError });
 
         if (supabaseError) {
-          console.warn(`⚠️ Client ${clientId} data saved to localStorage but Supabase failed:`, supabaseError);
+          console.error(`❌ Client ${clientId} data saved to localStorage but Supabase failed:`, supabaseError);
           // Don't return false here since localStorage save was successful
         } else {
-      console.log(`✅ Client ${clientId} data saved to Supabase table "clients"`);
+          console.log(`✅ Client ${clientId} data saved to Supabase table "clients" successfully:`, data);
         }
       } catch (supabaseError) {
         console.warn(`⚠️ Client ${clientId} data saved to localStorage but Supabase error:`, supabaseError);
@@ -524,6 +664,7 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
       defaultIdeas, setDefaultIdeas,
       globalInstructions, setGlobalInstructions,
       selectedClientId, setSelectedClientId,
+      loadClientFromSupabase,
       clients, updateClientField, saveClientData,
       addStrategy, addStrategies, addArticle,
       updateStrategy, updateArticle,
@@ -531,7 +672,7 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
       draftArticle, setDraftArticle,
       executions, lastExecutionId, createExecution
     }),
-    [defaultTone, defaultLength, defaultIdeas, globalInstructions, selectedClientId, clients, saveClientData, draftArticle, executions, lastExecutionId, createExecution]
+    [defaultTone, defaultLength, defaultIdeas, globalInstructions, selectedClientId, loadClientFromSupabase, clients, saveClientData, draftArticle, executions, lastExecutionId, createExecution]
   );
 
   return <ContentSettingsContext.Provider value={value}>{children}</ContentSettingsContext.Provider>;
