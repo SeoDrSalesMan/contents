@@ -237,15 +237,27 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
     try {
       console.log(`🔄 Loading client data from Supabase for ${clientId}`);
 
+      // 🆔 IMPORTANTE: Necesitamos verificar si hay usuario autenticado para RLS
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+      if (authError || !user) {
+        console.error('❌ Usuario no autenticado. RLS requiere autenticación para cargar de Supabase:', authError);
+        return;
+      }
+
+      console.log('✅ Usuario autenticado para carga:', user.id);
+
       // Para cargar datos, necesitamos buscar por el campo que tenemos disponible (name) en lugar de id
       // Como clientId viene del código del cliente, buscaremos por name correspondiente
       const client = clients.find(c => c.id === clientId);
       const clientName = client?.name || clientId;
 
+      // 🆔 CAMBIO: Usar RLS para cargar solo datos del usuario autenticado
       const { data: supabaseData, error } = await supabase
         .from('clients')
         .select('*')
         .eq('name', clientName)
+        .eq('created_by', user.id)  // <- RLS requiere filtro por created_by
         .single();
 
       if (error && error.code !== 'PGRST116') { // PGRST116 = No rows found
@@ -325,7 +337,7 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
     } catch (error) {
       console.error('❌ Error loading client from Supabase:', error);
     }
-  }, []);
+  }, [clients]);
 
   useEffect(() => {
     setIsHydrated(true);
@@ -493,6 +505,16 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
 
   const saveClientData = useCallback(async (clientId: string): Promise<boolean> => {
     try {
+      // 🆔 IMPORTANTE: Necesitamos verificar si hay usuario autenticado
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+      if (authError || !user) {
+        console.error('❌ Usuario no autenticado. RLS requiere autenticación para guardar en Supabase:', authError);
+        return false;
+      }
+
+      console.log('✅ Usuario autenticado:', user.id);
+
       const client = clients.find(c => c.id === clientId);
       if (!client) {
         console.error('Client not found');
@@ -534,11 +556,12 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
       localStorage.setItem(clientStorageKey, JSON.stringify(clientDataToSave));
       console.log(`✅ Client ${clientId} data saved to localStorage with key: ${clientStorageKey}`);
 
-      // Save to Supabase table "clients" (usando la estructura real de la tabla)
+      // Save to Supabase table "clients" (usando la estructura REAL de la tabla)
       try {
+        // 🆔 CAMBIO CRÍTICO: Agregamos created_by basado en el usuario autenticado
         const supabaseData = {
           // NO enviar 'id' porque es UUID auto-generado en Supabase
-          // Usar 'name' en lugar de 'nombre' (que es como está la tabla)
+          // Usar 'name' en lugar de 'nombre'
           name: client.nombre || '',
           web: client.web || '',
           sector: client.sector || '',
@@ -557,10 +580,15 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
           verticales_interes: client.verticales_interes || '',
           audiencia_no_deseada: client.audiencia_no_deseada || '',
           estilo_comunicacion: client.estilo_comunicacion || '',
-          tono_voz: client.tono_voz || ''
+          tono_voz: client.tono_voz || '',
+          // 🆔 CAMBIO CRÍTICO: Agregar el campo created_by requerido por el esquema
+          created_by: user.id  // <- Esto es lo que faltaba
         };
 
-        console.log(`📝 Attempting to save to Supabase:`, supabaseData);
+        console.log(`📝 Attempting to save to Supabase with auth:`, {
+          user: user.id,
+          data: supabaseData
+        });
 
         // Verificar si ya existe un registro con mismo name y hacer UPDATE o INSERT según corresponda
         // Usar maybeSingle() para manejar casos donde no existe el registro
