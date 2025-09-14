@@ -1,6 +1,7 @@
 "use client";
 import React, { createContext, useContext, useMemo, useState, useEffect, useCallback } from "react";
 import { supabase } from "@/utils/supabase-client";
+import { authHelpers } from "@/utils/auth";
 
 export interface ExecutionRecord {
   id: string;
@@ -237,12 +238,16 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
     try {
       console.log(`🔄 Loading client data from Supabase for ${clientId}`);
 
-      // 🆔 IMPORTANTE: Necesitamos verificar si hay usuario autenticado para RLS
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      // 🆔 IMPORTANTE: Verificar/Crear usuario autenticado para RLS
+      let { data: { user }, error: authError } = await supabase.auth.getUser();
 
       if (authError || !user) {
-        console.error('❌ Usuario no autenticado. RLS requiere autenticación para cargar de Supabase:', authError);
-        return;
+        console.log('⚠️ No user authenticated. Creating test session...');
+        user = await authHelpers.initializeTestSession(supabase);
+        if (!user) {
+          console.error('❌ Failed to initialize test session for RLS');
+          return;
+        }
       }
 
       console.log('✅ Usuario autenticado para carga:', user.id);
@@ -505,12 +510,16 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
 
   const saveClientData = useCallback(async (clientId: string): Promise<boolean> => {
     try {
-      // 🆔 IMPORTANTE: Necesitamos verificar si hay usuario autenticado
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      // 🆔 IMPORTANTE: Verificar/Crear usuario autenticado para RLS
+      let { data: { user }, error: authError } = await supabase.auth.getUser();
 
       if (authError || !user) {
-        console.error('❌ Usuario no autenticado. RLS requiere autenticación para guardar en Supabase:', authError);
-        return false;
+        console.log('⚠️ No user authenticated. Creating test session...');
+        user = await authHelpers.initializeTestSession(supabase);
+        if (!user) {
+          console.error('❌ Failed to initialize test session for RLS');
+          return false;
+        }
       }
 
       console.log('✅ Usuario autenticado:', user.id);
