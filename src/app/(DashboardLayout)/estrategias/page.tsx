@@ -15,7 +15,9 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TableRow
+  TableRow,
+  Checkbox,
+  TableSortLabel
 } from "@mui/material";
 
 import {
@@ -23,7 +25,11 @@ import {
   IconTarget,
   IconChartBar,
   IconTrendingUp,
-  IconUsers
+  IconUsers,
+  IconDownload,
+  IconCheck,
+  IconDeviceFloppy,
+  IconAlertCircle
 } from "@tabler/icons-react";
 import { useContentSettings } from "../components/content/ContentSettingsContext";
 
@@ -32,6 +38,8 @@ export default function EstrategiasPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedStrategies, setGeneratedStrategies] = useState<any[]>([]);
   const [message, setMessage] = useState('');
+  const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
+  const [isSaving, setIsSaving] = useState(false);
 
   const clienteDisplayNames = {
     distrito_legal: 'Distrito Legal',
@@ -42,6 +50,191 @@ export default function EstrategiasPage() {
 
   const getClienteDisplayName = (cliente: string) => {
     return clienteDisplayNames[cliente as keyof typeof clienteDisplayNames] || cliente;
+  };
+
+  const exportToCSV = () => {
+    if (generatedStrategies.length === 0) {
+      alert('No hay estrategias generadas para exportar');
+      return;
+    }
+
+    let csvContent = 'Cliente,Ejecución ID,Estado,Fecha de Creación,';
+
+    // Add table headers from the first strategy if available
+    let allRows: any[] = [];
+
+    generatedStrategies.forEach((strategy) => {
+      const strategyResults = parseMarkdownTable(
+        strategy.webhookResult && typeof strategy.webhookResult === 'string'
+          ? strategy.webhookResult
+          : strategy.webhookResult?.output ||
+            (Array.isArray(strategy.webhookResult) && strategy.webhookResult[0]?.output) ||
+            strategy.webhookResult?.response ||
+            strategy.webhookResult?.data ||
+            JSON.stringify(strategy.webhookResult, null, 2)
+      );
+
+      // Add table headers
+      if (strategyResults.length > 0 && csvContent === 'Cliente,Ejecución ID,Estado,Fecha de Creación,') {
+        const firstRow = strategyResults[0];
+        const headers = ['Fecha', 'Canal', 'Tipo', 'Formato', 'Título', 'Copy', 'CTA', 'Hashtags'].filter(header =>
+          Object.keys(firstRow).some(key =>
+            key.toLowerCase().includes(header.toLowerCase())
+          )
+        );
+        csvContent += headers.join(',') + '\n';
+      }
+
+      // Add strategy metadata
+      const strategyMetadata = `${getClienteDisplayName(strategy.cliente)},${strategy.executionId || 'N/A'},${strategy.estado},${new Date(strategy.createdAt).toLocaleString()},`;
+
+      strategyResults.forEach((row: any) => {
+        const csvRow = [
+          row.fecha || row.date || '',
+          row.canal || row.channel || '',
+          row.pilar || '',
+          row.formato || row.format || '',
+          `"${(row.tema_titulo || row.titulo || row.title || '').replace(/"/g, '""')}"`,
+          `"${(row.copy || row.texto || '').replace(/"/g, '""')}"`,
+          row.cta || '',
+          row.hashtags || ''
+        ];
+        allRows.push(strategyMetadata + csvRow.join(','));
+      });
+    });
+
+    csvContent += allRows.join('\n');
+
+    // Create and download the file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `estrategias_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Función para generar un ID único para cada fila
+  const generateRowId = (strategyId: string, rowIndex: number) => {
+    return `${strategyId}-${rowIndex}`;
+  };
+
+  // Función para manejar selección/deselección de fila
+  const handleRowSelect = (rowId: string) => {
+    const newSelectedRows = new Set(selectedRows);
+    if (newSelectedRows.has(rowId)) {
+      newSelectedRows.delete(rowId);
+    } else {
+      newSelectedRows.add(rowId);
+    }
+    setSelectedRows(newSelectedRows);
+  };
+
+  // Función para seleccionar/deseleccionar todas las filas
+  const handleSelectAll = () => {
+    if (selectedRows.size === getAllRowIds().length) {
+      // Deseleccionar todas
+      setSelectedRows(new Set());
+    } else {
+      // Seleccionar todas
+      setSelectedRows(new Set(getAllRowIds()));
+    }
+  };
+
+  // Función para obtener todos los IDs de filas disponibles
+  const getAllRowIds = () => {
+    const allIds: string[] = [];
+    generatedStrategies.forEach((strategy) => {
+      const strategyResults = parseMarkdownTable(
+        strategy.webhookResult && typeof strategy.webhookResult === 'string'
+          ? strategy.webhookResult
+          : strategy.webhookResult?.output ||
+            (Array.isArray(strategy.webhookResult) && strategy.webhookResult[0]?.output) ||
+            strategy.webhookResult?.response ||
+            strategy.webhookResult?.data ||
+            JSON.stringify(strategy.webhookResult, null, 2)
+      );
+      strategyResults.forEach((_, index) => {
+        allIds.push(generateRowId(strategy.id, index));
+      });
+    });
+    return allIds;
+  };
+
+  // Función para guardar las filas seleccionadas
+  const saveSelectedRows = async () => {
+    if (selectedRows.size === 0) {
+      setMessage('Selecciona al menos una fila para guardar');
+      return;
+    }
+
+    if (!selectedClientId) {
+      setMessage('Seleccione un cliente primero');
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      // Importar supabase-client
+      const { supabase } = await import("@/utils/supabase-client");
+
+      const rowsToSave: any[] = [];
+
+      generatedStrategies.forEach((strategy) => {
+        const strategyResults = parseMarkdownTable(
+          strategy.webhookResult && typeof strategy.webhookResult === 'string'
+            ? strategy.webhookResult
+            : strategy.webhookResult?.output ||
+              (Array.isArray(strategy.webhookResult) && strategy.webhookResult[0]?.output) ||
+              strategy.webhookResult?.response ||
+              strategy.webhookResult?.data ||
+              JSON.stringify(strategy.webhookResult, null, 2)
+        );
+
+        strategyResults.forEach((row: any, index: number) => {
+          const rowId = generateRowId(strategy.id, index);
+          if (selectedRows.has(rowId)) {
+            rowsToSave.push({
+              cliente: getClienteDisplayName(selectedClientId),
+              execution_id: strategy.executionId,
+              estado: strategy.estado,
+              fecha: row.fecha ? new Date(row.fecha).toISOString().split('T')[0] : null,
+              canal: Array.isArray(row.canal) ? row.canal : (row.canal ? [row.canal] : []),
+              pilar: row.pilar || null,
+              formato: row.formato || null,
+              titulo: row.tema_titulo || row.titulo || row.title || null,
+              copy: row.copy || row.texto || null,
+              cta: row.cta || null,
+              hashtags: row.hashtags || null
+            });
+          }
+        });
+      });
+
+      // Insertar en base de datos
+      const { data, error } = await supabase
+        .from('estrategias')
+        .insert(rowsToSave);
+
+      if (error) {
+        console.error('Error saving to database:', error);
+        setMessage('Error al guardar en la base de datos');
+        return;
+      }
+
+      setMessage(`✅ ${rowsToSave.length} fila(s) guardada(s) correctamente en la base de datos`);
+      setSelectedRows(new Set());
+
+    } catch (error) {
+      console.error('Error saving rows:', error);
+      setMessage('Error al guardar las filas');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const parseMarkdownTable = (markdown: string): any[] => {
@@ -158,7 +351,7 @@ export default function EstrategiasPage() {
       };
 
       setGeneratedStrategies(prev => [newStrategy, ...prev]);
-      setMessage(`Estrategia generada correctamente para ${getClienteDisplayName(selectedClientId)}. Ejecución ${execution.executionId}`);
+      setMessage(`Estrategia generada correctamente para ${getClienteDisplayName(selectedClientId)}. ${execution.executionId}`);
 
     } catch (error) {
       console.error('Error calling webhook:', error);
@@ -286,10 +479,28 @@ export default function EstrategiasPage() {
       {/* Generated Strategies */}
       {generatedStrategies.length > 0 && (
         <Paper sx={{ p: 3, borderRadius: 2 }}>
-          <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <IconTrendingUp size={20} />
-            Estrategias Generadas ({generatedStrategies.length})
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+            <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <IconTrendingUp size={20} />
+              Estrategias Generadas ({generatedStrategies.length})
+            </Typography>
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<IconDownload />}
+              onClick={exportToCSV}
+              sx={{
+                borderColor: 'primary.main',
+                color: 'primary.main',
+                '&:hover': {
+                  backgroundColor: 'primary.main',
+                  color: 'white'
+                }
+              }}
+            >
+              Exportar CSV
+            </Button>
+          </Box>
 
           <Stack spacing={2}>
             {generatedStrategies.map((strategy) => (
@@ -335,13 +546,13 @@ export default function EstrategiasPage() {
                     Activada: {new Date(strategy.createdAt).toLocaleString()}
                   </Typography>
 
-                  {strategy.workflowUrl && (
+                 {/*  {strategy.workflowUrl && (
                     <Typography variant="body2" color="primary" sx={{ mt: 1 }}>
-                      <strong>Workflow:</strong> <a href={strategy.workflowUrl} target="_blank" rel="noopener noreferrer">
+                      <strong></strong> <a href={strategy.workflowUrl} target="_blank" rel="noopener noreferrer">
                         Ver ejecución {strategy.executionId}
                       </a>
                     </Typography>
-                  )}
+                  )} */}
 
                   {(() => {
                     console.log('🔍 Analyzing webhook response:', strategy.webhookResult);
@@ -378,16 +589,58 @@ export default function EstrategiasPage() {
                     if (strategyResults.length > 0) {
                       return (
                         <Box sx={{ mt: 2 }}>
-                          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: 'success.main' }}>
-                            ✅ Tabla parseada correctamente ({strategyResults.length} elementos)
-                          </Typography>
-                          <TableContainer sx={{ maxHeight: 400, overflow: 'auto' }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'success.main' }}>
+                              ✅ {strategyResults.length} elementos
+                            </Typography>
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                              <Button
+                                variant="outlined"
+                                size="small"
+                                startIcon={<IconDeviceFloppy />}
+                                onClick={saveSelectedRows}
+                                disabled={selectedRows.size === 0 || isSaving}
+                                sx={{
+                                  borderColor: 'success.main',
+                                  color: selectedRows.size === 0 ? 'grey.500' : 'success.main',
+                                  '&:hover': {
+                                    backgroundColor: 'success.main',
+                                    color: 'white',
+                                    borderColor: 'success.main'
+                                  },
+                                  '&.Mui-disabled': {
+                                    color: 'grey.400',
+                                    borderColor: 'grey.300'
+                                  }
+                                }}
+                              >
+                                {isSaving ? (
+                                  <>
+                                    <CircularProgress size={14} sx={{ mr: 1 }} />
+                                    Guardando...
+                                  </>
+                                ) : (
+                                  `Guardar (${selectedRows.size})`
+                                )}
+                              </Button>
+                            </Box>
+                          </Box>
+                          <TableContainer>
                             <Table size="small" sx={{ minWidth: 800 }}>
                               <TableHead>
                                 <TableRow sx={{ bgcolor: 'grey.100' }}>
+                                  <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', width: '50px' }}>
+                                    <Checkbox
+                                      size="small"
+                                      checked={selectedRows.size === getAllRowIds().length && getAllRowIds().length > 0}
+                                      indeterminate={selectedRows.size > 0 && selectedRows.size < getAllRowIds().length}
+                                      onChange={handleSelectAll}
+                                      sx={{ p: 0 }}
+                                    />
+                                  </TableCell>
                                   <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem' }}>Fecha</TableCell>
                                   <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem' }}>Canal</TableCell>
-                                  <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem' }}>Pilar</TableCell>
+                                  <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem' }}>Tipo</TableCell>
                                   <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem' }}>Formato</TableCell>
                                   <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 150 }}>Título</TableCell>
                                   <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 200 }}>Copy</TableCell>
@@ -396,22 +649,37 @@ export default function EstrategiasPage() {
                                 </TableRow>
                               </TableHead>
                               <TableBody>
-                                {strategyResults.map((row, index) => (
-                                  <TableRow key={index} sx={{ '&:nth-of-type(even)': { bgcolor: 'grey.50' } }}>
-                                    <TableCell sx={{ fontSize: '0.8rem' }}>{row.fecha || '-'}</TableCell>
-                                    <TableCell sx={{ fontSize: '0.8rem' }}>{row.canal || '-'}</TableCell>
-                                    <TableCell sx={{ fontSize: '0.8rem' }}>{row.pilar || '-'}</TableCell>
-                                    <TableCell sx={{ fontSize: '0.8rem' }}>{row.formato || '-'}</TableCell>
-                                    <TableCell sx={{ fontSize: '0.8rem', maxWidth: 150 }}>
-                                      {row.tema_titulo || row.titulo || '-'}
-                                    </TableCell>
-                                    <TableCell sx={{ fontSize: '0.8rem', maxWidth: 200 }}>
-                                      {row.copy || row.texto || '-'}
-                                    </TableCell>
-                                    <TableCell sx={{ fontSize: '0.8rem' }}>{row.cta || '-'}</TableCell>
-                                    <TableCell sx={{ fontSize: '0.8rem' }}>{row.hashtags || '-'}</TableCell>
-                                  </TableRow>
-                                ))}
+                                {strategyResults.map((row: any, index: number) => {
+                                  const rowId = generateRowId(strategy.id, index);
+                                  const isSelected = selectedRows.has(rowId);
+                                  return (
+                                    <TableRow key={index} sx={{
+                                      '&:nth-of-type(even)': { bgcolor: 'grey.50' },
+                                      bgcolor: isSelected ? 'action.selected' : 'inherit'
+                                    }}>
+                                      <TableCell sx={{ fontSize: '0.8rem', width: '50px', p: 0.5 }}>
+                                        <Checkbox
+                                          size="small"
+                                          checked={isSelected}
+                                          onChange={() => handleRowSelect(rowId)}
+                                          sx={{ p: 0 }}
+                                        />
+                                      </TableCell>
+                                      <TableCell sx={{ fontSize: '0.8rem' }}>{row.fecha || '-'}</TableCell>
+                                      <TableCell sx={{ fontSize: '0.8rem' }}>{row.canal || '-'}</TableCell>
+                                      <TableCell sx={{ fontSize: '0.8rem' }}>{row.pilar || '-'}</TableCell>
+                                      <TableCell sx={{ fontSize: '0.8rem' }}>{row.formato || '-'}</TableCell>
+                                      <TableCell sx={{ fontSize: '0.8rem', maxWidth: 150 }}>
+                                        {row.tema_titulo || row.titulo || '-'}
+                                      </TableCell>
+                                      <TableCell sx={{ fontSize: '0.8rem', maxWidth: 200 }}>
+                                        {row.copy || row.texto || '-'}
+                                      </TableCell>
+                                      <TableCell sx={{ fontSize: '0.8rem' }}>{row.cta || '-'}</TableCell>
+                                      <TableCell sx={{ fontSize: '0.8rem' }}>{row.hashtags || '-'}</TableCell>
+                                    </TableRow>
+                                  );
+                                })}
                               </TableBody>
                             </Table>
                           </TableContainer>

@@ -181,7 +181,7 @@ export default function ClientsList({ onClientSelect }: { onClientSelect?: (clie
                 <IconButton
                   size="small"
                   color="error"
-                  onClick={() => handleDeleteClient(client.id, client.nombre)}
+                  onClick={() => handleDeleteClient(client.id, client.nombre ?? '')}
                 >
                   <DeleteIcon />
                 </IconButton>

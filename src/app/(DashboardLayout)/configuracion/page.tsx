@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { Box, TextField, Button, Alert, Snackbar, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { Typography, LinearProgress } from '@mui/material';
-import GridLegacy from "@mui/material/GridLegacy";
+import Grid from "@mui/material/Grid";
+import GridLegacy from "@mui/material/GridLegacy"; // Keep import temporarily for backward compatibility
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
 import { useContentSettings, Client } from '@/app/(DashboardLayout)/components/content/ContentSettingsContext';
@@ -302,6 +303,23 @@ const ClientManager = () => {
             >
               DATOS DEL CLIENTE
             </Typography>
+
+            {/* Información de solución de problemas */}
+            <Alert severity="info" sx={{ mb: 4, borderRadius: 2 }}>
+              <Typography variant="h6" sx={{ mb: 1 }}>🔧 Punto de Depuración de Supabase</Typography>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                <strong>Errores identificados:</strong>
+              </Typography>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                • <strong>406 (Not Acceptable):</strong> Error al consultar tabla `clients` - Revisar RLS en Supabase
+              </Typography>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                • <strong>403 (Forbidden):</strong> Violación de política RLS en `client_members`
+              </Typography>
+              <Typography variant="body2">
+                • <strong>Solución:</strong> Revisar y ajustar políticas RLS en el panel de Supabase
+              </Typography>
+            </Alert>
 
             <GridLegacy container spacing={3} sx={{ mb: 4 }}>
               <GridLegacy item xs={12} md={6}>

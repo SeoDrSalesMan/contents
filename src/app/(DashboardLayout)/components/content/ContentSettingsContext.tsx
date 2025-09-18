@@ -91,16 +91,16 @@ interface ContentSettingsContextValue {
 const ContentSettingsContext = createContext<ContentSettingsContextValue | null>(null);
 
 const initialClients: Client[] = [
+
   {
-    id: "gran_gala_flamenco",
+    id: "grangala",
     name: "Gran Gala Flamenco",
     webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/gala",
     ideasWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/ideas-gala",
     structureWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/estructura-grangala",
     dataWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/datos-grangala",
     info: "Espectáculos flamencos en España. Enfoque cultural y turístico.",
-    // Nuevos campos con valores iniciales vacíos
-    nombre: "",
+    nombre: "Gran Gala Flamenco",
     web: "",
     sector: "",
     propuesta_valor: "",
@@ -120,7 +120,162 @@ const initialClients: Client[] = [
     tono_voz: "",
     strategies: [],
     articles: [],
-    workflowId: "j9lMwR2UTgqDsI1g",
+    workflowId: "",
+    executionIds: []
+  },
+  {
+    id: "deuda",
+    name: "Asociacion Deuda",
+    webhook: `https://content-generator.nv0ey8.easypanel.host/webhook/deuda`,
+    ideasWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/ideas-deuda`,
+    structureWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/estructura-deuda`,
+    dataWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/datos-deuda`,
+    info: "Asociación dedicada a ayudar con problemas de deuda en España.",
+    nombre: "Asociacion Deuda",
+    web: "",
+    sector: "Legal",
+    propuesta_valor: "Ayuda integral para resolver problemas de endeudamiento",
+    publico_objetivo: "Personas físicas y autónomos con problemas de deuda",
+    keywords: "",
+    numero_contenidos_blog: 0,
+    frecuencia_mensual_blog: "",
+    numero_contenidos_rrss: 0,
+    frecuencia_mensual_rrss: "",
+    porcentaje_educar: 25,
+    porcentaje_inspirar: 25,
+    porcentaje_entretener: 25,
+    porcentaje_promocionar: 25,
+    verticales_interes: "",
+    audiencia_no_deseada: "",
+    estilo_comunicacion: "",
+    tono_voz: "",
+    strategies: [],
+    articles: [],
+    workflowId: "",
+    executionIds: []
+  },
+  {
+    id: "estudiantes",
+    name: "Asociacion Estudiantes Extranjero",
+    webhook: `https://content-generator.nv0ey8.easypanel.host/webhook/estudiantes`,
+    ideasWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/ideas-estudiantes`,
+    structureWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/estructura-estudiantes`,
+    dataWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/datos-estudiantes`,
+    info: "Asociación para estudiantes internacionales en España.",
+    nombre: "Asociacion Estudiantes Extranjero",
+    web: "",
+    sector: "Educación",
+    propuesta_valor: "Apoyo integral para estudiantes internacionales",
+    publico_objetivo: "Estudiantes extranjeros en España",
+    keywords: "",
+    numero_contenidos_blog: 0,
+    frecuencia_mensual_blog: "",
+    numero_contenidos_rrss: 0,
+    frecuencia_mensual_rrss: "",
+    porcentaje_educar: 25,
+    porcentaje_inspirar: 25,
+    porcentaje_entretener: 25,
+    porcentaje_promocionar: 25,
+    verticales_interes: "",
+    audiencia_no_deseada: "",
+    estilo_comunicacion: "",
+    tono_voz: "",
+    strategies: [],
+    articles: [],
+    workflowId: "",
+    executionIds: []
+  },
+  {
+    id: "segunda",
+    name: "Nueva Ley Segunda Oportunidad",
+    webhook: `https://content-generator.nv0ey8.easypanel.host/webhook/segunda`,
+    ideasWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/ideas-segunda`,
+    structureWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/estructura-segunda`,
+    dataWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/datos-segunda`,
+    info: "Información sobre la nueva ley de segunda oportunidad en España.",
+    nombre: "Nueva Ley Segunda Oportunidad",
+    web: "",
+    sector: "Legal",
+    propuesta_valor: "Información completa sobre la ley de segunda oportunidad",
+    publico_objetivo: "Personas y empresas con problemas de deuda",
+    keywords: "",
+    numero_contenidos_blog: 0,
+    frecuencia_mensual_blog: "",
+    numero_contenidos_rrss: 0,
+    frecuencia_mensual_rrss: "",
+    porcentaje_educar: 25,
+    porcentaje_inspirar: 25,
+    porcentaje_entretener: 25,
+    porcentaje_promocionar: 25,
+    verticales_interes: "",
+    audiencia_no_deseada: "",
+    estilo_comunicacion: "",
+    tono_voz: "",
+    strategies: [],
+    articles: [],
+    workflowId: "",
+    executionIds: []
+  },
+  {
+    id: "sistemlab",
+    name: "SistemLab",
+    webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/sistemlab",
+    ideasWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/ideas-sistemlab",
+    structureWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/estructura-sistemlab",
+    dataWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/datos-sistemlab",
+    info: "Laboratorio de sistemas y tecnología. Enfoque técnico y profesional.",
+    nombre: "SistemLab",
+    web: "",
+    sector: "",
+    propuesta_valor: "",
+    publico_objetivo: "",
+    keywords: "",
+    numero_contenidos_blog: 0,
+    frecuencia_mensual_blog: "",
+    numero_contenidos_rrss: 0,
+    frecuencia_mensual_rrss: "",
+    porcentaje_educar: 25,
+    porcentaje_inspirar: 25,
+    porcentaje_entretener: 25,
+    porcentaje_promocionar: 25,
+    verticales_interes: "",
+    audiencia_no_deseada: "",
+    estilo_comunicacion: "",
+    tono_voz: "",
+    strategies: [],
+    articles: [],
+    workflowId: "",
+    executionIds: []
+  },
+  {
+    id: "comparador",
+    name: "Comparador Aprender Idiomas",
+    webhook: `https://content-generator.nv0ey8.easypanel.host/webhook/comparador`,
+    ideasWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/ideas-comparador`,
+    structureWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/estructura-comparador`,
+    dataWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/datos-comparador`,
+    info: "Comparador para aprender idiomas online.",
+    nombre: "Comparador Aprender Idiomas",
+    web: "",
+    sector: "Educación",
+    propuesta_valor: "Comparación Exhaustiva de academias y métodos de aprendizaje de idiomas",
+    publico_objetivo: "Personas interesadas en aprender idiomas",
+    keywords: "",
+    numero_contenidos_blog: 0,
+    frecuencia_mensual_blog: "",
+    numero_contenidos_rrss: 0,
+    frecuencia_mensual_rrss: "",
+    porcentaje_educar: 25,
+    porcentaje_inspirar: 25,
+    porcentaje_entretener: 25,
+    porcentaje_promocionar: 25,
+    verticales_interes: "",
+    audiencia_no_deseada: "",
+    estilo_comunicacion: "",
+    tono_voz: "",
+    strategies: [],
+    articles: [],
+    workflowId: "",
     executionIds: []
   },
   {
@@ -131,8 +286,7 @@ const initialClients: Client[] = [
     structureWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/estructura-distrito",
     dataWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/datos-distrito",
     info: "Servicios legales online en España. Enfoque profesional con tono formal.",
-    // Nuevos campos con valores iniciales vacíos
-    nombre: "",
+    nombre: "Distrito Legal",
     web: "",
     sector: "",
     propuesta_valor: "",
@@ -163,8 +317,7 @@ const initialClients: Client[] = [
     structureWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/estructura-neuron",
     dataWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/datos-neuron",
     info: "Rehabilitación neurológica avanzada. Público: pacientes y familiares.",
-    // Nuevos campos con valores iniciales vacíos
-    nombre: "",
+    nombre: "Neuron Rehab",
     web: "",
     sector: "",
     propuesta_valor: "",
@@ -186,39 +339,7 @@ const initialClients: Client[] = [
     articles: [],
     workflowId: "nUlAdnVfDwjnszRq",
     executionIds: []
-  },
-  {
-    id: "sistem_lab",
-    name: "SistemLab",
-    webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/sistemlab",
-    ideasWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/ideas-sistemlab",
-    structureWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/estructura-sistemlab",
-    dataWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/datos-sistemlab",
-    info: "Laboratorio de sistemas y tecnología. Enfoque técnico y profesional.",
-    // Nuevos campos con valores iniciales vacíos
-    nombre: "",
-    web: "",
-    sector: "",
-    propuesta_valor: "",
-    publico_objetivo: "",
-    keywords: "",
-    numero_contenidos_blog: 0,
-    frecuencia_mensual_blog: "",
-    numero_contenidos_rrss: 0,
-    frecuencia_mensual_rrss: "",
-    porcentaje_educar: 25,
-    porcentaje_inspirar: 25,
-    porcentaje_entretener: 25,
-    porcentaje_promocionar: 25,
-    verticales_interes: "",
-    audiencia_no_deseada: "",
-    estilo_comunicacion: "",
-    tono_voz: "",
-    strategies: [],
-    articles: [],
-    workflowId: "sistemlab",
-    executionIds: []
-  },
+  }
 ];
 
 export function ContentSettingsProvider({ children }: { children: React.ReactNode }) {
@@ -239,16 +360,12 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
     try {
       console.log(`🔄 Loading client data from Supabase for ${clientId}`);
 
-      // 🆔 IMPORTANTE: Verificar/Crear usuario autenticado para RLS
+      // 🆔 IMPORTANTE: Verificar usuario autenticado para RLS
       let { data: { user }, error: authError } = await supabase.auth.getUser();
 
       if (authError || !user) {
-        console.log('⚠️ No user authenticated. Creating test session...');
-        user = await authHelpers.initializeTestSession(supabase);
-        if (!user) {
-          console.error('❌ Failed to initialize test session for RLS');
-          return;
-        }
+        console.error('❌ No user authenticated. User must log in first');
+        return;
       }
 
       console.log('✅ Usuario autenticado para carga:', user.id);
@@ -525,16 +642,12 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
 
   const saveClientData = useCallback(async (clientId: string): Promise<boolean> => {
     try {
-      // 🆔 IMPORTANTE: Verificar/Crear usuario autenticado para RLS
+      // 🆔 IMPORTANTE: Verificar usuario autenticado para RLS
       let { data: { user }, error: authError } = await supabase.auth.getUser();
 
       if (authError || !user) {
-        console.log('⚠️ No user authenticated. Creating test session...');
-        user = await authHelpers.initializeTestSession(supabase);
-        if (!user) {
-          console.error('❌ Failed to initialize test session for RLS');
-          return false;
-        }
+        console.error('❌ No user authenticated. User must log in first');
+        return false;
       }
 
       console.log('✅ Usuario autenticado:', user.id);

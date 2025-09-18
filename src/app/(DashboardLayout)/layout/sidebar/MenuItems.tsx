@@ -21,7 +21,7 @@ const Menuitems = [
     id: uniqueId(),
     title: "Estrategias",
     icon: IconTent,
-    href: "/estrategias",
+    href: "/",
   },
      {
     navlabel: true,
@@ -31,7 +31,7 @@ const Menuitems = [
     id: uniqueId(),
     title: "Ideas",
     icon: IconLayoutDashboard,
-    href: "/",
+    href: "/ideas",
   },
 
  /*  {
