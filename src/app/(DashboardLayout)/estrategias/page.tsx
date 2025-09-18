@@ -45,7 +45,11 @@ export default function EstrategiasPage() {
     distrito_legal: 'Distrito Legal',
     neuron: 'Neuron',
     sistem_lab: 'Sistem Lab',
-    gran_gala_flamenco: 'Gran Gala Flamenco'
+    gran_gala_flamenco: 'Gran Gala Flamenco',
+    deuda: 'Asociacion Deuda',
+    estudiantes: 'Asociacion Estudiantes Extranjero',
+    segunda: 'Nueva Ley Segunda Oportunidad',
+    comparador: 'Comparador Aprender Idiomas'
   };
 
   const getClienteDisplayName = (cliente: string) => {
@@ -304,18 +308,40 @@ export default function EstrategiasPage() {
       return;
     }
 
-    const webhookUrls = {
+    const webhookUrls: Record<string, string> = {
       distrito_legal: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-distrito',
-      neuron: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-neuron',
+      neuron: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-neuron',      
       sistem_lab: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-sistemlab',
-      gran_gala_flamenco: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-grangala'
+      gran_gala_flamenco: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-grangala',
+      deuda: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-deuda',
+      estudiantes: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-estudiantes',
+      segunda: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-segunda',
+      comparador: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-comparador'
     };
 
     setIsGenerating(true);
     setMessage('');
 
     try {
-      const response = await fetch(`${webhookUrls[selectedClientId as keyof typeof webhookUrls]}`, {
+      // 🔍 DEBUG: Log webhook lookup
+      console.log('🟡 Debugging webhook lookup:');
+      console.log('  selectedClientId:', selectedClientId);
+      console.log('  available webhook keys:', Object.keys(webhookUrls));
+      console.log('  webhook URL found:', webhookUrls[selectedClientId] || 'UNDEFINED');
+
+      if (!webhookUrls[selectedClientId]) {
+        const shortClientId = selectedClientId.replace('_rehab', '').replace('_legal', '');
+        console.log('🔄 Trying shortened ID:', shortClientId);
+        console.log('  Found webhook:', webhookUrls[shortClientId] || 'UNDEFINED');
+      }
+
+      const selectedWebhookUrl = webhookUrls[selectedClientId] || webhookUrls[selectedClientId.replace('_rehab', '').replace('_legal', '')];
+
+      if (!selectedWebhookUrl) {
+        throw new Error(`No webhook found for client: ${selectedClientId}`);
+      }
+
+      const response = await fetch(`${selectedWebhookUrl}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

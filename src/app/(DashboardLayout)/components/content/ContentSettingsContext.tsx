@@ -93,14 +93,107 @@ const ContentSettingsContext = createContext<ContentSettingsContextValue | null>
 const initialClients: Client[] = [
 
   {
+    id: "distrito_legal",
+    name: "Distrito Legal",
+    webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/distrito",
+    ideasWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/ideas-distrito",
+    structureWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/estructura-distrito",
+    dataWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/datos-distrito",
+    info: "Servicios legales online en España. Enfoque profesional con tono formal.",
+    nombre: "Distrito Legal",
+    web: "",
+    sector: "",
+    propuesta_valor: "",
+    publico_objetivo: "",
+    keywords: "",
+    numero_contenidos_blog: 0,
+    frecuencia_mensual_blog: "",
+    numero_contenidos_rrss: 0,
+    frecuencia_mensual_rrss: "",
+    porcentaje_educar: 25,
+    porcentaje_inspirar: 25,
+    porcentaje_entretener: 25,
+    porcentaje_promocionar: 25,
+    verticales_interes: "",
+    audiencia_no_deseada: "",
+    estilo_comunicacion: "",
+    tono_voz: "",
+    strategies: [],
+    articles: [],
+    workflowId: "zQw5IM51uOdywlMD",
+    executionIds: ["300", "299", "298"]
+  },
+  {
     id: "grangala",
     name: "Gran Gala Flamenco",
     webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/gala",
     ideasWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/ideas-gala",
     structureWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/estructura-grangala",
     dataWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/datos-grangala",
-    info: "Espectáculos flamencos en España. Enfoque cultural y turístico.",
+    info: "Espectaculo prefesional de Flamenco",
     nombre: "Gran Gala Flamenco",
+    web: "",
+    sector: "",
+    propuesta_valor: "",
+    publico_objetivo: "",
+    keywords: "",
+    numero_contenidos_blog: 0,
+    frecuencia_mensual_blog: "",
+    numero_contenidos_rrss: 0,
+    frecuencia_mensual_rrss: "",
+    porcentaje_educar: 25,
+    porcentaje_inspirar: 25,
+    porcentaje_entretener: 25,
+    porcentaje_promocionar: 25,
+    verticales_interes: "",
+    audiencia_no_deseada: "",
+    estilo_comunicacion: "",
+    tono_voz: "",
+    strategies: [],
+    articles: [],
+    workflowId: "",
+    executionIds: []
+  },
+  {
+    id: "neuron_rehab",
+    name: "Neuron Rehab",
+    webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/neuron",
+    ideasWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/ideas-neuron",
+    structureWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/estructura-neuron",
+    dataWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/datos-neuron",
+    info: "Rehabilitación neurológica avanzada. Público: pacientes y familiares.",
+    nombre: "Neuron Rehab",
+    web: "",
+    sector: "",
+    propuesta_valor: "",
+    publico_objetivo: "",
+    keywords: "",
+    numero_contenidos_blog: 0,
+    frecuencia_mensual_blog: "",
+    numero_contenidos_rrss: 0,
+    frecuencia_mensual_rrss: "",
+    porcentaje_educar: 25,
+    porcentaje_inspirar: 25,
+    porcentaje_entretener: 25,
+    porcentaje_promocionar: 25,
+    verticales_interes: "",
+    audiencia_no_deseada: "",
+    estilo_comunicacion: "",
+    tono_voz: "",
+    strategies: [],
+    articles: [],
+    workflowId: "nUlAdnVfDwjnszRq",
+    executionIds: []
+  },
+  {
+    id: "sistemlab",
+    name: "SistemLab",
+    webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/sistemlab",
+    ideasWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/ideas-sistemlab",
+    structureWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/estructura-sistemlab",
+    dataWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/datos-sistemlab",
+    info: "Laboratorio de sistemas y tecnología. Enfoque técnico y profesional.",
+    nombre: "SistemLab",
     web: "",
     sector: "",
     propuesta_valor: "",
@@ -151,7 +244,7 @@ const initialClients: Client[] = [
     tono_voz: "",
     strategies: [],
     articles: [],
-    workflowId: "",
+    workflowId: "UaWhybYUFKHNbyvs",
     executionIds: []
   },
   {
@@ -216,37 +309,7 @@ const initialClients: Client[] = [
     workflowId: "",
     executionIds: []
   },
-  {
-    id: "sistemlab",
-    name: "SistemLab",
-    webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/sistemlab",
-    ideasWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/ideas-sistemlab",
-    structureWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/estructura-sistemlab",
-    dataWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/datos-sistemlab",
-    info: "Laboratorio de sistemas y tecnología. Enfoque técnico y profesional.",
-    nombre: "SistemLab",
-    web: "",
-    sector: "",
-    propuesta_valor: "",
-    publico_objetivo: "",
-    keywords: "",
-    numero_contenidos_blog: 0,
-    frecuencia_mensual_blog: "",
-    numero_contenidos_rrss: 0,
-    frecuencia_mensual_rrss: "",
-    porcentaje_educar: 25,
-    porcentaje_inspirar: 25,
-    porcentaje_entretener: 25,
-    porcentaje_promocionar: 25,
-    verticales_interes: "",
-    audiencia_no_deseada: "",
-    estilo_comunicacion: "",
-    tono_voz: "",
-    strategies: [],
-    articles: [],
-    workflowId: "",
-    executionIds: []
-  },
+  
   {
     id: "comparador",
     name: "Comparador Aprender Idiomas",
@@ -277,69 +340,7 @@ const initialClients: Client[] = [
     articles: [],
     workflowId: "",
     executionIds: []
-  },
-  {
-    id: "distrito_legal",
-    name: "Distrito Legal",
-    webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/distrito",
-    ideasWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/ideas-distrito",
-    structureWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/estructura-distrito",
-    dataWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/datos-distrito",
-    info: "Servicios legales online en España. Enfoque profesional con tono formal.",
-    nombre: "Distrito Legal",
-    web: "",
-    sector: "",
-    propuesta_valor: "",
-    publico_objetivo: "",
-    keywords: "",
-    numero_contenidos_blog: 0,
-    frecuencia_mensual_blog: "",
-    numero_contenidos_rrss: 0,
-    frecuencia_mensual_rrss: "",
-    porcentaje_educar: 25,
-    porcentaje_inspirar: 25,
-    porcentaje_entretener: 25,
-    porcentaje_promocionar: 25,
-    verticales_interes: "",
-    audiencia_no_deseada: "",
-    estilo_comunicacion: "",
-    tono_voz: "",
-    strategies: [],
-    articles: [],
-    workflowId: "zQw5IM51uOdywlMD",
-    executionIds: ["300", "299", "298"]
-  },
-  {
-    id: "neuron_rehab",
-    name: "Neuron Rehab",
-    webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/neuron",
-    ideasWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/ideas-neuron",
-    structureWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/estructura-neuron",
-    dataWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/datos-neuron",
-    info: "Rehabilitación neurológica avanzada. Público: pacientes y familiares.",
-    nombre: "Neuron Rehab",
-    web: "",
-    sector: "",
-    propuesta_valor: "",
-    publico_objetivo: "",
-    keywords: "",
-    numero_contenidos_blog: 0,
-    frecuencia_mensual_blog: "",
-    numero_contenidos_rrss: 0,
-    frecuencia_mensual_rrss: "",
-    porcentaje_educar: 25,
-    porcentaje_inspirar: 25,
-    porcentaje_entretener: 25,
-    porcentaje_promocionar: 25,
-    verticales_interes: "",
-    audiencia_no_deseada: "",
-    estilo_comunicacion: "",
-    tono_voz: "",
-    strategies: [],
-    articles: [],
-    workflowId: "nUlAdnVfDwjnszRq",
-    executionIds: []
-  }
+  }  
 ];
 
 export function ContentSettingsProvider({ children }: { children: React.ReactNode }) {
@@ -354,6 +355,7 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
   const [draftArticle, setDraftArticle] = useState<{ title: string; structure: string } | null>(null);
   const [executions, setExecutions] = useState<ExecutionRecord[]>([]);
   const [lastExecutionId, setLastExecutionId] = useState<number>(352);
+  const [clientLoadingStates, setClientLoadingStates] = useState<Record<string, boolean>>({});
 
   // Función para cargar datos de cliente desde Supabase (definida antes de los useEffect)
   const loadClientFromSupabase = useCallback(async (clientId: string): Promise<void> => {
@@ -375,12 +377,11 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
       const client = clients.find(c => c.id === clientId);
       const clientName = client?.name || clientId;
 
-      // 🆔 CAMBIO: Usar RLS para cargar solo datos del usuario autenticado
+      // 🆔 CAMBIO: Usar nueva tabla clients_prod que no tiene conflictos RLS
       const { data: supabaseData, error } = await supabase
-        .from('clients')
+        .from('clients_prod')
         .select('*')
         .eq('name', clientName)
-        .eq('created_by', user.id)  // <- RLS requiere filtro por created_by
         .single();
 
       if (error && error.code !== 'PGRST116') { // PGRST116 = No rows found
@@ -727,37 +728,16 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
           data: supabaseData
         });
 
-        // 🔄 NUEVA LÓGICA: INSERT PRIMERO, UPDATE SI YA EXISTE
-        let operationResult;
+        // 🔄 LOGICA MEJORADA: Usar upsert desde el principio para evitar bloqueos
+        console.log('🔄 Using upsert for clients_prod to prevent save issues');
+        const operationResult = await supabase
+          .from('clients_prod')
+          .upsert(supabaseData, {
+            onConflict: 'name,created_by',
+            ignoreDuplicates: false
+          });
 
-        try {
-          // Intentar INSERT primero (para nuevos clientes)
-          console.log('🔄 Attempting INSERT for new client');
-          operationResult = await supabase
-            .from('clients')
-            .insert([supabaseData]);
-
-          console.log('✅ INSERT successful:', operationResult);
-
-        } catch (error: any) {
-          console.log('⚠️ INSERT failed, checking if client already exists:', error);
-
-          // Si el INSERT falla por unique constraint (23505), intentar UPDATE
-          if (error.code === '23505') {
-            console.log('🔄 Client exists, doing UPDATE instead');
-
-            // Para UPDATE, usar upsert con onConflict para manejar conflictos de unicidad
-            operationResult = await supabase
-              .from('clients')
-              .upsert(supabaseData, {
-                onConflict: 'name,created_by',  // Columnas que determinan unicidad
-                ignoreDuplicates: false
-              });
-          } else {
-            // Si no es error de unicidad, tirar el error original
-            throw error;
-          }
-        }
+        console.log('✅ Upsert successful:', operationResult);
 
         const { data, error: supabaseError } = operationResult;
 
@@ -767,7 +747,7 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
           console.error(`❌ Client ${clientId} data saved to localStorage but Supabase failed:`, supabaseError);
           // Don't return false here since localStorage save was successful
         } else {
-          console.log(`✅ Client ${clientId} data saved to Supabase table "clients" successfully:`, data);
+          console.log(`✅ Client ${clientId} data saved to Supabase table "clients_prod" successfully:`, data);
         }
       } catch (supabaseError) {
         console.warn(`⚠️ Client ${clientId} data saved to localStorage but Supabase error:`, supabaseError);

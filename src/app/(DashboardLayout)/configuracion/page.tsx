@@ -26,7 +26,9 @@ const ClientManager = () => {
         console.log(`📥 Found saved data for ${clientId}:`, {
           nombre: parsedData.nombre,
           sector: parsedData.sector,
-          keywords: parsedData.keywords?.substring(0, 50),
+          keywords: Array.isArray(parsedData.keywords)
+            ? parsedData.keywords.join(', ').substring(0, 50)
+            : (parsedData.keywords || '').substring(0, 50),
           frecuencia_mensual_blog: parsedData.frecuencia_mensual_blog
         });
         return parsedData;
@@ -224,7 +226,13 @@ const ClientManager = () => {
       console.log(`📊 Current client data:`, {
         nombre: savedData?.nombre || client.nombre || 'N/A',
         sector: savedData?.sector || client.sector || 'N/A',
-        keywords: (savedData?.keywords || client.keywords || '').substring(0, 50)
+        keywords: (() => {
+          const keywordsValue = savedData?.keywords || client.keywords || '';
+          if (Array.isArray(keywordsValue)) {
+            return keywordsValue.join(', ').substring(0, 50);
+          }
+          return (keywordsValue || '').substring(0, 50);
+        })()
       });
     }
   }, [client, selectedClientId, clients]); // React to changes in client, selectedClientId, and clients array
