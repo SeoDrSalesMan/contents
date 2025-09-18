@@ -44,7 +44,7 @@ export default function EstrategiasPage() {
   const clienteDisplayNames = {
     distrito_legal: 'Distrito Legal',
     neuron: 'Neuron',
-    sistem_lab: 'Sistem Lab',
+    sistemlab: 'Sistem Lab',
     gran_gala_flamenco: 'Gran Gala Flamenco',
     deuda: 'Asociacion Deuda',
     estudiantes: 'Asociacion Estudiantes Extranjero',
@@ -311,7 +311,7 @@ export default function EstrategiasPage() {
     const webhookUrls: Record<string, string> = {
       distrito_legal: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-distrito',
       neuron: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-neuron',      
-      sistem_lab: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-sistemlab',
+      sistemlab: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-sistemlab',
       gran_gala_flamenco: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-grangala',
       deuda: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-deuda',
       estudiantes: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-estudiantes',
