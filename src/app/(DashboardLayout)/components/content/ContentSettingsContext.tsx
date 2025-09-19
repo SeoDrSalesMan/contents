@@ -90,6 +90,18 @@ interface ContentSettingsContextValue {
 
 const ContentSettingsContext = createContext<ContentSettingsContextValue | null>(null);
 
+// Static mapping from clientId to client name for Supabase queries
+const clientNameMap: Record<string, string> = {
+  "distrito_legal": "Distrito Legal",
+  "grangala": "Gran Gala Flamenco",
+  "neuron_rehab": "Neuron Rehab",
+  "sistemlab": "SistemLab",
+  "deuda": "Asociacion Deuda",
+  "estudiantes": "Asociacion Estudiantes Extranjero",
+  "segunda": "Nueva Ley Segunda Oportunidad",
+  "comparador": "Comparador Aprender Idiomas"
+};
+
 const initialClients: Client[] = [
 
   {
@@ -373,13 +385,12 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
       console.log('✅ Usuario autenticado para carga:', user.id);
 
       // Para cargar datos, necesitamos buscar por el campo que tenemos disponible (name) en lugar de id
-      // Como clientId viene del código del cliente, buscaremos por name correspondiente
-      const client = clients.find(c => c.id === clientId);
-      const clientName = client?.name || clientId;
+      // Como clientId viene del código del cliente, buscaremos por name correspondiente usando el map estático
+      const clientName = clientNameMap[clientId] || clientId;
 
-      // 🆔 CAMBIO: Usar nueva tabla clients_prod que no tiene conflictos RLS
+      // Use the clients table to load data
       const { data: supabaseData, error } = await supabase
-        .from('clients_prod')
+        .from('clients')
         .select('*')
         .eq('name', clientName)
         .single();
@@ -461,7 +472,7 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
     } catch (error) {
       console.error('❌ Error loading client from Supabase:', error);
     }
-  }, [clients]);
+  }, []);
 
   // 🔍 Ejecutar diagnóstico de Supabase al inicializar
   useEffect(() => {
@@ -643,33 +654,17 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
 
   const saveClientData = useCallback(async (clientId: string): Promise<boolean> => {
     try {
-      // 🆔 IMPORTANTE: Verificar usuario autenticado para RLS
-      let { data: { user }, error: authError } = await supabase.auth.getUser();
-
-      if (authError || !user) {
-        console.error('❌ No user authenticated. User must log in first');
-        return false;
-      }
-
-      console.log('✅ Usuario autenticado:', user.id);
+      console.log(`💾 Starting save process for client: ${clientId}`);
 
       const client = clients.find(c => c.id === clientId);
       if (!client) {
-        console.error('Client not found');
-        return false;
+        console.error('❌ Client not found');
+        throw new Error('Client not found');
       }
 
-      // Save each client individually to localStorage using client-specific key
-      const clientStorageKey = `client_${clientId}_config`;
+      // Prepare client data for API
       const clientDataToSave = {
-        id: client.id,
-        name: client.name,
-        webhook: client.webhook,
-        ideasWebhook: client.ideasWebhook,
-        structureWebhook: client.structureWebhook,
-        dataWebhook: client.dataWebhook,
-        info: client.info,
-        // Client-specific configuration fields
+        clientId: client.id,
         nombre: client.nombre,
         web: client.web,
         sector: client.sector,
@@ -680,122 +675,85 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
         frecuencia_mensual_blog: client.frecuencia_mensual_blog,
         numero_contenidos_rrss: client.numero_contenidos_rrss,
         frecuencia_mensual_rrss: client.frecuencia_mensual_rrss,
+        porcentaje_educar: client.porcentaje_educar,
+        porcentaje_inspirar: client.porcentaje_inspirar,
+        porcentaje_entretener: client.porcentaje_entretener,
+        porcentaje_promocionar: client.porcentaje_promocionar,
         verticales_interes: client.verticales_interes,
         audiencia_no_deseada: client.audiencia_no_deseada,
         estilo_comunicacion: client.estilo_comunicacion,
-        tono_voz: client.tono_voz,
-        // Global fields that shouldn't be overwritten
+        tono_voz: client.tono_voz
+      };
+
+      console.log(`📤 Sending data to API:`, clientDataToSave);
+
+      // Save to Supabase via API route (server-side)
+      const response = await fetch('/api/clients', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(clientDataToSave)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('❌ API error:', errorData);
+        throw new Error(errorData.error || 'Failed to save to API');
+      }
+
+      const apiResult = await response.json();
+      console.log('✅ API response:', apiResult);
+
+      // Save to localStorage as backup and for immediate access
+      const clientStorageKey = `client_${clientId}_config`;
+      const localStorageData = {
+        id: client.id,
+        name: client.name,
+        webhook: client.webhook,
+        ideasWebhook: client.ideasWebhook,
+        structureWebhook: client.structureWebhook,
+        dataWebhook: client.dataWebhook,
+        info: client.info,
+        // Include all the saved fields
+        ...clientDataToSave,
+        // Keep global fields
         strategies: client.strategies,
         articles: client.articles,
         workflowId: client.workflowId,
-        executionIds: client.executionIds
+        executionIds: client.executionIds,
+        // Timestamp for versioning
+        savedAt: new Date().toISOString()
       };
 
-      localStorage.setItem(clientStorageKey, JSON.stringify(clientDataToSave));
-      console.log(`✅ Client ${clientId} data saved to localStorage with key: ${clientStorageKey}`);
-
-      // Save to Supabase table "clients" (usando la estructura REAL de la tabla)
-      try {
-        // 🆔 CAMBIO CRÍTICO: Mapear campos correctamente al esquema de Supabase
-        const supabaseData = {
-          // ✅ NO enviar 'id' - Dejar que Supabase genere UUID automáticamente
-          // ✅ Usar 'name' como identificador único
-          name: client.nombre || '',  // El nombre del cliente va aquí
-          web: client.web || '',
-          sector: client.sector || '',
-          propuesta_valor: client.propuesta_valor || '',
-          publico_objetivo: client.publico_objetivo || '',
-          // Formatear keywords como PostgreSQL ARRAY - contiene comas
-          keywords: client.keywords ? client.keywords.split(',').map(k => k.trim()) : [],
-          numero_contenidos_blog: client.numero_contenidos_blog || 0,
-          frecuencia_mensual_blog: client.frecuencia_mensual_blog || '',
-          numero_contenidos_rrss: client.numero_contenidos_rrss || 0,
-          frecuencia_mensual_rrss: client.frecuencia_mensual_rrss || '',
-          porcentaje_educar: client.porcentaje_educar || 0,
-          porcentaje_inspirar: client.porcentaje_inspirar || 0,
-          porcentaje_entretener: client.porcentaje_entretener || 0,
-          porcentaje_promocionar: client.porcentaje_promocionar || 0,
-          verticales_interes: client.verticales_interes || '',
-          audiencia_no_deseada: client.audiencia_no_deseada || '',
-          estilo_comunicacion: client.estilo_comunicacion || '',
-          tono_voz: client.tono_voz || '',
-          // 🆔 CAMBIO CRÍTICO: Agregar el campo created_by requerido por el esquema
-          created_by: user.id,  // <- Necesario para foreign key constraint
-        };
-
-        console.log(`📝 Attempting to save to Supabase with auth:`, {
-          user: user.id,
-          data: supabaseData
-        });
-
-        // 🔄 LOGICA MEJORADA: Usar upsert desde el principio para evitar bloqueos
-        console.log('🔄 Using upsert for clients_prod to prevent save issues');
-        const operationResult = await supabase
-          .from('clients_prod')
-          .upsert(supabaseData, {
-            onConflict: 'name,created_by',
-            ignoreDuplicates: false
-          });
-
-        console.log('✅ Upsert successful:', operationResult);
-
-        const { data, error: supabaseError } = operationResult;
-
-        console.log(`💾 Supabase response:`, { data, error: supabaseError });
-
-        if (supabaseError) {
-          console.error(`❌ Client ${clientId} data saved to localStorage but Supabase failed:`, supabaseError);
-          // Don't return false here since localStorage save was successful
-        } else {
-          console.log(`✅ Client ${clientId} data saved to Supabase table "clients_prod" successfully:`, data);
-        }
-      } catch (supabaseError) {
-        console.warn(`⚠️ Client ${clientId} data saved to localStorage but Supabase error:`, supabaseError);
-        // Don't return false here since localStorage save was successful
-      }
+      localStorage.setItem(clientStorageKey, JSON.stringify(localStorageData));
+      console.log(`✅ Client ${clientId} data saved to localStorage`);
 
       // Try to send to webhook if available
       if (client.dataWebhook) {
         try {
-          const response = await fetch(client.dataWebhook, {
+          console.log(`📤 Sending to webhook: ${client.dataWebhook}`);
+          const webhookResponse = await fetch(client.dataWebhook, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-              clientId: client.id,
-              nombre: client.nombre,
-              web: client.web,
-              sector: client.sector,
-              propuesta_valor: client.propuesta_valor,
-              publico_objetivo: client.publico_objetivo,
-              keywords: client.keywords,
-              numero_contenidos_blog: client.numero_contenidos_blog,
-              frecuencia_mensual_blog: client.frecuencia_mensual_blog,
-              numero_contenidos_rrss: client.numero_contenidos_rrss,
-              frecuencia_mensual_rrss: client.frecuencia_mensual_rrss,
-              verticales_interes: client.verticales_interes,
-              audiencia_no_deseada: client.audiencia_no_deseada,
-              estilo_comunicacion: client.estilo_comunicacion,
-              tono_voz: client.tono_voz,
-            })
+            body: JSON.stringify(clientDataToSave)
           });
 
-          if (response.ok) {
-            console.log('✅ Client data saved to both localStorage and webhook');
-            return true;
+          if (webhookResponse.ok) {
+            console.log('✅ Data sent to webhook successfully');
           } else {
-            console.warn(`⚠️ Client ${clientId} data saved to localStorage but webhook failed:`, response.statusText);
-            return true; // Still return true since localStorage save worked
+            console.warn(`⚠️ Webhook failed:`, webhookResponse.statusText);
           }
         } catch (webhookError) {
-          console.warn(`⚠️ Client ${clientId} data saved to localStorage but webhook error:`, webhookError);
-          return true; // Still return true since localStorage save worked
+          console.warn(`⚠️ Webhook error:`, webhookError);
         }
-      } else {
-        console.log(`✅ Client ${clientId} data saved to localStorage (no webhook configured)`);
-        return true;
       }
+
+      console.log(`✅ Client ${clientId} saved successfully to Supabase and localStorage`);
+      return true;
+
     } catch (error) {
       console.error('❌ Error saving client data:', error);
       return false;
