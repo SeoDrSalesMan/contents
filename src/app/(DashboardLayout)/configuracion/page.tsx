@@ -313,6 +313,8 @@ const ClientManager = () => {
             </Typography>
 
             {/* Información de solución de problemas */}
+
+         {/*    
             <Alert severity="info" sx={{ mb: 4, borderRadius: 2 }}>
               <Typography variant="h6" sx={{ mb: 1 }}>🔧 Punto de Depuración</Typography>
               <Typography variant="body2" sx={{ mb: 1 }}>
@@ -327,7 +329,8 @@ const ClientManager = () => {
               <Typography variant="body2">
                 • <strong>Solución:</strong> Revisar y ajustar políticas RLS en el panel de Supabase
               </Typography>
-            </Alert>
+            </Alert> 
+             */}
 
             <GridLegacy container spacing={3} sx={{ mb: 4 }}>
               <GridLegacy item xs={12} md={6}>

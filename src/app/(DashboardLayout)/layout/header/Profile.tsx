@@ -56,33 +56,81 @@ const Profile = () => {
   };
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
     const getUserData = async () => {
       try {
-        const { data: { user: supabaseUser }, error } = await supabase.auth.getUser();
+        console.log('🔍 Profile component: Getting user data...');
+
+        // Add timeout to prevent infinite loading
+        const timeoutPromise = new Promise((_, reject) => {
+          timeoutId = setTimeout(() => reject(new Error('Auth timeout')), 10000); // 10s timeout
+        });
+
+        const authPromise = supabase.auth.getUser();
+
+        const authResult = await Promise.race([authPromise, timeoutPromise]) as Awaited<ReturnType<typeof supabase.auth.getUser>>;
+        const { data: { user: supabaseUser }, error } = authResult;
+
+        clearTimeout(timeoutId);
+
+        console.log('🔍 Profile component: Auth result:', {
+          hasUser: !!supabaseUser,
+          error: error?.message,
+          email: supabaseUser?.email
+        });
 
         if (error || !supabaseUser) {
+          console.log('⚠️ Profile component: No authenticated user');
           setUser(null);
           return;
         }
 
-        // Get user profile from profiles table
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', supabaseUser.id)
-          .single();
+        // Get user profile from profiles table with timeout
+        try {
+          console.log('🔍 Profile component: Fetching profile data...');
 
-        if (profileError) {
-          console.warn('Profile not found:', profileError);
+          const profileTimeoutId = setTimeout(() => {
+            throw new Error('Profile query timeout');
+          }, 5000); // 5s timeout for profile query
+
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('full_name, avatar_url')
+            .eq('id', supabaseUser.id)
+            .single();
+
+          clearTimeout(profileTimeoutId);
+
+          if (profileError && profileError.code !== 'PGRST116') {
+            console.warn('⚠️ Profile component: Profile query error:', profileError.message);
+          }
+
+          const userData = {
+            email: supabaseUser.email || '',
+            full_name: profile?.full_name || supabaseUser.email?.split('@')[0] || 'Usuario',
+            avatar_url: profile?.avatar_url || supabaseUser.user_metadata?.avatar_url,
+          };
+
+          console.log('✅ Profile component: User data loaded:', {
+            email: userData.email,
+            fullName: userData.full_name,
+            hasAvatar: !!userData.avatar_url
+          });
+
+          setUser(userData);
+        } catch (profileFetchError) {
+          console.warn('⚠️ Profile component: Profile fetch failed, using basic user data:', profileFetchError);
+
+          // Fallback to basic user data if profile fails
+          setUser({
+            email: supabaseUser.email || '',
+            full_name: supabaseUser.email?.split('@')[0] || 'Usuario',
+            avatar_url: supabaseUser.user_metadata?.avatar_url,
+          });
         }
-
-        setUser({
-          email: supabaseUser.email || '',
-          full_name: profile?.full_name || supabaseUser.email?.split('@')[0] || 'Usuario',
-          avatar_url: profile?.avatar_url || supabaseUser.user_metadata?.avatar_url,
-        });
       } catch (error) {
-        console.error('Error getting user data:', error);
+        console.error('❌ Profile component: Auth error:', error);
         setUser(null);
       } finally {
         setLoading(false);
