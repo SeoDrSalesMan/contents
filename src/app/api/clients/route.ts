@@ -5,13 +5,35 @@ import { Database } from '@/utils/supabase-client'
 type ClientRow = Database['public']['Tables']['clients']['Row']
 type ClientInsert = Database['public']['Tables']['clients']['Insert']
 
-// GET /api/clients - Fetch all clients
+// GET /api/clients - Fetch all clients or specific client by name
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
     const limit = parseInt(searchParams.get('limit') || '50')
     const offset = parseInt(searchParams.get('offset') || '0')
+    const clientName = searchParams.get('clientName')
 
+    // If clientName is provided, fetch only that specific client
+    if (clientName) {
+      console.log(`🔍 Fetching specific client: ${clientName}`);
+      const { data: client, error } = await supabaseServer
+        .from('clients')
+        .select('*')
+        .eq('name', clientName)
+        .single()
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 = not found
+        console.error('Error fetching specific client:', error)
+        return NextResponse.json({ error: error.message }, { status: 500 })
+      }
+
+      return NextResponse.json({
+        data: client ? [client] : [], // Return as array for consistency
+        count: client ? 1 : 0
+      })
+    }
+
+    // Otherwise, fetch all clients with pagination
     const { data: clients, error, count } = await supabaseServer
       .from('clients')
       .select('*', { count: 'exact' })
@@ -131,8 +153,6 @@ export async function POST(request: NextRequest) {
       console.log('✅ Client created successfully');
       return NextResponse.json({ success: true, data, operation: 'insert' }, { status: 201 });
     }
-
-    // This code is unreachable and should be removed
 
   } catch (err) {
     console.error('Server error:', err)

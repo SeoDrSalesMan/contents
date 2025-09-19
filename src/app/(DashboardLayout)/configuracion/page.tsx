@@ -314,7 +314,7 @@ const ClientManager = () => {
 
             {/* Información de solución de problemas */}
             <Alert severity="info" sx={{ mb: 4, borderRadius: 2 }}>
-              <Typography variant="h6" sx={{ mb: 1 }}>🔧 Punto de Depuración de Supabase</Typography>
+              <Typography variant="h6" sx={{ mb: 1 }}>🔧 Punto de Depuración</Typography>
               <Typography variant="body2" sx={{ mb: 1 }}>
                 <strong>Errores identificados:</strong>
               </Typography>

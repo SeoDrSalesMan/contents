@@ -374,36 +374,35 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
     try {
       console.log(`🔄 Loading client data from Supabase for ${clientId}`);
 
-      // 🆔 IMPORTANTE: Verificar usuario autenticado para RLS
-      let { data: { user }, error: authError } = await supabase.auth.getUser();
-
-      if (authError || !user) {
-        console.error('❌ No user authenticated. User must log in first');
-        return;
-      }
-
-      console.log('✅ Usuario autenticado para carga:', user.id);
-
-      // Para cargar datos, necesitamos buscar por el campo que tenemos disponible (name) en lugar de id
-      // Como clientId viene del código del cliente, buscaremos por name correspondiente usando el map estático
+      // Get the client name for the API call
       const clientName = clientNameMap[clientId] || clientId;
 
-      // Use the clients table to load data
-      const { data: supabaseData, error } = await supabase
-        .from('clients')
-        .select('*')
-        .eq('name', clientName)
-        .single();
+      // Use API route to load data (bypasses RLS issues in production)
+      console.log('🔍 Loading client data via API...');
+      const response = await fetch(`/api/clients?clientName=${encodeURIComponent(clientName)}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 = No rows found
-        console.error('Error loading from Supabase:', error);
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('❌ API error loading client:', errorData);
         return;
       }
 
-      if (supabaseData) {
-        console.log(`✅ Loaded client data from Supabase:`, supabaseData);
+      const result = await response.json();
+      console.log(`📋 API response:`, result);
 
-        // Actualizar el estado del cliente con los datos de Supabase
+      // Find the specific client data
+      const clientsData = result.data || [];
+      const supabaseData = clientsData.find((client: any) => client.name === clientName);
+
+      if (supabaseData) {
+        console.log(`✅ Loaded client data from Supabase via API:`, supabaseData);
+
+        // Update the client state with data from Supabase
         setClients(prev => prev.map(c => {
           if (c.id === clientId) {
             return {
@@ -413,7 +412,7 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
               sector: supabaseData.sector || '',
               propuesta_valor: supabaseData.propuesta_valor || '',
               publico_objetivo: supabaseData.publico_objetivo || '',
-              // Tratar keywords como array si viene de Supabase, o convertir string si viene de localStorage
+              // Convert array keywords back to comma-separated string
               keywords: Array.isArray(supabaseData.keywords) ?
                 supabaseData.keywords.join(', ') :
                 (supabaseData.keywords || ''),
@@ -434,22 +433,26 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
           return c;
         }));
 
-        // También guardar en localStorage para mantener sincronización
+        // Sync to localStorage for offline availability
         const clientStorageKey = `client_${clientId}_config`;
-        const localData = localStorage.getItem(clientStorageKey);
-        let clientData: any = {};
+        const localData = localStorage.getItem(clientStorageKey) || '{}';
+        let clientData;
 
-        if (localData) {
+        try {
           clientData = JSON.parse(localData);
+        } catch {
+          clientData = {};
         }
 
-        // Actualizar con datos de Supabase
+        // Update with Supabase data
         clientData.nombre = supabaseData.name || '';
         clientData.web = supabaseData.web || '';
         clientData.sector = supabaseData.sector || '';
         clientData.propuesta_valor = supabaseData.propuesta_valor || '';
         clientData.publico_objetivo = supabaseData.publico_objetivo || '';
-        clientData.keywords = supabaseData.keywords || '';
+        clientData.keywords = Array.isArray(supabaseData.keywords) ?
+          supabaseData.keywords.join(', ') :
+          (supabaseData.keywords || '');
         clientData.numero_contenidos_blog = supabaseData.numero_contenidos_blog || 0;
         clientData.frecuencia_mensual_blog = supabaseData.frecuencia_mensual_blog || '';
         clientData.numero_contenidos_rrss = supabaseData.numero_contenidos_rrss || 0;
@@ -462,6 +465,8 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
         clientData.audiencia_no_deseada = supabaseData.audiencia_no_deseada || '';
         clientData.estilo_comunicacion = supabaseData.estilo_comunicacion || '';
         clientData.tono_voz = supabaseData.tono_voz || '';
+        clientData.loadedFromSupabase = true;
+        clientData.lastSync = new Date().toISOString();
 
         localStorage.setItem(clientStorageKey, JSON.stringify(clientData));
         console.log(`✅ Client ${clientId} data synchronized from Supabase to localStorage`);
