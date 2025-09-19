@@ -35,6 +35,33 @@ import { useContentSettings } from "../components/content/ContentSettingsContext
 
 export default function EstrategiasPage() {
   const { selectedClientId, createExecution, executions } = useContentSettings();
+
+      // Mapping directo de clientId a UUIDs reales existentes en tabla clients
+      const clientUuidMap: Record<string, string> = {
+        "distrito_legal": "8f4927f3-2c86-4a94-987c-83a6e0d18bdd",
+        "neur": "63677400-1726-4893-a0b2-13cddf4717eb",
+        "neuron": "63677400-1726-4893-a0b2-13cddf4717eb",
+        "neuron_rehab": "63677400-1726-4893-a0b2-13cddf4717eb",
+        "sistemlab": "19ffe861-dcf9-4cbe-aedf-cabb6f9463f9",
+        "gran_gala_flamenco": "07803765-6e64-476a-b9c7-8ff040f63555",
+        "grangala": "07803765-6e64-476a-b9c7-8ff040f63555",
+        "deuda": "4e59e433-a15d-40ca-b3d1-eefdaada9591",
+        "estudiantes": "3e5bba85-e027-4460-a6dc-91e1e4ec4eb5",
+        "segunda": "560dd32e-dd05-4a89-976a-3cb17b9616a8",
+        "comparador": "27a0547d-b50a-4253-b6b3-13bbc8700cc7"
+      };
+
+      // Mapping de clientId a nombres para display
+      const clientNameMap = {
+        "distrito_legal": "Distrito Legal",
+        "grangala": "Gran Gala Flamenco",
+        "neuron_rehab": "Neuron Rehab",
+        "sistemlab": "SistemLab",
+        "deuda": "Asociacion Deuda",
+        "estudiantes": "Asociacion Estudiantes Extranjero",
+        "segunda": "Nueva Ley Segunda Oportunidad",
+        "comparador": "Comparador Aprender Idiomas"
+      };
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedStrategies, setGeneratedStrategies] = useState<any[]>([]);
   const [message, setMessage] = useState('');
@@ -96,7 +123,7 @@ export default function EstrategiasPage() {
         const csvRow = [
           row.fecha || row.date || '',
           row.canal || row.channel || '',
-          row.pilar || '',
+          row.tipo || row.pilar || '',
           row.formato || row.format || '',
           `"${(row.tema_titulo || row.titulo || row.title || '').replace(/"/g, '""')}"`,
           `"${(row.copy || row.texto || '').replace(/"/g, '""')}"`,
@@ -203,12 +230,12 @@ export default function EstrategiasPage() {
           const rowId = generateRowId(strategy.id, index);
           if (selectedRows.has(rowId)) {
             rowsToSave.push({
-              cliente: getClienteDisplayName(selectedClientId),
+              client_id: selectedClientId,
               execution_id: strategy.executionId,
               estado: strategy.estado,
               fecha: row.fecha ? new Date(row.fecha).toISOString().split('T')[0] : null,
               canal: Array.isArray(row.canal) ? row.canal : (row.canal ? [row.canal] : []),
-              pilar: row.pilar || null,
+              tipo: row.pilar || row.tipo || null,
               formato: row.formato || null,
               titulo: row.tema_titulo || row.titulo || row.title || null,
               copy: row.copy || row.texto || null,
@@ -219,14 +246,46 @@ export default function EstrategiasPage() {
         });
       });
 
-      // Insertar en base de datos
+      console.log('📋 Guardando en tabla unificada: estrategias');
+      console.log('📊 Rows to save:', rowsToSave);
+
+      // Get the client UUID directly from the mapping
+      console.log('🔍 Looking up client UUID for:', selectedClientId);
+
+      const clientUuid = clientUuidMap[selectedClientId];
+
+      if (!clientUuid) {
+        console.error('❌ No UUID found for client:', selectedClientId);
+        console.error('🔍 Searched in mapping:', Object.keys(clientUuidMap));
+        setMessage(`Error: Cliente "${selectedClientId}" no encontrado en el mapeo de UUIDs.`);
+        return;
+      }
+
+      console.log('✅ Found client UUID in mapping:', clientUuid);
+
+      // Create client record object
+      const clientRecord = {
+        id: clientUuid,
+        name: clientNameMap[selectedClientId] || selectedClientId
+      };
+
+      // Update all rows with the proper client_id UUID
+      const rowsWithClientId = rowsToSave.map(row => ({
+        ...row,
+        client_id: clientRecord.id
+      }));
+
+      console.log('📊 Updated rows with client UUID, sample:', rowsWithClientId.slice(0, 1));
+
+      // Guardar en la tabla unificada "estrategias"
       const { data, error } = await supabase
         .from('estrategias')
-        .insert(rowsToSave);
+        .insert(rowsWithClientId);
 
       if (error) {
         console.error('Error saving to database:', error);
-        setMessage('Error al guardar en la base de datos');
+        console.error('Rows to save:', rowsToSave);
+        setMessage(`Error al guardar en la tabla estrategias. Ver detalles en consola.`);
         return;
       }
 
@@ -693,7 +752,7 @@ export default function EstrategiasPage() {
                                       </TableCell>
                                       <TableCell sx={{ fontSize: '0.8rem' }}>{row.fecha || '-'}</TableCell>
                                       <TableCell sx={{ fontSize: '0.8rem' }}>{row.canal || '-'}</TableCell>
-                                      <TableCell sx={{ fontSize: '0.8rem' }}>{row.pilar || '-'}</TableCell>
+                                      <TableCell sx={{ fontSize: '0.8rem' }}>{row.tipo || row.pilar || '-'}</TableCell>
                                       <TableCell sx={{ fontSize: '0.8rem' }}>{row.formato || '-'}</TableCell>
                                       <TableCell sx={{ fontSize: '0.8rem', maxWidth: 150 }}>
                                         {row.tema_titulo || row.titulo || '-'}
