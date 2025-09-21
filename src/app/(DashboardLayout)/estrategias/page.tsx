@@ -366,6 +366,38 @@ export default function EstrategiasPage() {
 
 
 
+  // Function to export a specific execution to CSV
+  const exportExecutionToCSV = (execution: any, clientName: string) => {
+    let csvContent = 'Cliente,Ejecución ID,Fecha,Canal,Tipo,Formato,Título,Copy,CTA,Hashtags\n';
+
+    execution.strategies.forEach((strategy: any) => {
+      const csvRow = [
+        clientName,
+        execution.execution_id,
+        strategy.fecha || '',
+        Array.isArray(strategy.canal) ? strategy.canal.join('; ') : strategy.canal || '',
+        strategy.tipo || '',
+        strategy.formato || '',
+        `"${(strategy.titulo || '').replace(/"/g, '""')}"`,
+        `"${(strategy.copy || '').replace(/"/g, '""')}"`,
+        strategy.cta || '',
+        strategy.hashtags || ''
+      ];
+      csvContent += csvRow.join(',') + '\n';
+    });
+
+    // Create and download the file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `estrategia_${execution.execution_id}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Fetch saved strategies on mount
   useEffect(() => {
     fetchSavedStrategies();
@@ -917,9 +949,28 @@ export default function EstrategiasPage() {
                             <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
                               Ejecutado: {execution.execution_id}
                             </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {execution.strategies.length} elementos
-                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                              <Typography variant="caption" color="text.secondary">
+                                {execution.strategies.length} elementos
+                              </Typography>
+                              <Button
+                                variant="outlined"
+                                size="small"
+                                startIcon={<IconDownload />}
+                                onClick={() => exportExecutionToCSV(execution, displayName)}
+                                sx={{
+                                  fontSize: '0.7rem',
+                                  borderColor: 'primary.main',
+                                  color: 'primary.main',
+                                  '&:hover': {
+                                    backgroundColor: 'primary.main',
+                                    color: 'white'
+                                  }
+                                }}
+                              >
+                                Exportar CSV
+                              </Button>
+                            </Box>
                           </Box>
 
                           <Table size="small">
