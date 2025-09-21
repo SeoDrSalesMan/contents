@@ -976,25 +976,49 @@ export default function EstrategiasPage() {
                           <Table size="small">
                             <TableHead>
                               <TableRow sx={{ bgcolor: 'grey.50' }}>
-                                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold', p: 0.5 }}>Fecha</TableCell>
-                                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold', p: 0.5 }}>Canal</TableCell>
-                                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold', p: 0.5 }}>Tipo</TableCell>
-                                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold', p: 0.5 }}>Título</TableCell>
-                                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold', p: 0.5 }}>CTA</TableCell>
+                                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold', py: 1 }}>Fecha</TableCell>
+                                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold', py: 1 }}>Canal</TableCell>
+                                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold', py: 1 }}>Tipo</TableCell>
+                                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold', py: 1 }}>Título</TableCell>
+                                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold', py: 1 }}>Copy</TableCell>
+                                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold', py: 1 }}>CTA</TableCell>
+                                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold', py: 1 }}>Hashtags</TableCell>
                               </TableRow>
                             </TableHead>
                             <TableBody>
                               {execution.strategies.map((strategy: any, strategyIndex: number) => (
-                                <TableRow key={strategyIndex}>
-                                  <TableCell sx={{ fontSize: '0.7rem', p: 0.5 }}>{strategy.fecha || '-'}</TableCell>
-                                  <TableCell sx={{ fontSize: '0.7rem', p: 0.5 }}>{Array.isArray(strategy.canal) ? strategy.canal.join(', ') : strategy.canal || '-'}</TableCell>
-                                  <TableCell sx={{ fontSize: '0.7rem', p: 0.5 }}>{strategy.tipo || '-'}</TableCell>
-                                  <TableCell sx={{ fontSize: '0.7rem', p: 0.5, maxWidth: 120 }}>
-                                    <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                <TableRow key={strategyIndex} sx={{ height: 'auto' }}>
+                                  <TableCell sx={{ fontSize: '0.7rem', py: 1 }}>{strategy.fecha || '-'}</TableCell>
+                                  <TableCell sx={{ fontSize: '0.7rem', py: 1 }}>{Array.isArray(strategy.canal) ? strategy.canal.join(', ') : strategy.canal || '-'}</TableCell>
+                                  <TableCell sx={{ fontSize: '0.7rem', py: 1 }}>{strategy.tipo || '-'}</TableCell>
+                                  <TableCell sx={{ fontSize: '0.7rem', py: 1, maxWidth: 120 }}>
+                                    <Box sx={{
+                                      wordWrap: 'break-word',
+                                      whiteSpace: 'normal',
+                                      lineHeight: 1.4
+                                    }}>
                                       {strategy.titulo || '-'}
                                     </Box>
                                   </TableCell>
-                                  <TableCell sx={{ fontSize: '0.7rem', p: 0.5 }}>{strategy.cta || '-'}</TableCell>
+                                  <TableCell sx={{ fontSize: '0.7rem', py: 1, maxWidth: 180 }}>
+                                    <Box sx={{
+                                      wordWrap: 'break-word',
+                                      whiteSpace: 'normal',
+                                      lineHeight: 1.4
+                                    }}>
+                                      {strategy.copy || '-'}
+                                    </Box>
+                                  </TableCell>
+                                  <TableCell sx={{ fontSize: '0.7rem', py: 1 }}>{strategy.cta || '-'}</TableCell>
+                                  <TableCell sx={{ fontSize: '0.7rem', py: 1, maxWidth: 140 }}>
+                                    <Box sx={{
+                                      wordWrap: 'break-word',
+                                      whiteSpace: 'normal',
+                                      lineHeight: 1.4
+                                    }}>
+                                      {strategy.hashtags || '-'}
+                                    </Box>
+                                  </TableCell>
                                 </TableRow>
                               ))}
                             </TableBody>
