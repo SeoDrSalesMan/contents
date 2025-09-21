@@ -1,12 +1,13 @@
 'use client';
 import React, { useState } from 'react';
-import { Box, TextField, Button, Alert, Snackbar, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Box, TextField, Button, Alert, Snackbar, FormControl, InputLabel, Select, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions, IconButton } from '@mui/material';
 import { Typography, LinearProgress } from '@mui/material';
 import Grid from "@mui/material/Grid";
 import GridLegacy from "@mui/material/GridLegacy"; // Keep import temporarily for backward compatibility
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
 import { useContentSettings, Client } from '@/app/(DashboardLayout)/components/content/ContentSettingsContext';
+import { IconUserPlus } from '@tabler/icons-react';
 
 const ClientManager = () => {
   const { clients, selectedClientId, updateClientField, saveClientData } = useContentSettings();
@@ -14,6 +15,15 @@ const ClientManager = () => {
   const [saving, setSaving] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
   const [formData, setFormData] = useState<any>(null);
+
+  // Nuevo cliente dialog states
+  const [newClientDialog, setNewClientDialog] = useState(false);
+  const [newClientData, setNewClientData] = useState({
+    name: '',
+    web: '',
+    sector: ''
+  });
+  const [creatingClient, setCreatingClient] = useState(false);
 
   // Function to load saved client configuration
   const loadSavedClientConfig = (clientId: string) => {
@@ -270,10 +280,100 @@ const ClientManager = () => {
   const estiloComunicacionOptions = ['Formal', 'Profesional', 'Casual', 'Amigable', 'Directo', 'Informativo', 'Persuasivo', 'Educativo'];
   const tonoVozOptions = ['Profesional', 'Amigable', 'Autosuficiente', 'Compasivo', 'Confidente', 'Transparente', 'Motivador', 'Empático'];
 
+  // Handlers for new client dialog
+  const handleOpenNewClientDialog = () => {
+    setNewClientDialog(true);
+    setNewClientData({ name: '', web: '', sector: '' });
+  };
+
+  const handleCloseNewClientDialog = () => {
+    setNewClientDialog(false);
+    setNewClientData({ name: '', web: '', sector: '' });
+  };
+
+  const handleCreateNewClient = async () => {
+    if (!newClientData.name.trim()) {
+      setSnackbar({ open: true, message: 'El nombre del cliente es obligatorio', severity: 'error' });
+      return;
+    }
+
+    setCreatingClient(true);
+
+    try {
+      const { supabase } = await import("@/utils/supabase-client");
+
+      // Create new client in database
+      const { data, error } = await supabase
+        .from('clients')
+        .insert({
+          name: newClientData.name.trim(),
+          web: newClientData.web.trim() || '',
+          sector: newClientData.sector || 'Tecnología',
+          propuesta_valor: '',
+          publico_objetivo: '',
+          keywords: [],
+          numero_contenidos_blog: 4,
+          frecuencia_mensual_blog: 'Semanal',
+          numero_contenidos_rrss: 12,
+          frecuencia_mensual_rrss: 'Semanal',
+          porcentaje_educar: 25,
+          porcentaje_inspirar: 25,
+          porcentaje_entretener: 25,
+          porcentaje_promocionar: 25,
+          verticales_interes: [],
+          audiencia_no_deseada: [],
+          estilo_comunicacion: 'Profesional',
+          tono_voz: 'Profesional'
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating client:', error);
+        setSnackbar({ open: true, message: `Error al crear cliente: ${error.message}`, severity: 'error' });
+        return;
+      }
+
+      setSnackbar({ open: true, message: `Cliente "${data.name}" creado exitosamente! \nLa página se actualizará automáticamente...`, severity: 'success' });
+      handleCloseNewClientDialog();
+
+      // Auto-select the new client and reload the page
+      console.log('✅ New client created:', data);
+
+      // Wait a moment for user to see success message, then reload
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+
+    } catch (error: any) {
+      console.error('Error creating new client:', error);
+      setSnackbar({ open: true, message: 'Error al crear el cliente', severity: 'error' });
+    } finally {
+      setCreatingClient(false);
+    }
+  };
+
   return (
     <PageContainer title="Configuración del Cliente" description="Gestiona la configuración detallada de tu cliente">
       <DashboardCard
         title={`Configuración del Cliente: ${client?.name || 'Seleccionar cliente'}`}
+        action={
+          <Button
+            variant="contained"
+            startIcon={<IconUserPlus size={18} />}
+            onClick={handleOpenNewClientDialog}
+            sx={{
+              fontSize: '0.875rem',
+              padding: '6px 16px',
+              backgroundColor: 'success.main',
+              '&:hover': {
+                backgroundColor: 'success.dark',
+              }
+            }}
+          >
+            Agregar Cliente
+          </Button>
+        }
       >
         {saving && <LinearProgress sx={{ mb: 2 }} />}
 
@@ -688,6 +788,76 @@ const ClientManager = () => {
             {snackbar.message}
           </Alert>
         </Snackbar>
+
+        {/* New Client Dialog */}
+        <Dialog
+          open={newClientDialog}
+          onClose={handleCloseNewClientDialog}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <IconUserPlus size={24} color="#2e7d32" />
+            Crear Nuevo Cliente
+          </DialogTitle>
+          <DialogContent>
+            <Box sx={{ pt: 2 }}>
+              <TextField
+                label="Nombre del Cliente *"
+                fullWidth
+                value={newClientData.name}
+                onChange={(e) => setNewClientData(prev => ({ ...prev, name: e.target.value }))}
+                sx={{ mb: 2 }}
+                placeholder="Ej: Mi Empresa SAS"
+                required
+              />
+              <TextField
+                label="Sitio Web"
+                fullWidth
+                value={newClientData.web}
+                onChange={(e) => setNewClientData(prev => ({ ...prev, web: e.target.value }))}
+                sx={{ mb: 2 }}
+                placeholder="https://www.miempresa.com"
+              />
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <InputLabel>Sector</InputLabel>
+                <Select
+                  value={newClientData.sector}
+                  label="Sector"
+                  onChange={(e) => setNewClientData(prev => ({ ...prev, sector: e.target.value }))}
+                >
+                  {sectorOptions.map(option => (
+                    <MenuItem key={option} value={option}>{option}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={handleCloseNewClientDialog}
+              disabled={creatingClient}
+              color="inherit"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleCreateNewClient}
+              variant="contained"
+              color="success"
+              disabled={creatingClient || !newClientData.name.trim()}
+              sx={{
+                minWidth: 120,
+                backgroundColor: 'success.main',
+                '&:hover': {
+                  backgroundColor: 'success.dark',
+                }
+              }}
+            >
+              {creatingClient ? 'Creando...' : 'Crear Cliente'}
+            </Button>
+          </DialogActions>
+        </Dialog>
       </DashboardCard>
     </PageContainer>
   );

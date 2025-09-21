@@ -17,7 +17,11 @@ import {
   TableHead,
   TableRow,
   Checkbox,
-  TableSortLabel
+  TableSortLabel,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Chip
 } from "@mui/material";
 
 import {
@@ -39,11 +43,10 @@ export default function EstrategiasPage() {
       // Mapping directo de clientId a UUIDs reales existentes en tabla clients
       const clientUuidMap: Record<string, string> = {
         "distrito_legal": "8f4927f3-2c86-4a94-987c-83a6e0d18bdd",
-        "neur": "63677400-1726-4893-a0b2-13cddf4717eb",
         "neuron": "63677400-1726-4893-a0b2-13cddf4717eb",
-        "neuron_rehab": "63677400-1726-4893-a0b2-13cddf4717eb",
+        /* "neuron_rehab": "63677400-1726-4893-a0b2-13cddf4717eb", */
         "sistemlab": "19ffe861-dcf9-4cbe-aedf-cabb6f9463f9",
-        "gran_gala_flamenco": "07803765-6e64-476a-b9c7-8ff040f63555",
+        /* "gran_gala_flamenco": "07803765-6e64-476a-b9c7-8ff040f63555", */
         "grangala": "07803765-6e64-476a-b9c7-8ff040f63555",
         "deuda": "4e59e433-a15d-40ca-b3d1-eefdaada9591",
         "estudiantes": "3e5bba85-e027-4460-a6dc-91e1e4ec4eb5",
@@ -55,7 +58,7 @@ export default function EstrategiasPage() {
       const clientNameMap = {
         "distrito_legal": "Distrito Legal",
         "grangala": "Gran Gala Flamenco",
-        "neuron_rehab": "Neuron Rehab",
+        "neuron": "Neuron Rehab",
         "sistemlab": "SistemLab",
         "deuda": "Asociacion Deuda",
         "estudiantes": "Asociacion Estudiantes Extranjero",
@@ -64,6 +67,8 @@ export default function EstrategiasPage() {
       };
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedStrategies, setGeneratedStrategies] = useState<any[]>([]);
+  const [savedStrategies, setSavedStrategies] = useState<Record<string, any[]>>({});
+  const [isLoadingSavedStrategies, setIsLoadingSavedStrategies] = useState(false);
   const [message, setMessage] = useState('');
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
   const [isSaving, setIsSaving] = useState(false);
@@ -72,7 +77,7 @@ export default function EstrategiasPage() {
     distrito_legal: 'Distrito Legal',
     neuron: 'Neuron',
     sistemlab: 'Sistem Lab',
-    gran_gala_flamenco: 'Gran Gala Flamenco',
+    grangala: 'Gran Gala Flamenco',
     deuda: 'Asociacion Deuda',
     estudiantes: 'Asociacion Estudiantes Extranjero',
     segunda: 'Nueva Ley Segunda Oportunidad',
@@ -266,7 +271,7 @@ export default function EstrategiasPage() {
       // Create client record object
       const clientRecord = {
         id: clientUuid,
-        name: clientNameMap[selectedClientId] || selectedClientId
+        name: (clientNameMap as any)[selectedClientId] || selectedClientId
       };
 
       // Update all rows with the proper client_id UUID
@@ -361,6 +366,64 @@ export default function EstrategiasPage() {
 
 
 
+  // Fetch saved strategies on mount
+  useEffect(() => {
+    fetchSavedStrategies();
+  }, []);
+
+  // Function to fetch last 10 saved strategies per client
+  const fetchSavedStrategies = async () => {
+    setIsLoadingSavedStrategies(true);
+    try {
+      const { supabase } = await import("@/utils/supabase-client");
+
+      const { data, error } = await supabase
+        .from('estrategias')
+        .select('execution_id, client_id, created_at, fecha, canal, tipo, formato, titulo, copy, cta, hashtags')
+        .order('execution_id', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(100); // Get enough to cover last 10 per client
+
+      if (error) {
+        console.error('Error fetching saved strategies:', error);
+        return;
+      }
+
+      // Group by client and take last 10 unique execution_ids per client
+      const groupedByClient: Record<string, any[]> = {};
+
+      data.forEach(strategy => {
+        const clientUuid = strategy.client_id as string;
+        const executionId = strategy.execution_id;
+
+        if (!groupedByClient[clientUuid]) {
+          groupedByClient[clientUuid] = [];
+        }
+
+        // Find if we already have this execution_id for this client
+        const existingExecution = groupedByClient[clientUuid].find(item => item.execution_id === executionId);
+
+        if (!existingExecution && groupedByClient[clientUuid].length < 10) {
+          groupedByClient[clientUuid].push({
+            execution_id: executionId,
+            strategies: [strategy] // Will collect all strategies for this execution
+          });
+        } else if (existingExecution) {
+          // Add to existing execution
+          existingExecution.strategies.push(strategy);
+        }
+      });
+
+      console.log('✅ Fetched saved strategies:', groupedByClient);
+      setSavedStrategies(groupedByClient);
+
+    } catch (error) {
+      console.error('Error loading saved strategies:', error);
+    } finally {
+      setIsLoadingSavedStrategies(false);
+    }
+  };
+
   const handleGenerateStrategy = async () => {
     if (!selectedClientId) {
       setMessage('Seleccione un cliente');
@@ -371,7 +434,7 @@ export default function EstrategiasPage() {
       distrito_legal: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-distrito',
       neuron: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-neuron',      
       sistemlab: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-sistemlab',
-      gran_gala_flamenco: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-grangala',
+      grangala: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-grangala',
       deuda: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-deuda',
       estudiantes: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-estudiantes',
       segunda: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-segunda',
@@ -802,6 +865,99 @@ export default function EstrategiasPage() {
         </Paper>
       )}
 
+      {/* Saved Strategies History */}
+      <Paper sx={{ p: 3, borderRadius: 2, mt: 4 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+          <IconCheck size={24} color="#2e7d32" />
+          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+            Historico de Estrategias Guardadas
+          </Typography>
+          {isLoadingSavedStrategies && <CircularProgress size={16} />}
+        </Box>
+
+        {Object.keys(savedStrategies).length === 0 ? (
+          <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+            No hay estrategias guardadas aún. Genera y guarda estrategias para ver el historial aquí.
+          </Typography>
+        ) : (
+          <Stack spacing={1}>
+            {Object.entries(savedStrategies).map(([clientUuid, executions]) => {
+              // Find the display name for this client UUID
+              const clientId = Object.keys(clientUuidMap).find(key => clientUuidMap[key] === clientUuid);
+              const displayName = getClienteDisplayName(clientId || clientUuid);
+
+              return executions.length > 0 ? (
+                <Accordion key={clientUuid} sx={{ mb: 1, borderRadius: 2 }}>
+                  <AccordionSummary
+                    expandIcon={<IconTrendingUp size={16} />}
+                    sx={{
+                      bgcolor: 'grey.50',
+                      borderRadius: 2,
+                      '&:hover': { bgcolor: 'grey.100' },
+                      '&.Mui-expanded': { bgcolor: 'primary.light', color: 'primary.contrastText' }
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                        {displayName}
+                      </Typography>
+                      <Chip
+                        label={`${executions.length} estrategia(s)`}
+                        size="small"
+                        color="primary"
+                        variant="outlined"
+                      />
+                    </Box>
+                  </AccordionSummary>
+                  <AccordionDetails sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+                    <Stack spacing={1.5}>
+                      {executions.map((execution: any, index: number) => (
+                        <Card key={`${execution.execution_id}-${index}`} sx={{ borderRadius: 1, p: 1.5 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                              Ejecutado: {execution.execution_id}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {execution.strategies.length} elementos
+                            </Typography>
+                          </Box>
+
+                          <Table size="small">
+                            <TableHead>
+                              <TableRow sx={{ bgcolor: 'grey.50' }}>
+                                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold', p: 0.5 }}>Fecha</TableCell>
+                                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold', p: 0.5 }}>Canal</TableCell>
+                                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold', p: 0.5 }}>Tipo</TableCell>
+                                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold', p: 0.5 }}>Título</TableCell>
+                                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold', p: 0.5 }}>CTA</TableCell>
+                              </TableRow>
+                            </TableHead>
+                            <TableBody>
+                              {execution.strategies.map((strategy: any, strategyIndex: number) => (
+                                <TableRow key={strategyIndex}>
+                                  <TableCell sx={{ fontSize: '0.7rem', p: 0.5 }}>{strategy.fecha || '-'}</TableCell>
+                                  <TableCell sx={{ fontSize: '0.7rem', p: 0.5 }}>{Array.isArray(strategy.canal) ? strategy.canal.join(', ') : strategy.canal || '-'}</TableCell>
+                                  <TableCell sx={{ fontSize: '0.7rem', p: 0.5 }}>{strategy.tipo || '-'}</TableCell>
+                                  <TableCell sx={{ fontSize: '0.7rem', p: 0.5, maxWidth: 120 }}>
+                                    <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                      {strategy.titulo || '-'}
+                                    </Box>
+                                  </TableCell>
+                                  <TableCell sx={{ fontSize: '0.7rem', p: 0.5 }}>{strategy.cta || '-'}</TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </Card>
+                      ))}
+                    </Stack>
+                  </AccordionDetails>
+                </Accordion>
+              ) : null;
+            })}
+          </Stack>
+        )}
+      </Paper>
 
     </Box>
   );

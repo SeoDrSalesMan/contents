@@ -94,7 +94,7 @@ const ContentSettingsContext = createContext<ContentSettingsContextValue | null>
 const clientNameMap: Record<string, string> = {
   "distrito_legal": "Distrito Legal",
   "grangala": "Gran Gala Flamenco",
-  "neuron_rehab": "Neuron Rehab",
+  "neuron": "Neuron Rehab",
   "sistemlab": "SistemLab",
   "deuda": "Asociacion Deuda",
   "estudiantes": "Asociacion Estudiantes Extranjero",
@@ -138,8 +138,8 @@ const initialClients: Client[] = [
   {
     id: "grangala",
     name: "Gran Gala Flamenco",
-    webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/gala",
-    ideasWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/ideas-gala",
+    webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/grangala",
+    ideasWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/ideas-grangala",
     structureWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/estructura-grangala",
     dataWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/datos-grangala",
     info: "Espectaculo prefesional de Flamenco",
@@ -167,7 +167,7 @@ const initialClients: Client[] = [
     executionIds: []
   },
   {
-    id: "neuron_rehab",
+    id: "neuron",
     name: "Neuron Rehab",
     webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/neuron",
     ideasWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/ideas-neuron",
