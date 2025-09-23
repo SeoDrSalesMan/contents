@@ -7,6 +7,7 @@ import {
   IconTent,
   IconTypography,
   IconUserPlus,
+  IconHistory,
 } from "@tabler/icons-react";
 
 import { uniqueId } from "lodash";
@@ -21,7 +22,13 @@ const Menuitems = [
     id: uniqueId(),
     title: "Estrategias",
     icon: IconTent,
-    href: "/",
+    href: "/estrategias",
+  },
+  {
+    id: uniqueId(),
+    title: "Histórico",
+    icon: IconHistory,
+    href: "/historico",
   },
      {
     navlabel: true,

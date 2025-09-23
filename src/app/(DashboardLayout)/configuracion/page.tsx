@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import { Box, TextField, Button, Alert, Snackbar, FormControl, InputLabel, Select, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions, IconButton } from '@mui/material';
+import { Box, TextField, Button, Alert, Snackbar, FormControl, InputLabel, Select, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, Checkbox, FormControlLabel } from '@mui/material';
 import { Typography, LinearProgress } from '@mui/material';
 import Grid from "@mui/material/Grid";
 import GridLegacy from "@mui/material/GridLegacy"; // Keep import temporarily for backward compatibility
@@ -682,7 +682,7 @@ const ClientManager = () => {
               </GridLegacy>
             </GridLegacy>
 
-            {/* Alcance */}
+            {/* Alcance (Mensual) */}
             <Typography
               variant="h5"
               sx={{
@@ -695,7 +695,11 @@ const ClientManager = () => {
                 pb: 1
               }}
             >
-              ALCANCE
+              ALCANCE (Mensual)
+            </Typography>
+
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Define el volumen mensual de contenidos y las plataformas sociales para tu estrategia de marketing digital.
             </Typography>
 
             <GridLegacy container spacing={3} sx={{ mb: 4 }}>
@@ -707,17 +711,6 @@ const ClientManager = () => {
                   value={client.numero_contenidos_blog}
                   onChange={(e) => updateClientField(client.id, 'numero_contenidos_blog', e.target.value)}
                   InputProps={{ inputProps: { min: 0, max: 1000 } }}
-                  sx={{ mb: 2 }}
-                />
-              </GridLegacy>
-              <GridLegacy item xs={12} md={6}>
-                <TextField
-                  label="Número contenidos redes sociales"
-                  type="number"
-                  fullWidth
-                  value={client.numero_contenidos_rrss}
-                  onChange={(e) => updateClientField(client.id, 'numero_contenidos_rrss', e.target.value)}
-                  InputProps={{ inputProps: { min: 0, max: 10000 } }}
                   sx={{ mb: 2 }}
                 />
               </GridLegacy>
@@ -736,6 +729,17 @@ const ClientManager = () => {
                 </FormControl>
               </GridLegacy>
               <GridLegacy item xs={12} md={6}>
+                <TextField
+                  label="Número de contenidos redes sociales"
+                  type="number"
+                  fullWidth
+                  value={client.numero_contenidos_rrss}
+                  onChange={(e) => updateClientField(client.id, 'numero_contenidos_rrss', e.target.value)}
+                  InputProps={{ inputProps: { min: 0, max: 10000 } }}
+                  sx={{ mb: 2 }}
+                />
+              </GridLegacy>
+              <GridLegacy item xs={12} md={6}>
                 <FormControl fullWidth>
                   <InputLabel>Frecuencia mensual redes sociales</InputLabel>
                   <Select
@@ -748,6 +752,56 @@ const ClientManager = () => {
                     ))}
                   </Select>
                 </FormControl>
+              </GridLegacy>
+            </GridLegacy>
+
+            {/* Redes Sociales */}
+            <Typography
+              variant="h6"
+              sx={{
+                mt: 3,
+                mb: 2,
+                color: 'primary.main',
+                fontWeight: 'bold'
+              }}
+            >
+              REDES SOCIALES
+            </Typography>
+
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Selecciona las plataformas sociales donde deseas publicar contenido para este cliente.
+            </Typography>
+
+            <GridLegacy container spacing={3} sx={{ mb: 4 }}>
+              <GridLegacy item xs={12}>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                  {[
+                    { value: 'facebook', label: 'Facebook' },
+                    { value: 'instagram', label: 'Instagram' },
+                    { value: 'linkedin', label: 'LinkedIn' },
+                    { value: 'twitter', label: 'Twitter/X' },
+                    { value: 'youtube', label: 'YouTube' },
+                    { value: 'tiktok', label: 'TikTok' }
+                  ].map((social) => (
+                    <FormControlLabel
+                      key={social.value}
+                      control={
+                        <Checkbox
+                          checked={(client.redes_sociales || []).includes(social.value)}
+                          onChange={(e) => {
+                            const current = client.redes_sociales || [];
+                            const updated = e.target.checked
+                              ? [...current, social.value]
+                              : current.filter(s => s !== social.value);
+                            updateClientField(client.id, 'redes_sociales', updated);
+                          }}
+                          color="primary"
+                        />
+                      }
+                      label={social.label}
+                    />
+                  ))}
+                </Box>
               </GridLegacy>
             </GridLegacy>
 

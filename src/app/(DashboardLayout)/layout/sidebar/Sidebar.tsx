@@ -56,6 +56,7 @@ const MSidebar = ({
                 boxSizing: "border-box",
                 ...scrollbarStyles,
                 width: sidebarWidth,
+                backgroundColor: 'grey.50',
               },
             }
           }}

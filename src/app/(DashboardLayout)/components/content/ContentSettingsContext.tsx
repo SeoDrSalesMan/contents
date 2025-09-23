@@ -54,6 +54,7 @@ export interface Client {
   audiencia_no_deseada: string;
   estilo_comunicacion: string;
   tono_voz: string;
+  redes_sociales: string[];
   strategies: ContentItem[];
   articles: any[];
   workflowId: string;
@@ -73,7 +74,7 @@ interface ContentSettingsContextValue {
   setSelectedClientId: (id: string) => void;
   loadClientFromSupabase: (clientId: string) => Promise<void>;
   clients: Client[];
-  updateClientField: (id: string, field: keyof Client, value: string) => void;
+  updateClientField: (id: string, field: keyof Client, value: string | string[]) => void;
   saveClientData: (clientId: string) => Promise<boolean>;
   addStrategy: (clientId: string, strategy: ContentItem) => void;
   addStrategies: (clientId: string, strategies: ContentItem[]) => void;
@@ -107,7 +108,7 @@ const initialClients: Client[] = [
   {
     id: "distrito_legal",
     name: "Distrito Legal",
-    webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/distrito",
+    webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/articulos-distrito",
     ideasWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/ideas-distrito",
     structureWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/estructura-distrito",
     dataWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/datos-distrito",
@@ -122,14 +123,15 @@ const initialClients: Client[] = [
     frecuencia_mensual_blog: "",
     numero_contenidos_rrss: 0,
     frecuencia_mensual_rrss: "",
-    porcentaje_educar: 25,
-    porcentaje_inspirar: 25,
-    porcentaje_entretener: 25,
-    porcentaje_promocionar: 25,
+    porcentaje_educar: 70,
+    porcentaje_inspirar: 5,
+    porcentaje_entretener: 10,
+    porcentaje_promocionar: 15,
     verticales_interes: "",
     audiencia_no_deseada: "",
     estilo_comunicacion: "",
     tono_voz: "",
+    redes_sociales: [],
     strategies: [],
     articles: [],
     workflowId: "zQw5IM51uOdywlMD",
@@ -138,7 +140,7 @@ const initialClients: Client[] = [
   {
     id: "grangala",
     name: "Gran Gala Flamenco",
-    webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/grangala",
+    webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/articulos-grangala",
     ideasWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/ideas-grangala",
     structureWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/estructura-grangala",
     dataWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/datos-grangala",
@@ -161,6 +163,7 @@ const initialClients: Client[] = [
     audiencia_no_deseada: "",
     estilo_comunicacion: "",
     tono_voz: "",
+    redes_sociales: [],
     strategies: [],
     articles: [],
     workflowId: "",
@@ -169,7 +172,7 @@ const initialClients: Client[] = [
   {
     id: "neuron",
     name: "Neuron Rehab",
-    webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/neuron",
+    webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/articulos-neuron",
     ideasWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/ideas-neuron",
     structureWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/estructura-neuron",
     dataWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/datos-neuron",
@@ -192,6 +195,7 @@ const initialClients: Client[] = [
     audiencia_no_deseada: "",
     estilo_comunicacion: "",
     tono_voz: "",
+    redes_sociales: [],
     strategies: [],
     articles: [],
     workflowId: "nUlAdnVfDwjnszRq",
@@ -200,7 +204,7 @@ const initialClients: Client[] = [
   {
     id: "sistemlab",
     name: "SistemLab",
-    webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/sistemlab",
+    webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/articulos-sistemlab",
     ideasWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/ideas-sistemlab",
     structureWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/estructura-sistemlab",
     dataWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/datos-sistemlab",
@@ -223,6 +227,7 @@ const initialClients: Client[] = [
     audiencia_no_deseada: "",
     estilo_comunicacion: "",
     tono_voz: "",
+    redes_sociales: [],
     strategies: [],
     articles: [],
     workflowId: "",
@@ -231,7 +236,7 @@ const initialClients: Client[] = [
   {
     id: "deuda",
     name: "Asociacion Deuda",
-    webhook: `https://content-generator.nv0ey8.easypanel.host/webhook/deuda`,
+    webhook: `https://content-generator.nv0ey8.easypanel.host/webhook/articulos-deuda`,
     ideasWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/ideas-deuda`,
     structureWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/estructura-deuda`,
     dataWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/datos-deuda`,
@@ -254,6 +259,7 @@ const initialClients: Client[] = [
     audiencia_no_deseada: "",
     estilo_comunicacion: "",
     tono_voz: "",
+    redes_sociales: [],
     strategies: [],
     articles: [],
     workflowId: "UaWhybYUFKHNbyvs",
@@ -262,7 +268,7 @@ const initialClients: Client[] = [
   {
     id: "estudiantes",
     name: "Asociacion Estudiantes Extranjero",
-    webhook: `https://content-generator.nv0ey8.easypanel.host/webhook/estudiantes`,
+    webhook: `https://content-generator.nv0ey8.easypanel.host/webhook/articulos-estudiantes`,
     ideasWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/ideas-estudiantes`,
     structureWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/estructura-estudiantes`,
     dataWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/datos-estudiantes`,
@@ -285,6 +291,7 @@ const initialClients: Client[] = [
     audiencia_no_deseada: "",
     estilo_comunicacion: "",
     tono_voz: "",
+    redes_sociales: [],
     strategies: [],
     articles: [],
     workflowId: "",
@@ -293,7 +300,7 @@ const initialClients: Client[] = [
   {
     id: "segunda",
     name: "Nueva Ley Segunda Oportunidad",
-    webhook: `https://content-generator.nv0ey8.easypanel.host/webhook/segunda`,
+    webhook: `https://content-generator.nv0ey8.easypanel.host/webhook/articulos-segunda`,
     ideasWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/ideas-segunda`,
     structureWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/estructura-segunda`,
     dataWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/datos-segunda`,
@@ -316,16 +323,17 @@ const initialClients: Client[] = [
     audiencia_no_deseada: "",
     estilo_comunicacion: "",
     tono_voz: "",
+    redes_sociales: [],
     strategies: [],
     articles: [],
     workflowId: "",
     executionIds: []
   },
-  
+
   {
     id: "comparador",
     name: "Comparador Aprender Idiomas",
-    webhook: `https://content-generator.nv0ey8.easypanel.host/webhook/comparador`,
+    webhook: `https://content-generator.nv0ey8.easypanel.host/webhook/articulos-comparador`,
     ideasWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/ideas-comparador`,
     structureWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/estructura-comparador`,
     dataWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/datos-comparador`,
@@ -348,11 +356,12 @@ const initialClients: Client[] = [
     audiencia_no_deseada: "",
     estilo_comunicacion: "",
     tono_voz: "",
+    redes_sociales: [],
     strategies: [],
     articles: [],
     workflowId: "",
     executionIds: []
-  }  
+  }
 ];
 
 export function ContentSettingsProvider({ children }: { children: React.ReactNode }) {
@@ -427,7 +436,10 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
               verticales_interes: supabaseData.verticales_interes || '',
               audiencia_no_deseada: supabaseData.audiencia_no_deseada || '',
               estilo_comunicacion: supabaseData.estilo_comunicacion || '',
-              tono_voz: supabaseData.tono_voz || ''
+              tono_voz: supabaseData.tono_voz || '',
+              redes_sociales: Array.isArray(supabaseData.redes_sociales) ?
+                supabaseData.redes_sociales :
+                (supabaseData.redes_sociales || [])
             };
           }
           return c;
@@ -465,6 +477,9 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
         clientData.audiencia_no_deseada = supabaseData.audiencia_no_deseada || '';
         clientData.estilo_comunicacion = supabaseData.estilo_comunicacion || '';
         clientData.tono_voz = supabaseData.tono_voz || '';
+        clientData.redes_sociales = Array.isArray(supabaseData.redes_sociales) ?
+          supabaseData.redes_sociales :
+          (supabaseData.redes_sociales || []);
         clientData.loadedFromSupabase = true;
         clientData.lastSync = new Date().toISOString();
 
@@ -578,16 +593,20 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
 
 
 
-  const updateClientField = (id: string, field: keyof Client, value: string) =>
+  const updateClientField = (id: string, field: keyof Client, value: string | string[]) =>
     setClients(prev => prev.map(c => {
       // Manejar conversión para campos numéricos
       if (field === 'numero_contenidos_blog' || field === 'numero_contenidos_rrss') {
-        return { ...c, [field]: parseInt(value) || 0 };
+        return { ...c, [field]: parseInt(value as string) || 0 };
       }
       // Manejar conversión para campos de porcentaje
       if (field === 'porcentaje_educar' || field === 'porcentaje_inspirar' ||
           field === 'porcentaje_entretener' || field === 'porcentaje_promocionar') {
-        return { ...c, [field]: parseInt(value) || 0 };
+        return { ...c, [field]: parseInt(value as string) || 0 };
+      }
+      // Manejar conversión para campos de array
+      if (field === 'redes_sociales') {
+        return { ...c, [field]: Array.isArray(value) ? value : [] };
       }
       return { ...c, [field]: value };
     }));
@@ -687,7 +706,8 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
         verticales_interes: client.verticales_interes,
         audiencia_no_deseada: client.audiencia_no_deseada,
         estilo_comunicacion: client.estilo_comunicacion,
-        tono_voz: client.tono_voz
+        tono_voz: client.tono_voz,
+        redes_sociales: client.redes_sociales
       };
 
       console.log(`📤 Sending data to API:`, clientDataToSave);
@@ -734,7 +754,7 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
       localStorage.setItem(clientStorageKey, JSON.stringify(localStorageData));
       console.log(`✅ Client ${clientId} data saved to localStorage`);
 
-      // Try to send to webhook if available
+      // Try to send to webhook if available (non-blocking - won't affect save success)
       if (client.dataWebhook) {
         try {
           console.log(`📤 Sending to webhook: ${client.dataWebhook}`);
@@ -749,10 +769,12 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
           if (webhookResponse.ok) {
             console.log('✅ Data sent to webhook successfully');
           } else {
-            console.warn(`⚠️ Webhook failed:`, webhookResponse.statusText);
+            console.warn(`⚠️ Webhook failed with status ${webhookResponse.status}: ${webhookResponse.statusText}`);
+            // Don't fail the save operation because of webhook issues
           }
         } catch (webhookError) {
-          console.warn(`⚠️ Webhook error:`, webhookError);
+          console.warn(`⚠️ Webhook failed (CORS/development error - normal in dev):`, webhookError instanceof Error ? webhookError.message : webhookError);
+          // Log but don't fail - this is expected in development and shouldn't block saves
         }
       }
 
