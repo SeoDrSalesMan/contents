@@ -269,99 +269,133 @@ export default function HistoricoPage() {
                       />
                     </Box>
                   </AccordionSummary>
-                  <AccordionDetails sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-                    <Stack spacing={1.5}>
+                  <AccordionDetails sx={{ p: 0, borderTop: '1px solid', borderColor: 'divider' }}>
+                    <Stack spacing={0}>
                       {executions.map((execution: any, index: number) => (
-                        <Card key={`${execution.execution_id}-${index}`} sx={{ borderRadius: 1, p: 1.5 }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                            <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                              Ejecutado: {execution.execution_id}
-                            </Typography>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                              <Typography variant="caption" color="text.secondary">
-                                {execution.strategies.length} elementos
+                        <Accordion
+                          key={`${execution.execution_id}-${index}`}
+                          sx={{
+                            border: '1px solid',
+                            borderColor: 'grey.200',
+                            borderRadius: 0,
+                            borderTop: 'none',
+                            borderLeft: 'none',
+                            borderRight: 'none',
+                            '&:last-child': {
+                              borderBottom: '1px solid',
+                              borderColor: 'grey.200'
+                            },
+                            '&:before': { display: 'none' } // Remove default accordion line
+                          }}
+                        >
+                          <AccordionSummary
+                            expandIcon={<IconCheck size={16} />}
+                            sx={{
+                              bgcolor: 'grey.25',
+                              borderBottom: '1px solid',
+                              borderColor: 'grey.200',
+                              '&:hover': { bgcolor: 'grey.50' },
+                              '&.Mui-expanded': { bgcolor: 'success.light' },
+                              minHeight: '48px'
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                                Ejecutado: {execution.execution_id}
                               </Typography>
-                              <Button
-                                variant="outlined"
+                              <Chip
+                                label={`${execution.strategies.length} estrategia(s)`}
                                 size="small"
-                                startIcon={<IconDownload />}
-                                onClick={() => exportExecutionToCSV(execution, displayName)}
-                                sx={{
-                                  fontSize: '0.7rem',
-                                  borderColor: 'primary.main',
-                                  color: 'primary.main',
-                                  '&:hover': {
-                                    backgroundColor: 'primary.main',
-                                    color: 'white'
-                                  }
-                                }}
-                              >
-                                Exportar CSV
-                              </Button>
+                                variant="outlined"
+                                color="secondary"
+                              />
+                              <Box sx={{ ml: 'auto', display: 'flex', gap: 1 }}>
+                                <Button
+                                  variant="outlined"
+                                  size="small"
+                                  startIcon={<IconDownload />}
+                                  onClick={(e) => {
+                                    e.stopPropagation(); // Prevent accordion toggle
+                                    exportExecutionToCSV(execution, displayName);
+                                  }}
+                                  sx={{
+                                    fontSize: '0.7rem',
+                                    borderColor: 'primary.main',
+                                    color: 'primary.main',
+                                    '&:hover': {
+                                      backgroundColor: 'primary.main',
+                                      color: 'white'
+                                    }
+                                  }}
+                                >
+                                  CSV
+                                </Button>
+                              </Box>
                             </Box>
-                          </Box>
-
-                          <TableContainer>
-                            <Table size="small">
-                              <TableHead>
-                                <TableRow sx={{ bgcolor: 'grey.50' }}>
-                                  <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold', py: 1 }}>Fecha</TableCell>
-                                  <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold', py: 1 }}>Canal</TableCell>
-                                  <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold', py: 1 }}>Tipo</TableCell>
-                                  <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold', py: 1, maxWidth: 120 }}>
-                                    <Box sx={{
-                                      wordWrap: 'break-word',
-                                      whiteSpace: 'normal',
-                                      lineHeight: 1.4
-                                    }}>
-                                      Título
-                                    </Box>
-                                  </TableCell>
-                                  <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold', py: 1, maxWidth: 180 }}>
-                                    <Box sx={{
-                                      wordWrap: 'break-word',
-                                      whiteSpace: 'normal',
-                                      lineHeight: 1.4
-                                    }}>
-                                      Copy
-                                    </Box>
-                                  </TableCell>
-                                  <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold', py: 1 }}>CTA</TableCell>
-                                  <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold', py: 1 }}>Hashtags</TableCell>
-                                </TableRow>
-                              </TableHead>
-                              <TableBody>
-                                {execution.strategies.map((strategy: any, strategyIndex: number) => (
-                                  <TableRow key={strategyIndex} sx={{ height: 'auto' }}>
-                                    <TableCell sx={{ fontSize: '0.7rem', py: 1 }}>{strategy.fecha || '-'}</TableCell>
-                                    <TableCell sx={{ fontSize: '0.7rem', py: 1 }}>{Array.isArray(strategy.canal) ? strategy.canal.join(', ') : strategy.canal || '-'}</TableCell>
-                                    <TableCell sx={{ fontSize: '0.7rem', py: 1 }}>{strategy.tipo || '-'}</TableCell>
-                                    <TableCell sx={{ fontSize: '0.7rem', py: 1, maxWidth: 120 }}>
+                          </AccordionSummary>
+                          <AccordionDetails sx={{ p: 0 }}>
+                            <TableContainer>
+                              <Table size="small">
+                                <TableHead>
+                                  <TableRow sx={{ bgcolor: 'grey.50' }}>
+                                    <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold', py: 1 }}>Fecha</TableCell>
+                                    <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold', py: 1 }}>Canal</TableCell>
+                                    <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold', py: 1 }}>Tipo</TableCell>
+                                    <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold', py: 1, maxWidth: 120 }}>
                                       <Box sx={{
                                         wordWrap: 'break-word',
                                         whiteSpace: 'normal',
                                         lineHeight: 1.4
                                       }}>
-                                        {strategy.titulo || '-'}
+                                        Título
                                       </Box>
                                     </TableCell>
-                                    <TableCell sx={{ fontSize: '0.7rem', py: 1, maxWidth: 180 }}>
+                                    <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold', py: 1, maxWidth: 180 }}>
                                       <Box sx={{
                                         wordWrap: 'break-word',
                                         whiteSpace: 'normal',
                                         lineHeight: 1.4
                                       }}>
-                                        {strategy.copy || '-'}
+                                        Copy
                                       </Box>
                                     </TableCell>
-                                    <TableCell sx={{ fontSize: '0.7rem', py: 1 }}>{strategy.cta || '-'}</TableCell>
-                                    <TableCell sx={{ fontSize: '0.7rem', py: 1 }}>{strategy.hashtags || '-'}</TableCell>
+                                    <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold', py: 1 }}>CTA</TableCell>
+                                    <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold', py: 1 }}>Hashtags</TableCell>
                                   </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
-                          </TableContainer>
-                        </Card>
+                                </TableHead>
+                                <TableBody>
+                                  {execution.strategies.map((strategy: any, strategyIndex: number) => (
+                                    <TableRow key={strategyIndex} sx={{ height: 'auto' }}>
+                                      <TableCell sx={{ fontSize: '0.7rem', py: 1 }}>{strategy.fecha || '-'}</TableCell>
+                                      <TableCell sx={{ fontSize: '0.7rem', py: 1 }}>{Array.isArray(strategy.canal) ? strategy.canal.join(', ') : strategy.canal || '-'}</TableCell>
+                                      <TableCell sx={{ fontSize: '0.7rem', py: 1 }}>{strategy.tipo || '-'}</TableCell>
+                                      <TableCell sx={{ fontSize: '0.7rem', py: 1, maxWidth: 120 }}>
+                                        <Box sx={{
+                                          wordWrap: 'break-word',
+                                          whiteSpace: 'normal',
+                                          lineHeight: 1.4
+                                        }}>
+                                          {strategy.titulo || '-'}
+                                        </Box>
+                                      </TableCell>
+                                      <TableCell sx={{ fontSize: '0.7rem', py: 1, maxWidth: 180 }}>
+                                        <Box sx={{
+                                          wordWrap: 'break-word',
+                                          whiteSpace: 'normal',
+                                          lineHeight: 1.4
+                                        }}>
+                                          {strategy.copy || '-'}
+                                        </Box>
+                                      </TableCell>
+                                      <TableCell sx={{ fontSize: '0.7rem', py: 1 }}>{strategy.cta || '-'}</TableCell>
+                                      <TableCell sx={{ fontSize: '0.7rem', py: 1 }}>{strategy.hashtags || '-'}</TableCell>
+                                    </TableRow>
+                                  ))}
+                                </TableBody>
+                              </Table>
+                            </TableContainer>
+                          </AccordionDetails>
+                        </Accordion>
                       ))}
                     </Stack>
                   </AccordionDetails>
