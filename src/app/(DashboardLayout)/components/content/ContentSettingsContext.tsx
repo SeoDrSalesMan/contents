@@ -56,6 +56,14 @@ export interface Client {
   estilo_comunicacion: string;
   tono_voz: string;
   redes_sociales: string[];
+  usar_historias: boolean;
+  numero_historias: number;
+  usar_reels: boolean;
+  numero_reels: number;
+  usar_carruseles: boolean;
+  numero_carruseles: number;
+  usar_post: boolean;
+  numero_post: number;
   strategies: ContentItem[];
   articles: any[];
   workflowId: string;
@@ -75,7 +83,7 @@ interface ContentSettingsContextValue {
   setSelectedClientId: (id: string) => void;
   loadClientFromSupabase: (clientId: string) => Promise<void>;
   clients: Client[];
-  updateClientField: (id: string, field: keyof Client, value: string | string[]) => void;
+  updateClientField: (id: string, field: keyof Client, value: string | string[] | boolean | number) => void;
   saveClientData: (clientId: string) => Promise<boolean>;
   addStrategy: (clientId: string, strategy: ContentItem) => void;
   addStrategies: (clientId: string, strategies: ContentItem[]) => void;
@@ -105,7 +113,6 @@ const clientNameMap: Record<string, string> = {
 };
 
 const initialClients: Client[] = [
-
   {
     id: "distrito_legal",
     name: "Distrito Legal",
@@ -133,6 +140,14 @@ const initialClients: Client[] = [
     estilo_comunicacion: "",
     tono_voz: "",
     redes_sociales: [],
+    usar_historias: false,
+    numero_historias: 0,
+    usar_reels: false,
+    numero_reels: 0,
+    usar_carruseles: false,
+    numero_carruseles: 0,
+    usar_post: false,
+    numero_post: 0,
     strategies: [],
     articles: [],
     workflowId: "zQw5IM51uOdywlMD",
@@ -165,6 +180,14 @@ const initialClients: Client[] = [
     estilo_comunicacion: "",
     tono_voz: "",
     redes_sociales: [],
+    usar_historias: false,
+    numero_historias: 0,
+    usar_reels: false,
+    numero_reels: 0,
+    usar_carruseles: false,
+    numero_carruseles: 0,
+    usar_post: false,
+    numero_post: 0,
     strategies: [],
     articles: [],
     workflowId: "",
@@ -197,6 +220,14 @@ const initialClients: Client[] = [
     estilo_comunicacion: "",
     tono_voz: "",
     redes_sociales: [],
+    usar_historias: false,
+    numero_historias: 0,
+    usar_reels: false,
+    numero_reels: 0,
+    usar_carruseles: false,
+    numero_carruseles: 0,
+    usar_post: false,
+    numero_post: 0,
     strategies: [],
     articles: [],
     workflowId: "nUlAdnVfDwjnszRq",
@@ -229,6 +260,14 @@ const initialClients: Client[] = [
     estilo_comunicacion: "",
     tono_voz: "",
     redes_sociales: [],
+    usar_historias: false,
+    numero_historias: 0,
+    usar_reels: false,
+    numero_reels: 0,
+    usar_carruseles: false,
+    numero_carruseles: 0,
+    usar_post: false,
+    numero_post: 0,
     strategies: [],
     articles: [],
     workflowId: "",
@@ -237,10 +276,10 @@ const initialClients: Client[] = [
   {
     id: "deuda",
     name: "Asociacion Deuda",
-    webhook: `https://content-generator.nv0ey8.easypanel.host/webhook/articulos-deuda`,
-    ideasWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/ideas-deuda`,
-    structureWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/estructura-deuda`,
-    dataWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/datos-deuda`,
+    webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/articulos-deuda",
+    ideasWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/ideas-deuda",
+    structureWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/estructura-deuda",
+    dataWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/datos-deuda",
     info: "Asociación dedicada a ayudar con problemas de deuda en España.",
     nombre: "Asociacion Deuda",
     web: "",
@@ -261,6 +300,14 @@ const initialClients: Client[] = [
     estilo_comunicacion: "",
     tono_voz: "",
     redes_sociales: [],
+    usar_historias: false,
+    numero_historias: 0,
+    usar_reels: false,
+    numero_reels: 0,
+    usar_carruseles: false,
+    numero_carruseles: 0,
+    usar_post: false,
+    numero_post: 0,
     strategies: [],
     articles: [],
     workflowId: "UaWhybYUFKHNbyvs",
@@ -269,10 +316,10 @@ const initialClients: Client[] = [
   {
     id: "estudiantes",
     name: "Asociacion Estudiantes Extranjero",
-    webhook: `https://content-generator.nv0ey8.easypanel.host/webhook/articulos-estudiantes`,
-    ideasWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/ideas-estudiantes`,
-    structureWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/estructura-estudiantes`,
-    dataWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/datos-estudiantes`,
+    webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/articulos-estudiantes",
+    ideasWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/ideas-estudiantes",
+    structureWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/estructura-estudiantes",
+    dataWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/datos-estudiantes",
     info: "Asociación para estudiantes internacionales en España.",
     nombre: "Asociacion Estudiantes Extranjero",
     web: "",
@@ -293,6 +340,14 @@ const initialClients: Client[] = [
     estilo_comunicacion: "",
     tono_voz: "",
     redes_sociales: [],
+    usar_historias: false,
+    numero_historias: 0,
+    usar_reels: false,
+    numero_reels: 0,
+    usar_carruseles: false,
+    numero_carruseles: 0,
+    usar_post: false,
+    numero_post: 0,
     strategies: [],
     articles: [],
     workflowId: "",
@@ -301,10 +356,10 @@ const initialClients: Client[] = [
   {
     id: "segunda",
     name: "Nueva Ley Segunda Oportunidad",
-    webhook: `https://content-generator.nv0ey8.easypanel.host/webhook/articulos-segunda`,
-    ideasWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/ideas-segunda`,
-    structureWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/estructura-segunda`,
-    dataWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/datos-segunda`,
+    webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/articulos-segunda",
+    ideasWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/ideas-segunda",
+    structureWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/estructura-segunda",
+    dataWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/datos-segunda",
     info: "Información sobre la nueva ley de segunda oportunidad en España.",
     nombre: "Nueva Ley Segunda Oportunidad",
     web: "",
@@ -325,19 +380,26 @@ const initialClients: Client[] = [
     estilo_comunicacion: "",
     tono_voz: "",
     redes_sociales: [],
+    usar_historias: false,
+    numero_historias: 0,
+    usar_reels: false,
+    numero_reels: 0,
+    usar_carruseles: false,
+    numero_carruseles: 0,
+    usar_post: false,
+    numero_post: 0,
     strategies: [],
     articles: [],
     workflowId: "",
     executionIds: []
   },
-
   {
     id: "comparador",
     name: "Comparador Aprender Idiomas",
-    webhook: `https://content-generator.nv0ey8.easypanel.host/webhook/articulos-comparador`,
-    ideasWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/ideas-comparador`,
-    structureWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/estructura-comparador`,
-    dataWebhook: `https://content-generator.nv0ey8.easypanel.host/webhook/datos-comparador`,
+    webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/articulos-comparador",
+    ideasWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/ideas-comparador",
+    structureWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/estructura-comparador",
+    dataWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/datos-comparador",
     info: "Comparador para aprender idiomas online.",
     nombre: "Comparador Aprender Idiomas",
     web: "",
@@ -358,6 +420,14 @@ const initialClients: Client[] = [
     estilo_comunicacion: "",
     tono_voz: "",
     redes_sociales: [],
+    usar_historias: false,
+    numero_historias: 0,
+    usar_reels: false,
+    numero_reels: 0,
+    usar_carruseles: false,
+    numero_carruseles: 0,
+    usar_post: false,
+    numero_post: 0,
     strategies: [],
     articles: [],
     workflowId: "",
@@ -440,7 +510,15 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
               tono_voz: supabaseData.tono_voz || '',
               redes_sociales: Array.isArray(supabaseData.redes_sociales) ?
                 supabaseData.redes_sociales :
-                (supabaseData.redes_sociales || [])
+                (supabaseData.redes_sociales || []),
+              usar_historias: supabaseData.usar_historias ?? false,
+              numero_historias: supabaseData.numero_historias ?? 0,
+              usar_reels: supabaseData.usar_reels ?? false,
+              numero_reels: supabaseData.numero_reels ?? 0,
+              usar_carruseles: supabaseData.usar_carruseles ?? false,
+              numero_carruseles: supabaseData.numero_carruseles ?? 0,
+              usar_post: supabaseData.usar_post ?? false,
+              numero_post: supabaseData.numero_post ?? 0
             };
           }
           return c;
@@ -481,6 +559,14 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
         clientData.redes_sociales = Array.isArray(supabaseData.redes_sociales) ?
           supabaseData.redes_sociales :
           (supabaseData.redes_sociales || []);
+        clientData.usar_historias = supabaseData.usar_historias ?? false;
+        clientData.numero_historias = supabaseData.numero_historias ?? 0;
+        clientData.usar_reels = supabaseData.usar_reels ?? false;
+        clientData.numero_reels = supabaseData.numero_reels ?? 0;
+        clientData.usar_carruseles = supabaseData.usar_carruseles ?? false;
+        clientData.numero_carruseles = supabaseData.numero_carruseles ?? 0;
+        clientData.usar_post = supabaseData.usar_post ?? false;
+        clientData.numero_post = supabaseData.numero_post ?? 0;
         clientData.loadedFromSupabase = true;
         clientData.lastSync = new Date().toISOString();
 
@@ -560,6 +646,15 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
               audiencia_no_deseada: parsedData.audiencia_no_deseada || '',
               estilo_comunicacion: parsedData.estilo_comunicacion || '',
               tono_voz: parsedData.tono_voz || '',
+              redes_sociales: parsedData.redes_sociales || [],
+              usar_historias: parsedData.usar_historias ?? false,
+              numero_historias: parsedData.numero_historias ?? 0,
+              usar_reels: parsedData.usar_reels ?? false,
+              numero_reels: parsedData.numero_reels ?? 0,
+              usar_carruseles: parsedData.usar_carruseles ?? false,
+              numero_carruseles: parsedData.numero_carruseles ?? 0,
+              usar_post: parsedData.usar_post ?? false,
+              numero_post: parsedData.numero_post ?? 0,
               // Keep global fields intact
               strategies: client.strategies,
               articles: client.articles,
@@ -608,7 +703,7 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
 
 
 
-  const updateClientField = (id: string, field: keyof Client, value: string | string[]) =>
+  const updateClientField = (id: string, field: keyof Client, value: string | string[] | boolean | number) =>
     setClients(prev => prev.map(c => {
       // Manejar conversión para campos numéricos
       if (field === 'numero_contenidos_blog' || field === 'numero_contenidos_rrss') {
@@ -622,6 +717,14 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
       // Manejar conversión para campos de array
       if (field === 'redes_sociales') {
         return { ...c, [field]: Array.isArray(value) ? value : [] };
+      }
+      // Manejar conversión para campos booleanos
+      if (typeof value === 'boolean') {
+        return { ...c, [field]: value };
+      }
+      // Manejar conversión para campos numéricos (para las nuevas cantidades de contenido social)
+      if (typeof value === 'number') {
+        return { ...c, [field]: value };
       }
       return { ...c, [field]: value };
     }));
@@ -722,7 +825,15 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
         audiencia_no_deseada: client.audiencia_no_deseada,
         estilo_comunicacion: client.estilo_comunicacion,
         tono_voz: client.tono_voz,
-        redes_sociales: client.redes_sociales
+        redes_sociales: client.redes_sociales,
+        usar_historias: client.usar_historias,
+        numero_historias: client.numero_historias,
+        usar_reels: client.usar_reels,
+        numero_reels: client.numero_reels,
+        usar_carruseles: client.usar_carruseles,
+        numero_carruseles: client.numero_carruseles,
+        usar_post: client.usar_post,
+        numero_post: client.numero_post
       };
 
       console.log(`📤 Sending data to API:`, clientDataToSave);

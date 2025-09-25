@@ -98,6 +98,15 @@ export async function POST(request: NextRequest) {
       audiencia_no_deseada: body.audiencia_no_deseada || '',
       estilo_comunicacion: body.estilo_comunicacion || '',
       tono_voz: body.tono_voz || '',
+      redes_sociales: body.redes_sociales || [],
+      usar_historias: body.usar_historias || false,
+      numero_historias: body.numero_historias || 0,
+      usar_reels: body.usar_reels || false,
+      numero_reels: body.numero_reels || 0,
+      usar_carruseles: body.usar_carruseles || false,
+      numero_carruseles: body.numero_carruseles || 0,
+      usar_post: body.usar_post || false,
+      numero_post: body.numero_post || 0,
       updated_at: new Date().toISOString()
     };
 

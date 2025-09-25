@@ -805,6 +805,125 @@ const ClientManager = () => {
               </GridLegacy>
             </GridLegacy>
 
+            {/* Tipos de Contenido Social */}
+            <Typography
+              variant="h6"
+              sx={{
+                mt: 3,
+                mb: 2,
+                color: 'info.main',
+                fontWeight: 'bold'
+              }}
+            >
+              TIPOS DE CONTENIDO SOCIAL
+            </Typography>
+
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Selecciona los tipos de contenido social a generar y especifica la cantidad para cada tipo.
+            </Typography>
+
+            <GridLegacy container spacing={3} sx={{ mb: 4 }}>
+              <GridLegacy item xs={12} md={3}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={client.usar_historias}
+                      onChange={(e) => updateClientField(client.id, 'usar_historias', e.target.checked)}
+                      color="primary"
+                    />
+                  }
+                  label="Historias"
+                />
+                {client.usar_historias && (
+                  <TextField
+                    type="number"
+                    label="Cantidad"
+                    fullWidth
+                    value={client.numero_historias || 0}
+                    onChange={(e) => updateClientField(client.id, 'numero_historias', parseInt(e.target.value) || 0)}
+                    InputProps={{ inputProps: { min: 0 } }}
+                    sx={{ mt: 1 }}
+                    size="small"
+                  />
+                )}
+              </GridLegacy>
+
+              <GridLegacy item xs={12} md={3}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={client.usar_reels}
+                      onChange={(e) => updateClientField(client.id, 'usar_reels', e.target.checked)}
+                      color="primary"
+                    />
+                  }
+                  label="Reels (Videos)"
+                />
+                {client.usar_reels && (
+                  <TextField
+                    type="number"
+                    label="Cantidad"
+                    fullWidth
+                    value={client.numero_reels || 0}
+                    onChange={(e) => updateClientField(client.id, 'numero_reels', parseInt(e.target.value) || 0)}
+                    InputProps={{ inputProps: { min: 0 } }}
+                    sx={{ mt: 1 }}
+                    size="small"
+                  />
+                )}
+              </GridLegacy>
+
+              <GridLegacy item xs={12} md={3}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={client.usar_carruseles}
+                      onChange={(e) => updateClientField(client.id, 'usar_carruseles', e.target.checked)}
+                      color="primary"
+                    />
+                  }
+                  label="Carruseles"
+                />
+                {client.usar_carruseles && (
+                  <TextField
+                    type="number"
+                    label="Cantidad"
+                    fullWidth
+                    value={client.numero_carruseles || 0}
+                    onChange={(e) => updateClientField(client.id, 'numero_carruseles', parseInt(e.target.value) || 0)}
+                    InputProps={{ inputProps: { min: 0 } }}
+                    sx={{ mt: 1 }}
+                    size="small"
+                  />
+                )}
+              </GridLegacy>
+
+              <GridLegacy item xs={12} md={3}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={client.usar_post}
+                      onChange={(e) => updateClientField(client.id, 'usar_post', e.target.checked)}
+                      color="primary"
+                    />
+                  }
+                  label="Posts"
+                />
+                {client.usar_post && (
+                  <TextField
+                    type="number"
+                    label="Cantidad"
+                    fullWidth
+                    value={client.numero_post || 0}
+                    onChange={(e) => updateClientField(client.id, 'numero_post', parseInt(e.target.value) || 0)}
+                    InputProps={{ inputProps: { min: 0 } }}
+                    sx={{ mt: 1 }}
+                    size="small"
+                  />
+                )}
+              </GridLegacy>
+            </GridLegacy>
+
             {/* Save Button */}
             <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
               <Button
