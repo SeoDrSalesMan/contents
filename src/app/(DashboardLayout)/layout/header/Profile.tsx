@@ -217,7 +217,7 @@ const Profile = () => {
           </Typography>
         </Box>
 
-        <MenuItem onClick={handleClose2}>
+      {/*   <MenuItem onClick={handleClose2}>
           <ListItemIcon>
             <IconUser width={20} />
           </ListItemIcon>
@@ -236,7 +236,7 @@ const Profile = () => {
             <IconListCheck width={20} />
           </ListItemIcon>
           <ListItemText>Mis Tareas</ListItemText>
-        </MenuItem>
+        </MenuItem> */}
 
         <Box mt={1} py={1} px={2}>
           <Button
