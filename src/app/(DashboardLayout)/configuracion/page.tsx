@@ -922,6 +922,22 @@ const ClientManager = () => {
                   />
                 )}
               </GridLegacy>
+
+              <GridLegacy item xs={12} md={12} sx={{ mt: 2 }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={client.emojis}
+                      onChange={(e) => updateClientField(client.id, 'emojis', e.target.checked)}
+                      color="primary"
+                    />
+                  }
+                  label="Usar emojis en el contenido"
+                />
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                  Los emojis ayudan a mejorar el engagement y atención en las publicaciones sociales.
+                </Typography>
+              </GridLegacy>
             </GridLegacy>
 
             {/* Save Button */}

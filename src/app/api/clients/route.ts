@@ -107,6 +107,7 @@ export async function POST(request: NextRequest) {
       numero_carruseles: body.numero_carruseles || 0,
       usar_post: body.usar_post || false,
       numero_post: body.numero_post || 0,
+      emojis: body.emojis !== undefined ? body.emojis : true,
       updated_at: new Date().toISOString()
     };
 

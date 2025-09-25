@@ -64,6 +64,7 @@ export interface Client {
   numero_carruseles: number;
   usar_post: boolean;
   numero_post: number;
+  emojis: boolean;
   strategies: ContentItem[];
   articles: any[];
   workflowId: string;
@@ -148,6 +149,7 @@ const initialClients: Client[] = [
     numero_carruseles: 0,
     usar_post: false,
     numero_post: 0,
+    emojis: true,
     strategies: [],
     articles: [],
     workflowId: "zQw5IM51uOdywlMD",
@@ -188,6 +190,7 @@ const initialClients: Client[] = [
     numero_carruseles: 0,
     usar_post: false,
     numero_post: 0,
+    emojis: true,
     strategies: [],
     articles: [],
     workflowId: "",
@@ -228,6 +231,7 @@ const initialClients: Client[] = [
     numero_carruseles: 0,
     usar_post: false,
     numero_post: 0,
+    emojis: true,
     strategies: [],
     articles: [],
     workflowId: "nUlAdnVfDwjnszRq",
@@ -268,6 +272,7 @@ const initialClients: Client[] = [
     numero_carruseles: 0,
     usar_post: false,
     numero_post: 0,
+    emojis: true,
     strategies: [],
     articles: [],
     workflowId: "",
@@ -308,6 +313,7 @@ const initialClients: Client[] = [
     numero_carruseles: 0,
     usar_post: false,
     numero_post: 0,
+    emojis: true,
     strategies: [],
     articles: [],
     workflowId: "UaWhybYUFKHNbyvs",
@@ -348,6 +354,7 @@ const initialClients: Client[] = [
     numero_carruseles: 0,
     usar_post: false,
     numero_post: 0,
+    emojis: true,
     strategies: [],
     articles: [],
     workflowId: "",
@@ -388,6 +395,7 @@ const initialClients: Client[] = [
     numero_carruseles: 0,
     usar_post: false,
     numero_post: 0,
+    emojis: true,
     strategies: [],
     articles: [],
     workflowId: "",
@@ -428,6 +436,7 @@ const initialClients: Client[] = [
     numero_carruseles: 0,
     usar_post: false,
     numero_post: 0,
+    emojis: true,
     strategies: [],
     articles: [],
     workflowId: "",
@@ -518,7 +527,8 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
               usar_carruseles: supabaseData.usar_carruseles ?? false,
               numero_carruseles: supabaseData.numero_carruseles ?? 0,
               usar_post: supabaseData.usar_post ?? false,
-              numero_post: supabaseData.numero_post ?? 0
+              numero_post: supabaseData.numero_post ?? 0,
+              emojis: supabaseData.emojis ?? true
             };
           }
           return c;
@@ -567,6 +577,7 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
         clientData.numero_carruseles = supabaseData.numero_carruseles ?? 0;
         clientData.usar_post = supabaseData.usar_post ?? false;
         clientData.numero_post = supabaseData.numero_post ?? 0;
+        clientData.emojis = supabaseData.emojis ?? true;
         clientData.loadedFromSupabase = true;
         clientData.lastSync = new Date().toISOString();
 
@@ -833,7 +844,8 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
         usar_carruseles: client.usar_carruseles,
         numero_carruseles: client.numero_carruseles,
         usar_post: client.usar_post,
-        numero_post: client.numero_post
+        numero_post: client.numero_post,
+        emojis: client.emojis
       };
 
       console.log(`📤 Sending data to API:`, clientDataToSave);
