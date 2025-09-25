@@ -24,12 +24,7 @@ const Menuitems = [
     icon: IconTent,
     href: "/estrategias",
   },
-  {
-    id: uniqueId(),
-    title: "Histórico",
-    icon: IconHistory,
-    href: "/historico",
-  },
+  
      {
     navlabel: true,
     subheader: "BLOG POSTS",
@@ -69,6 +64,12 @@ const Menuitems = [
     title: "Configuracion",
     icon: IconUserPlus,
     href: "/configuracion",
+  },
+  {
+    id: uniqueId(),
+    title: "Histórico",
+    icon: IconHistory,
+    href: "/historico",
   },
 /*   {
     id: uniqueId(),

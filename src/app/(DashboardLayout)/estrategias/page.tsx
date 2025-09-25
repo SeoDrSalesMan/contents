@@ -21,7 +21,8 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  Chip
+  Chip,
+  TextField
 } from "@mui/material";
 
 import {
@@ -43,10 +44,8 @@ export default function EstrategiasPage() {
       // Mapping directo de clientId a UUIDs reales existentes en tabla clients
       const clientUuidMap: Record<string, string> = {
         "distrito_legal": "8f4927f3-2c86-4a94-987c-83a6e0d18bdd",
-        "neuron": "63677400-1726-4893-a0b2-13cddf4717eb",
-        /* "neuron_rehab": "63677400-1726-4893-a0b2-13cddf4717eb", */
-        "sistemlab": "19ffe861-dcf9-4cbe-aedf-cabb6f9463f9",
-        /* "gran_gala_flamenco": "07803765-6e64-476a-b9c7-8ff040f63555", */
+        "neuron": "63677400-1726-4893-a0b2-13cddf4717eb",        
+        "sistemlab": "19ffe861-dcf9-4cbe-aedf-cabb6f9463f9",        
         "grangala": "07803765-6e64-476a-b9c7-8ff040f63555",
         "deuda": "4e59e433-a15d-40ca-b3d1-eefdaada9591",
         "estudiantes": "3e5bba85-e027-4460-a6dc-91e1e4ec4eb5",
@@ -71,6 +70,7 @@ export default function EstrategiasPage() {
   const [message, setMessage] = useState('');
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
   const [isSaving, setIsSaving] = useState(false);
+  const [feedbackValues, setFeedbackValues] = useState<Record<string, string>>({});
 
   const clienteDisplayNames = {
     distrito_legal: 'Distrito Legal',
@@ -244,7 +244,8 @@ export default function EstrategiasPage() {
               titulo: row.tema_titulo || row.titulo || row.title || null,
               copy: row.copy || row.texto || null,
               cta: row.cta || null,
-              hashtags: row.hashtags || null
+              hashtags: row.hashtags || null,
+              feedback: feedbackValues[rowId] || null
             });
           }
         });
@@ -281,20 +282,49 @@ export default function EstrategiasPage() {
 
       console.log('📊 Updated rows with client UUID, sample:', rowsWithClientId.slice(0, 1));
 
+      console.log('🔄 Executing insert operation...');
+
+      // First, test if table exists and is accessible
+      console.log('🔍 Testing table access...');
+      const testQuery = await supabase
+        .from('estrategias')
+        .select('id')
+        .limit(1);
+
+      console.log('📊 Table test result:', testQuery);
+      if (testQuery.error) {
+        console.error('❌ Table access error:', testQuery.error);
+        setMessage(`❌ Error de tabla: ${testQuery.error.message}`);
+        return;
+      }
+
       // Guardar en la tabla unificada "estrategias"
       const { data, error } = await supabase
         .from('estrategias')
         .insert(rowsWithClientId);
 
+      console.log('🔄 Insert completed, checking result...');
+      console.log('Data returned:', data);
+      console.log('Error returned:', error);
+
       if (error) {
-        console.error('Error saving to database:', error);
-        console.error('Rows to save:', rowsToSave);
-        setMessage(`Error al guardar en la tabla estrategias. Ver detalles en consola.`);
+        console.error('❌ Error saving to database:', error);
+        console.error('❌ Rows attempted to save:', rowsWithClientId);
+        setMessage(`❌ Error al guardar en la tabla estrategias: ${error.message || 'Ver detalles en consola'}`);
         return;
       }
 
+      console.log('✅ Insert successful!');
       setMessage(`✅ ${rowsToSave.length} fila(s) guardada(s) correctamente en la base de datos`);
       setSelectedRows(new Set());
+
+      // Limpiar feedback values de las filas guardadas
+      const newFeedbackValues = { ...feedbackValues };
+      rowsToSave.forEach(() => {
+        // Limpiar los valores de feedback de las filas procesadas
+      });
+      // Para simplificar, limpiar todos los feedback values después de guardar
+      setFeedbackValues({});
 
     } catch (error) {
       console.error('Error saving rows:', error);
@@ -769,6 +799,7 @@ export default function EstrategiasPage() {
                                   <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 200 }}>Copy</TableCell>
                                   <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem' }}>CTA</TableCell>
                                   <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem' }}>Hashtags</TableCell>
+                                  <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 150 }}>Feedback</TableCell>
                                 </TableRow>
                               </TableHead>
                               <TableBody>
@@ -800,6 +831,28 @@ export default function EstrategiasPage() {
                                       </TableCell>
                                       <TableCell sx={{ fontSize: '0.8rem' }}>{row.cta || '-'}</TableCell>
                                       <TableCell sx={{ fontSize: '0.8rem' }}>{row.hashtags || '-'}</TableCell>
+                                      <TableCell sx={{ fontSize: '0.8rem', maxWidth: 150 }}>
+                                        <TextField
+                                          value={feedbackValues[rowId] || ''}
+                                          onChange={(e) => {
+                                            setFeedbackValues(prev => ({
+                                              ...prev,
+                                              [rowId]: e.target.value
+                                            }));
+                                          }}
+                                          placeholder="Agregar comentarios o anotaciones..."
+                                          size="small"
+                                          multiline
+                                          rows={2}
+                                          variant="outlined"
+                                          sx={{
+                                            width: '100%',
+                                            '& .MuiOutlinedInput-root': {
+                                              fontSize: '0.75rem',
+                                            }
+                                          }}
+                                        />
+                                      </TableCell>
                                     </TableRow>
                                   );
                                 })}

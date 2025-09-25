@@ -344,7 +344,8 @@ export default function StrategyGenerator() {
         titulo: strategy.titulo || null,
         copy: strategy.descripcion || null,
         cta: null,
-        hashtags: null
+        hashtags: null,
+        feedback: strategy.feedback || null
       }));
 
       const { data, error } = await supabase
@@ -794,7 +795,7 @@ export default function StrategyGenerator() {
               <TableHead>
                 <TableRow>
                   <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Seleccionar</TableCell>
-                  {["Fecha","Título","Descripción","Keyword","Volumen","Tipos","Funnel","Acciones"].map(h=>(
+                  {["Fecha","Título","Descripción","Keyword","Volumen","Tipos","Funnel","Feedback","Acciones"].map(h=>(
                     <TableCell key={h} sx={{ fontWeight: 'bold', textAlign: 'left' }}>
                       <Typography variant="subtitle2" sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>
                         {h}
@@ -919,6 +920,24 @@ export default function StrategyGenerator() {
                         </Select>
                       ) : (
                         <Typography variant="body2" color="text.secondary">{strategy.funnel || "-"}</Typography>
+                      )}
+                    </TableCell>
+
+                    <TableCell sx={{ width: '15%' }}>
+                      {editingNewStrategyIndex === index ? (
+                        <TextField
+                          value={editingNewStrategyData?.feedback || ""}
+                          onChange={(e) => setEditingNewStrategyData(prev => prev ? { ...prev, feedback: e.target.value } : null)}
+                          multiline
+                          rows={2}
+                          fullWidth
+                          size="small"
+                          placeholder="Agregar comentarios o anotaciones..."
+                        />
+                      ) : (
+                        <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                          {strategy.feedback || "-"}
+                        </Typography>
                       )}
                     </TableCell>
 

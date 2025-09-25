@@ -107,6 +107,54 @@ export type Database = {
           updated_at?: string
         }
       }
+      estrategias: {
+        Row: {
+          id: number
+          client_id: string
+          execution_id: number
+          estado: string
+          fecha: string | null
+          canal: string[] | null
+          tipo: string | null
+          formato: string | null
+          titulo: string | null
+          copy: string | null
+          cta: string | null
+          hashtags: string | null
+          feedback: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          client_id: string
+          execution_id: number
+          estado?: string
+          fecha?: string | null
+          canal?: string[] | null
+          tipo?: string | null
+          formato?: string | null
+          titulo?: string | null
+          copy?: string | null
+          cta?: string | null
+          hashtags?: string | null
+          feedback?: string | null
+        }
+        Update: {
+          id?: number
+          client_id?: string
+          execution_id?: number
+          estado?: string
+          fecha?: string | null
+          canal?: string[] | null
+          tipo?: string | null
+          formato?: string | null
+          titulo?: string | null
+          copy?: string | null
+          cta?: string | null
+          hashtags?: string | null
+          feedback?: string | null
+        }
+      }
     }
     Views: {
       // Define views if any

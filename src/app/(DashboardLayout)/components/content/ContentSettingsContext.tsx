@@ -23,6 +23,7 @@ export interface ContentItem {
   volumen?: string;
   tipos?: string;
   funnel: string;
+  feedback?: string;
 }
 
 export type Tone = "profesional" | "informal" | "cercano" | "didáctico";
@@ -375,7 +376,7 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
   const [isHydrated, setIsHydrated] = useState(false);
   const [draftArticle, setDraftArticle] = useState<{ title: string; structure: string } | null>(null);
   const [executions, setExecutions] = useState<ExecutionRecord[]>([]);
-  const [lastExecutionId, setLastExecutionId] = useState<number>(352);
+  const [lastExecutionId, setLastExecutionId] = useState<number>(451); // Updated to match latest execution
   const [clientLoadingStates, setClientLoadingStates] = useState<Record<string, boolean>>({});
 
   // Función para cargar datos de cliente desde Supabase (definida antes de los useEffect)
@@ -510,6 +511,20 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
 
   useEffect(() => {
     setIsHydrated(true);
+
+    // Load lastExecutionId from localStorage
+    try {
+      const savedLastExecutionId = localStorage.getItem('lastExecutionId');
+      if (savedLastExecutionId && !isNaN(parseInt(savedLastExecutionId))) {
+        const savedId = parseInt(savedLastExecutionId);
+        if (savedId > lastExecutionId) {
+          console.log(`🔄 Updating lastExecutionId from ${lastExecutionId} to ${savedId}`);
+          setLastExecutionId(savedId);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading lastExecutionId from localStorage:', error);
+    }
 
     // Load individual client configurations from localStorage
     const loadedClients = initialClients.map(client => {
