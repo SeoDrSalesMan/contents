@@ -1,9 +1,24 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Client-side Supabase client (works in browser)
+// Client-side Supabase client (works in browser) with session persistence
 export const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+      flowType: 'pkce', // Use PKCE for better security
+      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+      storageKey: 'supabase.auth.token',
+    },
+    global: {
+      headers: {
+        'X-Client-Info': 'contents-dashboard'
+      }
+    }
+  }
 )
 
 // Types for better TypeScript support

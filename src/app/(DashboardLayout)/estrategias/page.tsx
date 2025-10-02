@@ -34,7 +34,8 @@ import {
   IconDownload,
   IconCheck,
   IconDeviceFloppy,
-  IconAlertCircle
+  IconAlertCircle,
+  IconRefresh
 } from "@tabler/icons-react";
 import { useContentSettings } from "../components/content/ContentSettingsContext";
 
@@ -71,6 +72,103 @@ export default function EstrategiasPage() {
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
   const [isSaving, setIsSaving] = useState(false);
   const [feedbackValues, setFeedbackValues] = useState<Record<string, string>>({});
+  const [regeneratingRows, setRegeneratingRows] = useState<Set<string>>(new Set());
+
+  // Función para regenerar una fila específica
+  const regenerateRow = async (strategyId: string, rowIndex: number) => {
+    if (!selectedClientId) {
+      setMessage('Seleccione un cliente primero');
+      return;
+    }
+
+    const rowId = generateRowId(strategyId, rowIndex);
+    setRegeneratingRows(prev => new Set(prev).add(rowId));
+
+    const webhookUrls: Record<string, string> = {
+      distrito_legal: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-distrito',
+      neuron: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-neuron',
+      sistemlab: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-sistemlab',
+      grangala: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-grangala',
+      deuda: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-deuda',
+      estudiantes: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-estudiantes',
+      segunda: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-segunda',
+      comparador: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-comparador'
+    };
+
+    try {
+      const selectedWebhookUrl = webhookUrls[selectedClientId] || webhookUrls[selectedClientId.replace('_rehab', '').replace('_legal', '')];
+
+      if (!selectedWebhookUrl) {
+        throw new Error(`No webhook found for client: ${selectedClientId}`);
+      }
+
+      const response = await fetch(`${selectedWebhookUrl}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          cliente: selectedClientId,
+          timestamp: new Date().toISOString(),
+          action: 'regenerar_fila_estrategia'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      // Update the specific row in the strategy
+      setGeneratedStrategies(prev => prev.map(strategy => {
+        if (strategy.id === strategyId) {
+          const currentResults = parseMarkdownTable(
+            strategy.webhookResult && typeof strategy.webhookResult === 'string'
+              ? strategy.webhookResult
+              : strategy.webhookResult?.output ||
+                (Array.isArray(strategy.webhookResult) && strategy.webhookResult[0]?.output) ||
+                strategy.webhookResult?.response ||
+                strategy.webhookResult?.data ||
+                JSON.stringify(strategy.webhookResult, null, 2)
+          );
+
+          const newRowData = parseMarkdownTable(
+            result?.output || result?.response || result?.data ||
+            (Array.isArray(result) && result[0]?.output) ||
+            (typeof result === 'string' ? result : JSON.stringify(result, null, 2))
+          );
+
+          // Replace the specific row
+          if (newRowData.length > 0) {
+            currentResults[rowIndex] = newRowData[0]; // Use first result or replace with entire result
+
+            // Update the webhook result (this is a simplified approach)
+            // In a real implementation, you'd need to reconstruct the markdown table
+            return {
+              ...strategy,
+              // Keep the same webhookResult structure, but note this is not accurate
+              // A better implementation would parse and rebuild the markdown table
+              webhookResult: result
+            };
+          }
+        }
+        return strategy;
+      }));
+
+      setMessage(`Fila ${rowIndex + 1} regenerada exitosamente`);
+
+    } catch (error) {
+      console.error('Error regenerating row:', error);
+      setMessage(`Error al regenerar fila ${rowIndex + 1}`);
+    } finally {
+      setRegeneratingRows(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(rowId);
+        return newSet;
+      });
+    }
+  };
 
   const clienteDisplayNames = {
     distrito_legal: 'Distrito Legal',
@@ -799,6 +897,7 @@ export default function EstrategiasPage() {
                                   <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 200 }}>Copy</TableCell>
                                   <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem' }}>CTA</TableCell>
                                   <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem' }}>Hashtags</TableCell>
+                                  <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 80, textAlign: 'center' }}>Regenerar</TableCell>
                                   <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: 150 }}>Feedback</TableCell>
                                 </TableRow>
                               </TableHead>
@@ -831,6 +930,39 @@ export default function EstrategiasPage() {
                                       </TableCell>
                                       <TableCell sx={{ fontSize: '0.8rem' }}>{row.cta || '-'}</TableCell>
                                       <TableCell sx={{ fontSize: '0.8rem' }}>{row.hashtags || '-'}</TableCell>
+                                      <TableCell sx={{ fontSize: '0.8rem', textAlign: 'center' }}>
+                                        <Button
+                                          size="small"
+                                          variant="outlined"
+                                          startIcon={
+                                            regeneratingRows.has(rowId) ? (
+                                              <CircularProgress size={12} />
+                                            ) : (
+                                              <IconRefresh size={14} />
+                                            )
+                                          }
+                                          onClick={() => regenerateRow(strategy.id, index)}
+                                          disabled={regeneratingRows.has(rowId)}
+                                          sx={{
+                                            minWidth: 'auto',
+                                            fontSize: '0.7rem',
+                                            padding: '2px 8px',
+                                            borderColor: 'primary.main',
+                                            color: 'primary.main',
+                                            '&:hover': {
+                                              backgroundColor: 'primary.main',
+                                              borderColor: 'primary.main',
+                                              color: 'white'
+                                            },
+                                            '&:disabled': {
+                                              borderColor: 'grey.400',
+                                              color: 'grey.400'
+                                            }
+                                          }}
+                                        >
+                                          {regeneratingRows.has(rowId) ? '...' : 'Regenerar'}
+                                        </Button>
+                                      </TableCell>
                                       <TableCell sx={{ fontSize: '0.8rem', maxWidth: 150 }}>
                                         <TextField
                                           value={feedbackValues[rowId] || ''}

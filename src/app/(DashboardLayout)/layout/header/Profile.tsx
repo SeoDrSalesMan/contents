@@ -62,12 +62,31 @@ const Profile = () => {
       try {
         console.log('🔍 Profile component: Getting user data...');
 
-        // Add timeout to prevent infinite loading
+        // Add timeout to prevent infinite loading (increased for better session persistence)
         const timeoutPromise = new Promise((_, reject) => {
-          timeoutId = setTimeout(() => reject(new Error('Auth timeout')), 10000); // 10s timeout
+          timeoutId = setTimeout(() => reject(new Error('Auth timeout')), 30000); // 30 seconds timeout for auth
         });
 
         const authPromise = supabase.auth.getUser();
+
+        // First try to get the session to handle token refresh automatically
+        try {
+          const { data: sessionData } = await supabase.auth.getSession();
+
+          // If session exists, refresh token if needed
+          if (sessionData.session && sessionData.session.expires_at && Date.now() / 1000 > sessionData.session.expires_at) {
+            console.log('🔄 Session expired, attempting refresh...');
+            const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+
+            if (refreshError) {
+              console.warn('⚠️ Session refresh failed, proceeding with getUser:', refreshError.message);
+            } else {
+              console.log('✅ Session refreshed successfully');
+            }
+          }
+        } catch (sessionError) {
+          console.warn('⚠️ Session check failed, proceeding with getUser:', sessionError);
+        }
 
         const authResult = await Promise.race([authPromise, timeoutPromise]) as Awaited<ReturnType<typeof supabase.auth.getUser>>;
         const { data: { user: supabaseUser }, error } = authResult;
@@ -139,16 +158,46 @@ const Profile = () => {
 
     getUserData();
 
+    // Set up periodic session refresh (every 5 minutes)
+    const sessionRefreshInterval = setInterval(async () => {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (sessionData.session && sessionData.session.expires_at) {
+          const expiresAt = sessionData.session.expires_at;
+          const now = Date.now() / 1000;
+
+          // Refresh if expires in less than 10 minutes
+          if (expiresAt - now < 600) {
+            console.log('🔄 Refreshing session proactively...');
+            const { error } = await supabase.auth.refreshSession();
+            if (!error) {
+              console.log('✅ Session refreshed successfully');
+            } else {
+              console.warn('⚠️ Proactive session refresh failed:', error.message);
+            }
+          }
+        }
+      } catch (error) {
+        console.warn('⚠️ Periodic session check failed:', error);
+      }
+    }, 300000); // 5 minutes
+
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
         await getUserData();
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
+      } else if (event === 'TOKEN_REFRESHED') {
+        console.log('🔄 Session token refreshed via auth state change');
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      clearInterval(sessionRefreshInterval);
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   if (loading) {
