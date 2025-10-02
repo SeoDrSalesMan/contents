@@ -26,9 +26,6 @@ interface User {
 }
 
 const Profile = () => {
-  // Constantes para evitar recreaciones
-  const CHECK_SESSION_INTERVAL = 300000; // 5 minutos
-  const SESSION_TIMEOUT = 30000; // 30 segundos para timeouts
   const [anchorEl2, setAnchorEl2] = useState<null | HTMLElement>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -58,138 +55,66 @@ const Profile = () => {
     }
   };
 
-  useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-    let sessionIntervalId: NodeJS.Timeout;
+  // Simplificar el componente Profile para evitar timeouts en producción
+  // Usar un approach más directo con cache
+  const [sessionChecked, setSessionChecked] = useState(false);
 
-    const getUserData = async () => {
-      // Prevent multiple simultaneous calls
+  // Función memoizada para obtener datos del usuario
+  const getUserData = useCallback(async () => {
+    if (sessionChecked) return; // Ya se verificó la sesión
+
+    try {
       setLoading(true);
-      try {
-        console.log('🔍 Profile component: Getting user data...');
+      console.log('🔍 Profile: Checking auth session...');
 
-        // Much shorter timeout for better UX
-        const timeoutPromise = new Promise((_, reject) => {
-          timeoutId = setTimeout(() => reject(new Error('Auth timeout')), 5000); // 5 seconds timeout
-        });
+      // Timeout de 10 segundos para producción
+      const timeoutPromise = new Promise((_, reject) => {
+        const timeoutId = setTimeout(() => reject(new Error('Session check timeout')), 10000);
+      });
 
-        // Get session first - more reliable than getUser for authentication checks
-        const sessionPromise = supabase.auth.getSession();
+      const sessionPromise = supabase.auth.getSession();
+      const result = await Promise.race([sessionPromise, timeoutPromise]);
+      const { data: { session }, error } = result as any;
 
-        const sessionResult = await Promise.race([sessionPromise, timeoutPromise]) as Awaited<ReturnType<typeof supabase.auth.getSession>>;
-        const { data: { session }, error: sessionError } = sessionResult;
-
-        clearTimeout(timeoutId);
-
-        if (sessionError || !session?.user) {
-          console.log('⚠️ Profile component: No authenticated session');
-          setUser(null);
-          setLoading(false);
-          return;
-        }
-
-        const supabaseUser = session.user;
-
-        console.log('🔍 Profile component: Auth result:', {
-          hasUser: !!supabaseUser,
-          error: sessionError ? String(sessionError) : null,
-          email: supabaseUser?.email
-        });
-
-        // Get user profile from profiles table with timeout
-        try {
-          console.log('🔍 Profile component: Fetching profile data...');
-
-          const profileTimeoutId = setTimeout(() => {
-            throw new Error('Profile query timeout');
-          }, 5000); // 5s timeout for profile query
-
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('full_name, avatar_url')
-            .eq('id', supabaseUser.id)
-            .single();
-
-          clearTimeout(profileTimeoutId);
-
-          if (profileError && profileError.code !== 'PGRST116') {
-            console.warn('⚠️ Profile component: Profile query error:', profileError.message);
-          }
-
-          const userData = {
-            email: supabaseUser.email || '',
-            full_name: profile?.full_name || supabaseUser.email?.split('@')[0] || 'Usuario',
-            avatar_url: profile?.avatar_url || supabaseUser.user_metadata?.avatar_url,
-          };
-
-          console.log('✅ Profile component: User data loaded:', {
-            email: userData.email,
-            fullName: userData.full_name,
-            hasAvatar: !!userData.avatar_url
-          });
-
-          setUser(userData);
-        } catch (profileFetchError) {
-          console.warn('⚠️ Profile component: Profile fetch failed, using basic user data:', profileFetchError);
-
-          // Fallback to basic user data if profile fails
-          setUser({
-            email: supabaseUser.email || '',
-            full_name: supabaseUser.email?.split('@')[0] || 'Usuario',
-            avatar_url: supabaseUser.user_metadata?.avatar_url,
-          });
-        }
-      } catch (error) {
-        console.error('❌ Profile component: Auth error:', error);
+      if (error || !session?.user) {
+        console.log('⚠️ Profile: No session or error:', error?.message);
         setUser(null);
-      } finally {
-        setLoading(false);
+        return;
       }
-    };
 
+      const userData = {
+        email: session.user.email || '',
+        full_name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Usuario',
+        avatar_url: session.user.user_metadata?.avatar_url,
+      };
+
+      console.log('✅ Profile: User loaded successfully');
+      setUser(userData);
+
+    } catch (error) {
+      console.error('❌ Profile: Auth check failed:', error);
+      setUser(null);
+    } finally {
+      setLoading(false);
+      setSessionChecked(true);
+    }
+  }, [sessionChecked]);
+
+  useEffect(() => {
     getUserData();
 
-    // Set up periodic session refresh (every 5 minutes)
-    const sessionRefreshInterval = setInterval(async () => {
-      try {
-        const { data: sessionData } = await supabase.auth.getSession();
-        if (sessionData.session && sessionData.session.expires_at) {
-          const expiresAt = sessionData.session.expires_at;
-          const now = Date.now() / 1000;
-
-          // Refresh if expires in less than 10 minutes
-          if (expiresAt - now < 600) {
-            console.log('🔄 Refreshing session proactively...');
-            const { error } = await supabase.auth.refreshSession();
-            if (!error) {
-              console.log('✅ Session refreshed successfully');
-            } else {
-              console.warn('⚠️ Proactive session refresh failed:', error.message);
-            }
-          }
-        }
-      } catch (error) {
-        console.warn('⚠️ Periodic session check failed:', error);
-      }
-    }, 300000); // 5 minutes
-
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    // Listener simple para cambios de auth
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
-        await getUserData();
+        window.location.reload(); // Simple reload on auth changes
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
-      } else if (event === 'TOKEN_REFRESHED') {
-        console.log('🔄 Session token refreshed via auth state change');
+        window.location.href = '/authentication/login';
       }
     });
 
-    return () => {
-      subscription.unsubscribe();
-      clearInterval(sessionRefreshInterval);
-      clearTimeout(timeoutId);
-    };
-  }, []);
+    return () => subscription.unsubscribe();
+  }, [getUserData]);
 
   if (loading) {
     return (
