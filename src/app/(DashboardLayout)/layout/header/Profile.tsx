@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -26,6 +26,9 @@ interface User {
 }
 
 const Profile = () => {
+  // Constantes para evitar recreaciones
+  const CHECK_SESSION_INTERVAL = 300000; // 5 minutos
+  const SESSION_TIMEOUT = 30000; // 30 segundos para timeouts
   const [anchorEl2, setAnchorEl2] = useState<null | HTMLElement>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,53 +60,41 @@ const Profile = () => {
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
+    let sessionIntervalId: NodeJS.Timeout;
 
     const getUserData = async () => {
+      // Prevent multiple simultaneous calls
+      setLoading(true);
       try {
         console.log('🔍 Profile component: Getting user data...');
 
-        // Add timeout to prevent infinite loading (increased for better session persistence)
+        // Much shorter timeout for better UX
         const timeoutPromise = new Promise((_, reject) => {
-          timeoutId = setTimeout(() => reject(new Error('Auth timeout')), 30000); // 30 seconds timeout for auth
+          timeoutId = setTimeout(() => reject(new Error('Auth timeout')), 5000); // 5 seconds timeout
         });
 
-        const authPromise = supabase.auth.getUser();
+        // Get session first - more reliable than getUser for authentication checks
+        const sessionPromise = supabase.auth.getSession();
 
-        // First try to get the session to handle token refresh automatically
-        try {
-          const { data: sessionData } = await supabase.auth.getSession();
-
-          // If session exists, refresh token if needed
-          if (sessionData.session && sessionData.session.expires_at && Date.now() / 1000 > sessionData.session.expires_at) {
-            console.log('🔄 Session expired, attempting refresh...');
-            const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
-
-            if (refreshError) {
-              console.warn('⚠️ Session refresh failed, proceeding with getUser:', refreshError.message);
-            } else {
-              console.log('✅ Session refreshed successfully');
-            }
-          }
-        } catch (sessionError) {
-          console.warn('⚠️ Session check failed, proceeding with getUser:', sessionError);
-        }
-
-        const authResult = await Promise.race([authPromise, timeoutPromise]) as Awaited<ReturnType<typeof supabase.auth.getUser>>;
-        const { data: { user: supabaseUser }, error } = authResult;
+        const sessionResult = await Promise.race([sessionPromise, timeoutPromise]) as Awaited<ReturnType<typeof supabase.auth.getSession>>;
+        const { data: { session }, error: sessionError } = sessionResult;
 
         clearTimeout(timeoutId);
 
-        console.log('🔍 Profile component: Auth result:', {
-          hasUser: !!supabaseUser,
-          error: error?.message,
-          email: supabaseUser?.email
-        });
-
-        if (error || !supabaseUser) {
-          console.log('⚠️ Profile component: No authenticated user');
+        if (sessionError || !session?.user) {
+          console.log('⚠️ Profile component: No authenticated session');
           setUser(null);
+          setLoading(false);
           return;
         }
+
+        const supabaseUser = session.user;
+
+        console.log('🔍 Profile component: Auth result:', {
+          hasUser: !!supabaseUser,
+          error: sessionError ? String(sessionError) : null,
+          email: supabaseUser?.email
+        });
 
         // Get user profile from profiles table with timeout
         try {

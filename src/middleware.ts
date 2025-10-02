@@ -22,9 +22,9 @@ export async function middleware(req: NextRequest) {
     }
   )
 
-  // TEMPORARILY DISABLED: Route protection for debugging
-  // Users can navigate freely while maintaining session capability
-  // Keep Supabase client configured for when auth is re-enabled
+  // COMPLETELY DISABLED: No session checking in middleware for now
+  // This prevents any automatic redirects and session validations
+  // that might be causing issues with session persistence during navigation
 
   return res
 }
