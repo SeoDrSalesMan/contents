@@ -103,13 +103,27 @@ const Profile = () => {
   useEffect(() => {
     getUserData();
 
-    // Listener simple para cambios de auth
+    // Listener simple para cambios de auth - SIN RELOADS
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('🔄 Auth state change:', event);
+
       if (event === 'SIGNED_IN' && session?.user) {
-        window.location.reload(); // Simple reload on auth changes
+        // Actualizar user data sin reload de página
+        const userData = {
+          email: session.user.email || '',
+          full_name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Usuario',
+          avatar_url: session.user.user_metadata?.avatar_url,
+        };
+        setUser(userData);
+        setSessionChecked(true);
+        console.log('✅ Auth: User signed in, updated state');
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
-        window.location.href = '/authentication/login';
+        console.log('✅ Auth: User signed out, clearing state');
+        // Solo redirect después de un período para evitar bucles
+        setTimeout(() => {
+          window.location.href = '/authentication/login';
+        }, 100);
       }
     });
 
