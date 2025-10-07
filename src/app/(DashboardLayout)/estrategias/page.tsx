@@ -84,23 +84,9 @@ export default function EstrategiasPage() {
     const rowId = generateRowId(strategyId, rowIndex);
     setRegeneratingRows(prev => new Set(prev).add(rowId));
 
-    const webhookUrls: Record<string, string> = {
-      distrito_legal: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-distrito',
-      neuron: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-neuron',
-      sistemlab: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-sistemlab',
-      grangala: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-grangala',
-      deuda: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-deuda',
-      estudiantes: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-estudiantes',
-      segunda: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-segunda',
-      comparador: 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-comparador'
-    };
-
     try {
-      const selectedWebhookUrl = webhookUrls[selectedClientId] || webhookUrls[selectedClientId.replace('_rehab', '').replace('_legal', '')];
-
-      if (!selectedWebhookUrl) {
-        throw new Error(`No webhook found for client: ${selectedClientId}`);
-      }
+      // Use the regeneration webhook URL
+      const selectedWebhookUrl = 'https://content-generator.nv0ey8.easypanel.host/webhook/rrss-regen';
 
       const response = await fetch(`${selectedWebhookUrl}`, {
         method: 'POST',
@@ -108,7 +94,8 @@ export default function EstrategiasPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          cliente: selectedClientId,
+          cliente_id: selectedClientId,
+          clientUuidMap: clientUuidMap,
           timestamp: new Date().toISOString(),
           action: 'regenerar_fila_estrategia'
         })
@@ -123,21 +110,9 @@ export default function EstrategiasPage() {
       // Update the specific row in the strategy
       setGeneratedStrategies(prev => prev.map(strategy => {
         if (strategy.id === strategyId) {
-          const currentResults = parseMarkdownTable(
-            strategy.webhookResult && typeof strategy.webhookResult === 'string'
-              ? strategy.webhookResult
-              : strategy.webhookResult?.output ||
-                (Array.isArray(strategy.webhookResult) && strategy.webhookResult[0]?.output) ||
-                strategy.webhookResult?.response ||
-                strategy.webhookResult?.data ||
-                JSON.stringify(strategy.webhookResult, null, 2)
-          );
+          const currentResults = parseResponse(strategy.webhookResult);
 
-          const newRowData = parseMarkdownTable(
-            result?.output || result?.response || result?.data ||
-            (Array.isArray(result) && result[0]?.output) ||
-            (typeof result === 'string' ? result : JSON.stringify(result, null, 2))
-          );
+          const newRowData = parseResponse(result);
 
           // Replace the specific row
           if (newRowData.length > 0) {
@@ -197,15 +172,7 @@ export default function EstrategiasPage() {
     let allRows: any[] = [];
 
     generatedStrategies.forEach((strategy) => {
-      const strategyResults = parseMarkdownTable(
-        strategy.webhookResult && typeof strategy.webhookResult === 'string'
-          ? strategy.webhookResult
-          : strategy.webhookResult?.output ||
-            (Array.isArray(strategy.webhookResult) && strategy.webhookResult[0]?.output) ||
-            strategy.webhookResult?.response ||
-            strategy.webhookResult?.data ||
-            JSON.stringify(strategy.webhookResult, null, 2)
-      );
+      const strategyResults = parseResponse(strategy.webhookResult);
 
       // Add table headers
       if (strategyResults.length > 0 && csvContent === 'Cliente,Ejecución ID,Estado,Fecha de Creación,') {
@@ -281,15 +248,7 @@ export default function EstrategiasPage() {
   const getAllRowIds = () => {
     const allIds: string[] = [];
     generatedStrategies.forEach((strategy) => {
-      const strategyResults = parseMarkdownTable(
-        strategy.webhookResult && typeof strategy.webhookResult === 'string'
-          ? strategy.webhookResult
-          : strategy.webhookResult?.output ||
-            (Array.isArray(strategy.webhookResult) && strategy.webhookResult[0]?.output) ||
-            strategy.webhookResult?.response ||
-            strategy.webhookResult?.data ||
-            JSON.stringify(strategy.webhookResult, null, 2)
-      );
+      const strategyResults = parseResponse(strategy.webhookResult);
       strategyResults.forEach((_, index) => {
         allIds.push(generateRowId(strategy.id, index));
       });
@@ -318,15 +277,7 @@ export default function EstrategiasPage() {
       const rowsToSave: any[] = [];
 
       generatedStrategies.forEach((strategy) => {
-        const strategyResults = parseMarkdownTable(
-          strategy.webhookResult && typeof strategy.webhookResult === 'string'
-            ? strategy.webhookResult
-            : strategy.webhookResult?.output ||
-              (Array.isArray(strategy.webhookResult) && strategy.webhookResult[0]?.output) ||
-              strategy.webhookResult?.response ||
-              strategy.webhookResult?.data ||
-              JSON.stringify(strategy.webhookResult, null, 2)
-        );
+        const strategyResults = parseResponse(strategy.webhookResult);
 
         strategyResults.forEach((row: any, index: number) => {
           const rowId = generateRowId(strategy.id, index);
@@ -430,6 +381,136 @@ export default function EstrategiasPage() {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  // Function to parse both markdown tables and new JSON format
+  const parseResponse = (response: any): any[] => {
+    // Try different approaches to find the posts array
+
+    // Handle nested output property (some webhooks wrap response in {output: "json string"})
+    if (response && typeof response === 'object' && typeof response.output === 'string') {
+      try {
+        const parsedOutput = JSON.parse(response.output);
+        if (parsedOutput && typeof parsedOutput === 'object' && parsedOutput.posts && Array.isArray(parsedOutput.posts)) {
+          return parsedOutput.posts.map((post: any) => ({
+            fecha: post.fecha || '',
+            canal: Array.isArray(post.canales) ? post.canales.join(', ') : (post.canales || ''),
+            tipo: post.tipo || '',
+            formato: post.formato || '',
+            titulo: post.titulo || '',
+            copy: post.copy || '',
+            cta: post.cta || '',
+            hashtags: Array.isArray(post.hashtags) ? post.hashtags.join(' ') : (post.hashtags || ''),
+            recursos: Array.isArray(post.assets) ? post.assets.join(', ') : (post.assets || ''),
+            notas: post.notas || '',
+            slot_id: post.slot_id || ''
+          }));
+        }
+      } catch {
+        // If output string is not valid JSON, continue with other approaches
+      }
+    }
+
+    // Direct object with posts array
+    if (response && typeof response === 'object' && response.posts && Array.isArray(response.posts)) {
+      return response.posts.map((post: any) => ({
+        fecha: post.fecha || '',
+        canal: Array.isArray(post.canales) ? post.canales.join(', ') : (post.canales || ''),
+        tipo: post.tipo || '',
+        formato: post.formato || '',
+        titulo: post.titulo || '',
+        copy: post.copy || '',
+        cta: post.cta || '',
+        hashtags: Array.isArray(post.hashtags) ? post.hashtags.join(' ') : (post.hashtags || ''),
+        recursos: Array.isArray(post.assets) ? post.assets.join(', ') : (post.assets || ''),
+        notas: post.notas || '',
+        slot_id: post.slot_id || ''
+      }));
+    }
+
+    // Check nested in response, output, data, etc.
+    let data: any = response;
+    if (response && typeof response === 'object') {
+      data = response.output || response.response || response.data || response.result || response;
+    }
+
+    if (data && typeof data === 'object' && data.posts && Array.isArray(data.posts)) {
+      return data.posts.map((post: any) => ({
+        fecha: post.fecha || '',
+        canal: Array.isArray(post.canales) ? post.canales.join(', ') : (post.canales || ''),
+        tipo: post.tipo || '',
+        formato: post.formato || '',
+        titulo: post.titulo || '',
+        copy: post.copy || '',
+        cta: post.cta || '',
+        hashtags: Array.isArray(post.hashtags) ? post.hashtags.join(' ') : (post.hashtags || ''),
+        recursos: Array.isArray(post.assets) ? post.assets.join(', ') : (post.assets || ''),
+        notas: post.notas || '',
+        slot_id: post.slot_id || ''
+      }));
+    }
+
+    // Try to parse as JSON string
+    if (typeof response === 'string') {
+      try {
+        const parsed = JSON.parse(response);
+        if (parsed && typeof parsed === 'object' && parsed.posts && Array.isArray(parsed.posts)) {
+          return parsed.posts.map((post: any) => ({
+            fecha: post.fecha || '',
+            canal: Array.isArray(post.canales) ? post.canales.join(', ') : (post.canales || ''),
+            tipo: post.tipo || '',
+            formato: post.formato || '',
+            titulo: post.titulo || '',
+            copy: post.copy || '',
+            cta: post.cta || '',
+            hashtags: Array.isArray(post.hashtags) ? post.hashtags.join(' ') : (post.hashtags || ''),
+            recursos: Array.isArray(post.assets) ? post.assets.join(', ') : (post.assets || ''),
+            notas: post.notas || '',
+            slot_id: post.slot_id || ''
+          }));
+        }
+      } catch {
+        // Not JSON or doesn't have posts, try markdown
+        return parseMarkdownTable(response);
+      }
+    }
+
+    // Check recursively for posts array anywhere in the object
+    const findPostsArray = (obj: any): any[] | null => {
+      if (obj && Array.isArray(obj.posts)) return obj.posts;
+      if (obj && typeof obj === 'object') {
+        for (const key in obj) {
+          const result = findPostsArray(obj[key]);
+          if (result) return result;
+        }
+      }
+      return null;
+    };
+
+    const posts = findPostsArray(response);
+    if (posts) {
+      return posts.map((post: any) => ({
+        fecha: post.fecha || '',
+        canal: Array.isArray(post.canales) ? post.canales.join(', ') : (post.canales || ''),
+        tipo: post.tipo || '',
+        formato: post.formato || '',
+        titulo: post.titulo || '',
+        copy: post.copy || '',
+        cta: post.cta || '',
+        hashtags: Array.isArray(post.hashtags) ? post.hashtags.join(' ') : (post.hashtags || ''),
+        recursos: Array.isArray(post.assets) ? post.assets.join(', ') : (post.assets || ''),
+        notas: post.notas || '',
+        slot_id: post.slot_id || ''
+      }));
+    }
+
+    // Fallback: try as markdown
+    if (typeof data === 'string') {
+      return parseMarkdownTable(data);
+    }
+
+    // No valid format found
+    return [];
   };
 
   const parseMarkdownTable = (markdown: string): any[] => {
@@ -806,38 +887,18 @@ export default function EstrategiasPage() {
                   )} */}
 
                   {(() => {
-                    console.log('🔍 Analyzing webhook response:', strategy.webhookResult);
-
-                    let strategyResults: any[] = [];
+                    const strategyResults = parseResponse(strategy.webhookResult);
                     let rawResponse = '';
 
-                    // Handle different response formats
-                    if (strategy.webhookResult) {
-                      if (strategy.webhookResult.output) {
-                        rawResponse = strategy.webhookResult.output;
-                      } else if (Array.isArray(strategy.webhookResult) && strategy.webhookResult[0]?.output) {
-                        rawResponse = strategy.webhookResult[0].output;
-                      } else if (strategy.webhookResult.response || strategy.webhookResult.data) {
-                        rawResponse = strategy.webhookResult.response || strategy.webhookResult.data;
-                      } else {
-                        // Convert object to string if it's not already
-                        rawResponse = typeof strategy.webhookResult === 'string'
-                          ? strategy.webhookResult
-                          : JSON.stringify(strategy.webhookResult, null, 2);
-                      }
+                    // Fallback: if no results, create raw response for display
+                    if (strategyResults.length === 0 && strategy.webhookResult) {
+                      rawResponse = typeof strategy.webhookResult === 'string'
+                        ? strategy.webhookResult
+                        : JSON.stringify(strategy.webhookResult, null, 2);
                     }
-
-                    // Try to parse table from response
-                    if (rawResponse) {
-                      strategyResults = parseMarkdownTable(rawResponse);
-                      console.log('📊 Parsed results:', strategyResults.length, 'items');
-                    }
-
-                    // Debug: Always show raw response for troubleshooting
-                    console.log('📄 Raw response for debugging:', rawResponse);
 
                     // Show table if we have parsed results
-                    if (strategyResults.length > 0) {
+                    if (strategyResults && strategyResults.length > 0) {
                       return (
                         <Box sx={{ mt: 2 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
