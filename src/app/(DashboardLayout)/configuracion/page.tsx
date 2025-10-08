@@ -938,6 +938,19 @@ const ClientManager = () => {
                   Los emojis ayudan a mejorar el engagement y atención en las publicaciones sociales.
                 </Typography>
               </GridLegacy>
+
+              <GridLegacy item xs={12} sx={{ mt: 3 }}>
+                <TextField
+                  label="ARTÍCULOS DEL MES"
+                  fullWidth
+                  multiline
+                  rows={4}
+                  value={client.articulos || ''}
+                  onChange={(e) => updateClientField(client.id, 'articulos', e.target.value)}
+                  placeholder="Especifica los artículos o temas que deseas abordar este mes separados por líneas..."
+                  helperText="Cada línea representa un artículo o tema específico que quieres cubrir en el contenido del mes."
+                />
+              </GridLegacy>
             </GridLegacy>
 
             {/* Save Button */}

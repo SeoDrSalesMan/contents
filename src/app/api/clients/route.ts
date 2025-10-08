@@ -108,6 +108,7 @@ export async function POST(request: NextRequest) {
       usar_post: body.usar_post || false,
       numero_post: body.numero_post || 0,
       emojis: body.emojis !== undefined ? body.emojis : true,
+      articulos: body.articulos ? body.articulos.split('\n').map((line: string) => line.trim()).filter((line: string) => line.length > 0) : [],
       updated_at: new Date().toISOString()
     };
 

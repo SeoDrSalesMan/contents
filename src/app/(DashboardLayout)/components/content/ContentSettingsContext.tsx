@@ -65,6 +65,7 @@ export interface Client {
   usar_post: boolean;
   numero_post: number;
   emojis: boolean;
+  articulos: string;
   strategies: ContentItem[];
   articles: any[];
   workflowId: string;
@@ -113,6 +114,38 @@ const clientNameMap: Record<string, string> = {
   "comparador": "Comparador Aprender Idiomas"
 };
 
+const createClientDefaults = {
+  nombre: '',
+  web: '',
+  sector: '',
+  propuesta_valor: '',
+  publico_objetivo: '',
+  keywords: [],
+  numero_contenidos_blog: 4,
+  frecuencia_mensual_blog: 'Semanal',
+  numero_contenidos_rrss: 12,
+  frecuencia_mensual_rrss: 'Semanal',
+  porcentaje_educar: 25,
+  porcentaje_inspirar: 25,
+  porcentaje_entretener: 25,
+  porcentaje_promocionar: 25,
+  verticales_interes: [],
+  audiencia_no_deseada: [],
+  estilo_comunicacion: 'Profesional',
+  tono_voz: 'Profesional',
+  redes_sociales: [],
+  usar_historias: false,
+  numero_historias: 0,
+  usar_reels: false,
+  numero_reels: 0,
+  usar_carruseles: false,
+  numero_carruseles: 0,
+  usar_post: false,
+  numero_post: 0,
+  emojis: true,
+  articulos: ''
+};
+
 const initialClients: Client[] = [
   {
     id: "distrito_legal",
@@ -150,6 +183,7 @@ const initialClients: Client[] = [
     usar_post: false,
     numero_post: 0,
     emojis: true,
+    articulos: '',
     strategies: [],
     articles: [],
     workflowId: "zQw5IM51uOdywlMD",
@@ -191,6 +225,49 @@ const initialClients: Client[] = [
     usar_post: false,
     numero_post: 0,
     emojis: true,
+    articulos: '',
+    strategies: [],
+    articles: [],
+    workflowId: "",
+    executionIds: []
+  },
+  {
+    id: "sistemlab",
+    name: "SistemLab",
+    webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/articulos-sistemlab",
+    ideasWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/ideas-sistemlab",
+    structureWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/estructura-sistemlab",
+    dataWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/datos-sistemlab",
+    info: "Laboratorio de sistemas y tecnología. Enfoque técnico y profesional.",
+    nombre: "SistemLab",
+    web: "",
+    sector: "",
+    propuesta_valor: "",
+    publico_objetivo: "",
+    keywords: "",
+    numero_contenidos_blog: 0,
+    frecuencia_mensual_blog: "",
+    numero_contenidos_rrss: 0,
+    frecuencia_mensual_rrss: "",
+    porcentaje_educar: 25,
+    porcentaje_inspirar: 25,
+    porcentaje_entretener: 25,
+    porcentaje_promocionar: 25,
+    verticales_interes: "",
+    audiencia_no_deseada: "",
+    estilo_comunicacion: "",
+    tono_voz: "",
+    redes_sociales: [],
+    usar_historias: false,
+    numero_historias: 0,
+    usar_reels: false,
+    numero_reels: 0,
+    usar_carruseles: false,
+    numero_carruseles: 0,
+    usar_post: false,
+    numero_post: 0,
+    emojis: true,
+    articulos: '',
     strategies: [],
     articles: [],
     workflowId: "",
@@ -232,50 +309,10 @@ const initialClients: Client[] = [
     usar_post: false,
     numero_post: 0,
     emojis: true,
+    articulos: '',
     strategies: [],
     articles: [],
     workflowId: "nUlAdnVfDwjnszRq",
-    executionIds: []
-  },
-  {
-    id: "sistemlab",
-    name: "SistemLab",
-    webhook: "https://content-generator.nv0ey8.easypanel.host/webhook/articulos-sistemlab",
-    ideasWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/ideas-sistemlab",
-    structureWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/estructura-sistemlab",
-    dataWebhook: "https://content-generator.nv0ey8.easypanel.host/webhook/datos-sistemlab",
-    info: "Laboratorio de sistemas y tecnología. Enfoque técnico y profesional.",
-    nombre: "SistemLab",
-    web: "",
-    sector: "",
-    propuesta_valor: "",
-    publico_objetivo: "",
-    keywords: "",
-    numero_contenidos_blog: 0,
-    frecuencia_mensual_blog: "",
-    numero_contenidos_rrss: 0,
-    frecuencia_mensual_rrss: "",
-    porcentaje_educar: 25,
-    porcentaje_inspirar: 25,
-    porcentaje_entretener: 25,
-    porcentaje_promocionar: 25,
-    verticales_interes: "",
-    audiencia_no_deseada: "",
-    estilo_comunicacion: "",
-    tono_voz: "",
-    redes_sociales: [],
-    usar_historias: false,
-    numero_historias: 0,
-    usar_reels: false,
-    numero_reels: 0,
-    usar_carruseles: false,
-    numero_carruseles: 0,
-    usar_post: false,
-    numero_post: 0,
-    emojis: true,
-    strategies: [],
-    articles: [],
-    workflowId: "",
     executionIds: []
   },
   {
@@ -314,6 +351,7 @@ const initialClients: Client[] = [
     usar_post: false,
     numero_post: 0,
     emojis: true,
+    articulos: '',
     strategies: [],
     articles: [],
     workflowId: "UaWhybYUFKHNbyvs",
@@ -355,6 +393,7 @@ const initialClients: Client[] = [
     usar_post: false,
     numero_post: 0,
     emojis: true,
+    articulos: '',
     strategies: [],
     articles: [],
     workflowId: "",
@@ -396,6 +435,7 @@ const initialClients: Client[] = [
     usar_post: false,
     numero_post: 0,
     emojis: true,
+    articulos: '',
     strategies: [],
     articles: [],
     workflowId: "",
@@ -437,6 +477,7 @@ const initialClients: Client[] = [
     usar_post: false,
     numero_post: 0,
     emojis: true,
+    articulos: '',
     strategies: [],
     articles: [],
     workflowId: "",
@@ -528,7 +569,10 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
               numero_carruseles: supabaseData.numero_carruseles ?? 0,
               usar_post: supabaseData.usar_post ?? false,
               numero_post: supabaseData.numero_post ?? 0,
-              emojis: supabaseData.emojis ?? true
+              emojis: supabaseData.emojis ?? true,
+              articulos: Array.isArray(supabaseData.articulos) ?
+                supabaseData.articulos.join('\n') :
+                (supabaseData.articulos || '')
             };
           }
           return c;
@@ -578,6 +622,9 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
         clientData.usar_post = supabaseData.usar_post ?? false;
         clientData.numero_post = supabaseData.numero_post ?? 0;
         clientData.emojis = supabaseData.emojis ?? true;
+        clientData.articulos = Array.isArray(supabaseData.articulos) ?
+          supabaseData.articulos.join('\n') :
+          (supabaseData.articulos || '');
         clientData.loadedFromSupabase = true;
         clientData.lastSync = new Date().toISOString();
 
@@ -666,6 +713,7 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
               numero_carruseles: parsedData.numero_carruseles ?? 0,
               usar_post: parsedData.usar_post ?? false,
               numero_post: parsedData.numero_post ?? 0,
+              articulos: parsedData.articulos || '',
               // Keep global fields intact
               strategies: client.strategies,
               articles: client.articles,
@@ -845,7 +893,8 @@ export function ContentSettingsProvider({ children }: { children: React.ReactNod
         numero_carruseles: client.numero_carruseles,
         usar_post: client.usar_post,
         numero_post: client.numero_post,
-        emojis: client.emojis
+        emojis: client.emojis,
+        articulos: client.articulos
       };
 
       console.log(`📤 Sending data to API:`, clientDataToSave);
